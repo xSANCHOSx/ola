@@ -1,4 +1,4 @@
-name: Deploy with Rsync
+name: Clean Deploy via Temp Folder
 
 on:
   push:
@@ -10,12 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Deploy to server via Rsync
+      - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
@@ -23,25 +18,31 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # Переходимо в папку, де лежить ваш .git
-            cd /var/www/www-root/data/www/sanchos-dev.website
+            # 1. Створюємо папку temp, якщо її немає
+            mkdir -p /var/www/www-root/data/www/sanchos-dev.website/temp
+            
+            # 2. Переходимо в temp і оновлюємо репозиторій
+            cd /var/www/www-root/data/www/sanchos-dev.website/temp
+            
+            # Якщо папка порожня — ініціалізуємо гіт, якщо ні — просто оновлюємо
+            if [ ! -d ".git" ]; then
+              git clone git@github.com:REAL_USER/REAL_REPO.git .
+            else
+              git fetch origin main
+              git reset --hard origin/main
+            fi
 
-            # Оновлюємо код у прихованій частині (git repo)
-            git fetch origin main
-            git reset --hard origin/main
-
-            # ВИДАЛЯЄМО .DS_Store на сервері, якщо вони там вже були
+            # 3. Видаляємо сміття macOS всередині temp перед копіюванням
             find . -name ".DS_Store" -delete
 
-            # Синхронізуємо файли в робочу директорію сайту
-            # Прапорець --delete видаляє на сервері ті файли, яких вже немає в гіті
-            # --exclude гарантує, що службові файли не потраплять у публічний доступ
+            # 4. Синхронізуємо файли з temp в корінь сайту
+            # --exclude дозволяє НЕ копіювати саму папку temp та git-файли в корінь
             rsync -avz --delete \
+              --exclude='temp/' \
               --exclude='.git/' \
               --exclude='.github/' \
               --exclude='.gitignore' \
               --exclude='.gitattributes' \
-              --exclude='.DS_Store' \
-              ./ ./
+              ./ ../
 
-            echo "Сайт очищено та оновлено."
+            echo "Деплой завершено: файли скопійовано в корінь, сміття видалено."

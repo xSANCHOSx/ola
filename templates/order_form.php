@@ -26,7 +26,7 @@
 		<input type="checkbox" id="checkBoxId" style="margin: 2px;"> <label class="font-geometria-light">Я согласен с <a
 				href="/oferta" class="oferta" target="_blank">обработкой персональных данных</a> и с <a href="/policy"
 				class="oferta" target="_blank">политикой конфиденциальности</a></label>
-		<input class="bbutton send" id="send" type="submit" value="Отправить" disabled="disabled" />
+		<input class="bbutton checkout send" id="send" type="submit" value="Відправити" disabled="disabled" />
 	</form>
 </div>
 <!----------------------------------------------------->

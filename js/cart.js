@@ -134,25 +134,70 @@
 			const txt = count > 0 ? '(' + count + ')' : '(0)'
 			$(widgetSelector).html(txt)
 			$('#basketwidjet2').html(txt)
+
+			// ДОДАТИ: оновлення badge в drawer
+			$('.minicart-badge').text(count > 0 ? count : '0')
 		}
 		ensureBasketModal() {
 			if (!$('#bcontainer').length) {
 				$('body').append(
 					`<div id="blindLayer" class="blindLayer"></div>
 					<div id="bcontainer" class="bcontainer">
+
+						<!-- HEADER -->
 						<div id="bsubject">
-							Кошик
-							<a id="bclose" href="javascript:void(0)" onclick='cart.closeWindow("bcontainer",1)'>×</a>
-						</div>
-						<div id="overflw">
-							<table class="btable" id="btable"></table>
-						</div>
-						<div id="bfooter">
-							<span id="bsum">...</span>
-							<div class="btn_footer_order">
-								<button class="bbutton" onclick="cart.showWinow('order',1)">Оформити замовлення</button>
-								<button class="bbutton skip" onclick="cart.closeWindow('bcontainer',1)">Продовжити покупки</button>
+							<div class="minicart-title">
+								<span>Кошик</span>
+								<span class="minicart-badge">0</span>
 							</div>
+							<a id="bclose" href="javascript:void(0)"
+								 onclick='cart.closeWindow("bcontainer",1)'>×</a>
+						</div>
+
+						<!-- DELIVERY BANNER -->
+						<div class="minicart-delivery-banner">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+									 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<rect x="1" y="3" width="15" height="13" rx="2"/>
+								<path d="M16 8h4l3 5v3h-7V8z"/>
+								<circle cx="5.5" cy="18.5" r="2.5"/>
+								<circle cx="18.5" cy="18.5" r="2.5"/>
+							</svg>
+							Безкоштовна доставка від 500 грн
+						</div>
+
+						<!-- ITEMS LIST -->
+						<div id="overflw">
+							<div class="minicart-items" id="minicart-items-list"></div>
+						</div>
+
+						<!-- FOOTER -->
+						<div id="bfooter">
+							<!-- Прихований #bsum для зворотної сумісності -->
+							<span id="bsum" data-price="0"></span>
+
+							<!-- Видимий рядок Total -->
+							<div class="minicart-total-row">
+								<span class="minicart-total-label">Разом:</span>
+								<span class="minicart-total-value" id="minicart-total-display">0 грн</span>
+							</div>
+
+							<div class="btn_footer_order">
+								<button class="bbutton checkout"
+												onclick="cart.showWinow('order',1)">
+									Оформити замовлення
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+											 stroke="currentColor" stroke-width="2.5"
+											 stroke-linecap="round" stroke-linejoin="round">
+										<path d="M5 12h14M12 5l7 7-7 7"/>
+									</svg>
+								</button>
+								<button class="bbutton skip"
+												onclick="cart.closeWindow('bcontainer',1)">
+									Продовжити покупки
+								</button>
+							</div>
+
 							<div class="coupon">
 								<div class="coupon_value"></div>
 								<div class="coupon__toggle" onclick="cart.toggleCoupon()">
@@ -162,16 +207,15 @@
 								<div class="coupon_body">
 									<div class="coupon_input">
 										<span>Введіть код купону:</span>
-										<input type="text" name="coupon_input_value" value="" placeholder="Код купону"/>
-										<button class="bbutton" onclick="cart.setCoupon()">Застосувати</button>
+										<input type="text" name="coupon_input_value"
+													 value="" placeholder="Код купону"/>
+										<button class="bbutton" onclick="cart.setCoupon()">
+											Застосувати
+										</button>
 									</div>
 								</div>
 							</div>
-							<div class="delivery_checkout_text">Доставка</div>
-							<div class="delivery_checkout">
-								<div id="moscow">...</div>
-								<div id="region">Регіони: уточнюйте у оператора</div>
-							</div>
+
 						</div>
 					</div>`,
 				)
@@ -179,13 +223,13 @@
 		}
 		renderTable(onMinus, onPlus, onRemove) {
 			this.ensureBasketModal()
-			const $table = $('#btable')
-			$table.html('')
+			const $list = $('#minicart-items-list')
+			$list.html('')
 
 			const items = Object.values(this.store.items)
 
 			if (items.length === 0) {
-				$table.html('<tr><td class="bitem__empty">Кошик порожній</td></tr>')
+				$list.html('<div class="minicart-empty">Кошик порожній</div>')
 				this.renderTotals()
 				return
 			}
@@ -193,63 +237,67 @@
 			items.forEach(item => {
 				const imgHtml = item.img
 					? `<img src="${item.img}" alt="${item.name || ''}" loading="lazy">`
-					: `<div class="bitem__img-placeholder"></div>`
+					: `<div class="minicart-item__img-placeholder">🛒</div>`
 
-				const subtotal = (
-					(parseFloat(item.price) || 0) * (parseInt(item.num, 10) || 0)
-				).toFixed(2)
+				// Іконка кошика (SVG trash)
+				const trashIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+					<path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+				</svg>`
 
-				$table.append(`
-					<tr class="bitem" data-id="${item.id}">
-						<td class="bitem__img-cell">${imgHtml}</td>
-						<td class="bitem__info-cell">
-							<a href="${item.url || '#'}" class="bitem__name">${item.name || ''}</a>
-							<div class="bitem__price">${parseFloat(item.price).toFixed(2)} <span>руб.</span></div>
-						</td>
-						<td class="bitem__qty-cell">
-							<div class="bitem__qty-controls">
-								<button class="basket_num_buttons" data-op="minus" data-id="${item.id}">−</button>
-								<span class="basket_num">${item.num}</span>
-								<button class="basket_num_buttons" data-op="plus" data-id="${item.id}">+</button>
+				$list.append(`
+					<div class="minicart-item" data-id="${item.id}">
+						<div class="minicart-item__img">${imgHtml}</div>
+
+						<div class="minicart-item__info">
+							<a href="${item.url || '#'}" class="minicart-item__name">
+								${item.name || ''}
+							</a>
+							<div class="minicart-item__price">
+								${parseFloat(item.price).toFixed(2)} грн
 							</div>
-							<div class="bitem__subtotal">${subtotal} руб.</div>
-						</td>
-						<td class="bitem__del-cell">
-							<button class="bitem__del-btn" data-op="del" data-id="${item.id}" title="Видалити">×</button>
-						</td>
-					</tr>
+						</div>
+
+						<div class="minicart-item__qty">
+							<button class="minicart-qty-btn" data-op="minus"
+											data-id="${item.id}">−</button>
+							<span class="minicart-qty-value">${item.num}</span>
+							<button class="minicart-qty-btn" data-op="plus"
+											data-id="${item.id}">+</button>
+						</div>
+
+						<button class="minicart-item__remove" data-op="del"
+										data-id="${item.id}" title="Видалити">
+							${trashIcon}
+							Видалити
+						</button>
+					</div>
 				`)
 			})
 
-			$table
-				.find('[data-op="minus"]')
-				.off('click')
-				.on('click', function () {
-					onMinus($(this).data('id'))
-				})
-			$table
-				.find('[data-op="plus"]')
-				.off('click')
-				.on('click', function () {
-					onPlus($(this).data('id'))
-				})
-			$table
-				.find('[data-op="del"]')
-				.off('click')
-				.on('click', function () {
-					onRemove($(this).data('id'))
-				})
+			$list.find('[data-op="minus"]').off('click').on('click', function () {
+				onMinus($(this).data('id'))
+			})
+			$list.find('[data-op="plus"]').off('click').on('click', function () {
+				onPlus($(this).data('id'))
+			})
+			$list.find('[data-op="del"]').off('click').on('click', function () {
+				onRemove($(this).data('id'))
+			})
+
 			this.renderTotals()
 		}
 		renderTotals() {
 			const sum = this.store.totalPrice()
+
+			// Старий #bsum — зберігаємо для зворотної сумісності
 			$('#bsum')
 				.attr('data-price', sum.toFixed(2))
-				.html(
-					'Сума: <span class="price_value">' + sum.toFixed(2) + '</span> руб.',
-				)
-			if (sum < 5000) $('#moscow').html('<span>Москва</span>: +250 руб.')
-			else $('#moscow').html('<span>Москва</span>: безкоштовно')
+				.html('Сума: <span class="price_value">' + sum.toFixed(2) + '</span> грн.')
+
+			// НОВЕ: оновлюємо видимий рядок Total
+			$('#minicart-total-display').text(sum.toFixed(2) + ' грн')
 		}
 		showCoupon(code) {
 			$('.coupon__toggle').hide()

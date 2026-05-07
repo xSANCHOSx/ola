@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy with Rsync
 
 on:
   push:
@@ -10,22 +10,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1.2.0 
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: Deploy to server via Rsync
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
-
           script: |
+            # Переходимо в директорію, куди ми спочатку клонували репозиторій для збірки
+            # (Або використовуємо тимчасову папку для fetch)
             cd /var/www/www-root/data/www/sanchos-dev.website
-
-            git fetch origin
+            
+            # Оновлюємо код у прихованій папці або через git fetch
+            git fetch origin main
             git reset --hard origin/main
 
+            # Використовуємо rsync для копіювання файлів у робочу директорію
+            # --exclude видаляє непотрібні файли з процесу копіювання
+            rsync -avz --delete \
+              --exclude='.git/' \
+              --exclude='.github/' \
+              --exclude='.gitignore' \
+              --exclude='.gitattributes' \
+              ./ ./dist_temp/
 
-
-
+            # Переносимо вміст із dist_temp у корінь (якщо потрібно чисте розділення)
+            # Або просто запустіть rsync прямо в цільову папку, якщо .git лежить рівнем вище
             
+            echo "Деплой завершено успішно."

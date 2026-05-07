@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 			$data['slug'] = preg_replace('/\s+/', '-', $data['slug']);
 		}
 		// Validate required fields
-		if (empty($data['title']) || empty($data['content'])) {
+		if (empty($data['title']) || empty($data['content']) || empty($data['excerpt'])) {
 			header('Location: /admin/blog.php?msg=error&edit=' . $id);
 			exit;
 		}
@@ -306,8 +306,8 @@ if (isset($_GET['msg'])) {
 				</div>
 			</div>
 			<div class="form-group">
-				<label>Анонс (виписка для переліку)</label>
-				<textarea class="form-control" rows="3" name="excerpt"
+				<label>Анонс (виписка для переліку) *</label>
+				<textarea class="form-control" rows="3" name="excerpt" required
 					placeholder="Короткий опис для сторінки блога"><?= admin_h((string)($edit['excerpt'] ?? '')) ?></textarea>
 			</div>
 			<div class="form-group">

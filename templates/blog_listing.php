@@ -42,6 +42,7 @@ $pageDescription = 'Читайте полезные статьи о восста
 					</div>
 				<?php else: ?>
 					<?php foreach ($posts as $post): ?>
+						<!-- DEBUG: <?php echo json_encode(['title' => $post['title'], 'excerpt' => $post['excerpt'] ?? 'EMPTY']); ?> -->
 						<article style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid #eee;">
 							<?php if (!empty($post['featured_image'])): ?>
 								<img src="/<?= htmlspecialchars((string)$post['featured_image']) ?>"
@@ -69,7 +70,7 @@ $pageDescription = 'Читайте полезные статьи о восста
 
 							<a href="/blog/<?= htmlspecialchars((string)$post['slug']) ?>"
 								style="color: #3e7ab6; font-weight: bold; text-decoration: none;">
-								Читати далі →
+								Подробнее →
 							</a>
 						</article>
 					<?php endforeach; ?>

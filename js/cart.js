@@ -135,7 +135,7 @@
 			$(widgetSelector).html(txt)
 			$('#basketwidjet2').html(txt)
 
-			// ДОДАТИ: оновлення badge в drawer
+			// ОБНОВИТЬ: обновление badge в drawer
 			$('.minicart-badge').text(count > 0 ? count : '0')
 		}
 		ensureBasketModal() {
@@ -147,7 +147,7 @@
 						<!-- HEADER -->
 						<div id="bsubject">
 							<div class="minicart-title">
-								<span>Кошик</span>
+								<span>Корзина</span>
 								<span class="minicart-badge">0</span>
 							</div>
 							<a id="bclose" href="javascript:void(0)"
@@ -163,7 +163,7 @@
 								<circle cx="5.5" cy="18.5" r="2.5"/>
 								<circle cx="18.5" cy="18.5" r="2.5"/>
 							</svg>
-							Безкоштовна доставка від 500 грн
+							Бесплатная доставка от 500 ₽
 						</div>
 
 						<!-- ITEMS LIST -->
@@ -173,19 +173,19 @@
 
 						<!-- FOOTER -->
 						<div id="bfooter">
-							<!-- Прихований #bsum для зворотної сумісності -->
+							<!-- Скрытый #bsum для обратной совместимости -->
 							<span id="bsum" data-price="0"></span>
 
-							<!-- Видимий рядок Total -->
+							<!-- Видимая строка Total -->
 							<div class="minicart-total-row">
-								<span class="minicart-total-label">Разом:</span>
-								<span class="minicart-total-value" id="minicart-total-display">0 грн</span>
+								<span class="minicart-total-label">Итого:</span>
+								<span class="minicart-total-value" id="minicart-total-display">0 ₽</span>
 							</div>
 
 							<div class="btn_footer_order">
 								<button class="bbutton checkout"
 												onclick="cart.showWinow('order',1)">
-									Оформити замовлення
+									Оформить заказ
 									<svg width="16" height="16" viewBox="0 0 24 24" fill="none"
 											 stroke="currentColor" stroke-width="2.5"
 											 stroke-linecap="round" stroke-linejoin="round">
@@ -194,7 +194,7 @@
 								</button>
 								<button class="bbutton skip"
 												onclick="cart.closeWindow('bcontainer',1)">
-									Продовжити покупки
+									Продолжить покупки
 								</button>
 							</div>
 
@@ -202,15 +202,15 @@
 								<div class="coupon_value"></div>
 								<div class="coupon__toggle" onclick="cart.toggleCoupon()">
 									<span class="coupon__toggle-icon">+</span>
-									<span>У мене є купон на знижку</span>
+									<span>У меня есть купон на скидку</span>
 								</div>
 								<div class="coupon_body">
 									<div class="coupon_input">
-										<span>Введіть код купону:</span>
+										<span>Введите код купона:</span>
 										<input type="text" name="coupon_input_value"
-													 value="" placeholder="Код купону"/>
+													 value="" placeholder="Код купона"/>
 										<button class="bbutton" onclick="cart.setCoupon()">
-											Застосувати
+											Применить
 										</button>
 									</div>
 								</div>
@@ -229,7 +229,7 @@
 			const items = Object.values(this.store.items)
 
 			if (items.length === 0) {
-				$list.html('<div class="minicart-empty">Кошик порожній</div>')
+				$list.html('<div class="minicart-empty">Корзина пуста</div>')
 				this.renderTotals()
 				return
 			}
@@ -239,7 +239,7 @@
 					? `<img src="${item.img}" alt="${item.name || ''}" loading="lazy">`
 					: `<div class="minicart-item__img-placeholder">🛒</div>`
 
-				// Іконка кошика (SVG trash)
+				// Иконка корзины (SVG trash)
 				const trashIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 					stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
@@ -255,7 +255,7 @@
 								${item.name || ''}
 							</a>
 							<div class="minicart-item__price">
-								${parseFloat(item.price).toFixed(2)} грн
+								${parseFloat(item.price).toFixed(2)} ₽
 							</div>
 						</div>
 
@@ -268,9 +268,9 @@
 						</div>
 
 						<button class="minicart-item__remove" data-op="del"
-										data-id="${item.id}" title="Видалити">
+										data-id="${item.id}" title="Удалить">
 							${trashIcon}
-							Видалити
+							Удалить
 						</button>
 					</div>
 				`)
@@ -291,26 +291,26 @@
 		renderTotals() {
 			const sum = this.store.totalPrice()
 
-			// Старий #bsum — зберігаємо для зворотної сумісності
+			// Старый #bsum — сохраняем для обратной совместимости
 			$('#bsum')
 				.attr('data-price', sum.toFixed(2))
-				.html('Сума: <span class="price_value">' + sum.toFixed(2) + '</span> грн.')
+				.html('Сумма: <span class="price_value">' + sum.toFixed(2) + '</span> ₽.')
 
-			// НОВЕ: оновлюємо видимий рядок Total
-			$('#minicart-total-display').text(sum.toFixed(2) + ' грн')
+			// НОВОЕ: обновляем видимую строку Total
+			$('#minicart-total-display').text(sum.toFixed(2) + ' ₽')
 		}
 		showCoupon(code) {
 			$('.coupon__toggle').hide()
 			$('.coupon_body').removeClass('is-open')
 			$('.coupon_value')
 				.show()
-				.text('✓ Купон застосовано: ' + code)
+				.text('✓ Купон применен: ' + code)
 		}
 	}
 
 	class CheckoutService {
 		submit(orderItems, coupon, onDone) {
-			$('#send').prop('disabled', true).val('Відправка...')
+			$('#send').prop('disabled', true).val('Отправка...')
 			$.post('sendmail.php?subj=Order_Olaplex', {
 				name: $('#formToSend input#fio').val() || '',
 				email: $('#formToSend input#email').val() || '',
@@ -329,7 +329,7 @@
 			})
 				.done(onDone)
 				.always(function () {
-					$('#send').prop('disabled', false).val('Відправити')
+					$('#send').prop('disabled', false).val('Отправить')
 				})
 		}
 	}
@@ -351,7 +351,7 @@
 			this.ui.updateWidgets(this.widgetSelector)
 		}
 		addToCart(el, id) {
-			// ID може бути числом або рядком з нулями ('010') — нормалізуємо
+			// ID может быть числом или строкой с нулями ('010') — нормализуем
 			const key = String(id).replace(/^0+/, '') || String(id)
 			const p = window.PRODUCTS?.[key] ?? window.PRODUCTS?.[id]
 			if (!p) {
@@ -366,13 +366,13 @@
 				id: id,
 				name: p.name || '',
 				price: p.price || 0,
-				img: p.image || p.img || '', // поле 'image' у масиві
+				img: p.image || p.img || '', // поле 'image' в массиве
 				catalogNumber: p.cat_number || p.catalogNumber || '-',
 				url: p.link || window.location.href,
 				qty,
 			})
 			this.ui.updateWidgets(this.widgetSelector)
-			this.showToast('Товар додано до кошика!')
+			this.showToast('Товар добавлен в корзину!')
 			if (this.CONFIG.showAfterAdd) this.showWinow('bcontainer', 1)
 		}
 		renderBasket() {
@@ -400,7 +400,7 @@
 			setTimeout(() => $container.addClass('active'), 10)
 			if (blind) {
 				$blind.show().addClass('active')
-				// Закриття по кліку за межами корзини
+				// Закрытие по клику за пределами корзины
 				$blind
 					.off('click.cartclose')
 					.on('click.cartclose', () => this.closeWindow(win, true))

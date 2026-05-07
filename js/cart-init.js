@@ -1,5 +1,5 @@
 /**
- * Уніфікована ініціалізація кошика з безпечними обгортками для запобігання помилок "undefined"
+ * Унифицированная инициализация корзины с безопасными обертками для предотвращения ошибок "undefined"
  */
 var cart;
 var config = {
@@ -8,41 +8,41 @@ var config = {
 };
 
 (function() {
-    // Функція ініціалізації
+    // Функция инициализации
     function initCart() {
         if (typeof WICard === 'function') {
             cart = new WICard('cart');
             cart.init("basketwidjet", config);
             console.log('Cart initialized successfully');
         } else {
-            // Якщо WICard ще не завантажений, спробуємо ще раз через короткий час
+            // Если WICard еще не загружен, попробуем еще раз через короткий промежуток времени
             setTimeout(initCart, 100);
         }
     }
 
-    // Ініціалізація при завантаженні DOM
+    // Инициализация при загрузке DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initCart);
     } else {
         initCart();
     }
 
-    // Безпечне оновлення при зміні видимості
+    // Безопасное обновление при изменении видимости
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden && cart && typeof cart.init === 'function') {
             cart.init("basketwidjet", config);
         }
     }, false);
 
-    // Створюємо проксі-об'єкт для cart, якщо він ще не ініціалізований, 
-    // щоб уникнути помилок при виклику inline onclick подій
+    // Создаем прокси-объект для cart, если он еще не инициализирован, 
+    // чтобы избежать ошибок при вызове inline onclick событий
     if (typeof window.cart === 'undefined') {
         window.cart = new Proxy({}, {
             get: function(target, prop) {
                 if (cart && cart[prop]) {
                     return cart[prop];
                 }
-                // Повертаємо порожню функцію, щоб уникнути "is not a function"
+                // Возвращаем пустую функцию, чтобы избежать "is not a function"
                 return function() {
                     console.warn('Cart method "' + prop + '" called before initialization');
                 };

@@ -451,28 +451,9 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 		?>
 		window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
 	</script>
-	<script src="js/cart.js" type="text/javascript"></script>
-	<script defer src="js/jquery.flexslider-min.js"></script>
-	<script>
-		var cart;
-		var config;
-
-		$(document).ready(function() {
-			cart = new WICard('cart');
-			config = {
-				'clearAfterSend': true,
-				'showAfterAdd': false
-			};
-			cart.init("basketwidjet", config);
-		});
-
-		// Обновляем при переключении окна браузера
-		document.addEventListener('visibilitychange', function(e) {
-			if (!document.hidden) {
-				cart.init("basketwidjet", config);
-			}
-		}, false);
-	</script>
+		<script src="js/cart.js" type="text/javascript"></script>
+		<script src="js/cart-init.js" type="text/javascript"></script>
+		<script defer src="js/jquery.flexslider-min.js"></script>
 	<script type="text/javascript">
 		$(window).on('load', function() {
 			$('.flexslider').flexslider({

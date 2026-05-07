@@ -151,11 +151,12 @@
 	<!-- All JavaScript libraries -->
 	<script src="js/jquery-3.7.1.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
-	<script src="js/jquery.inputmask.bundle.js"></script>
-
-
-	<!-- Custom JavaScript -->
-	<script src="js/main.js"></script>
+		<script src="js/jquery.inputmask.bundle.js"></script>
+		<script src="js/cart.js" type="text/javascript"></script>
+		<script src="js/cart-init.js" type="text/javascript"></script>
+	
+		<!-- Custom JavaScript -->
+		<script src="js/main.js"></script>
 
 </body>
 

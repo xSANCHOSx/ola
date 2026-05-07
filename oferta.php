@@ -144,28 +144,8 @@
 	<script src="js/jquery-3.7.1.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/jquery.inputmask.bundle.js"></script>
-	<script src="js/cart.js" type="text/javascript"></script>
-	<script>
-		var cart
-		var config
-		var wiNumInputPrefID
-		/* WI-GLOBAL-VARS */
-		$(document).ready(function() {
-			cart = new WICard("cart")
-			config = {
-				'clearAfterSend': true,
-				'showAfterAdd': false
-			}
-
-			cart.init("basketwidjet", config)
-			/* WI-MODULES */
-
-
-		})
-		document.addEventListener('visibilitychange', function(e) {
-			cart.init("basketwidjet", config)
-		}, false);
-	</script>
+		<script src="js/cart.js" type="text/javascript"></script>
+		<script src="js/cart-init.js" type="text/javascript"></script>
 
 	<!-- Custom JavaScript -->
 	<script src="js/main.js"></script>

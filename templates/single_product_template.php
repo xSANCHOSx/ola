@@ -183,26 +183,8 @@ if ($productIndex !== false) {
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/jquery.inputmask.bundle.js"></script>
 	<script src="js/cart.js" type="text/javascript"></script>
+	<script src="js/cart-init.js" type="text/javascript"></script>
 	<script defer src="js/jquery.flexslider-min.js"></script>
-	<script src="js/cart.js" type="text/javascript"></script>
-	<script>
-		var cart;
-		var config;
-
-		$(document).ready(function() {
-			cart = new WICard("cart");
-			config = {
-				'clearAfterSend': true,
-				'showAfterAdd': false
-			};
-			cart.init("basketwidjet", config);
-		});
-
-		// Обновляем при переключении окна браузера
-		document.addEventListener('visibilitychange', function(e) {
-			cart.init("basketwidjet", config);
-		}, false);
-	</script>
 	<script type="text/javascript">
 		/*	$(window).load(function(){
 				$('.flexslider').flexslider({
@@ -252,28 +234,6 @@ if ($productIndex !== false) {
 				flexslider.vars.maxItems = gridSize
 			})
 		}());
-	</script>
-
-	<script>
-		var cart
-		var config
-		var wiNumInputPrefID
-		/* WI-GLOBAL-VARS */
-		$(document).ready(function() {
-			cart = new WICard("cart")
-			config = {
-				'clearAfterSend': true,
-				'showAfterAdd': false
-			}
-
-			cart.init("basketwidjet", config)
-			/* WI-MODULES */
-
-
-		})
-		document.addEventListener('visibilitychange', function(e) {
-			cart.init("basketwidjet", config)
-		}, false);
 	</script>
 
 	<!-- Custom JavaScript -->

@@ -21,12 +21,11 @@ jobs:
 
           script: |
             cd /var/www/www-root/data/www/sanchos-dev.website
+
             git fetch origin
             git reset --hard origin/main
-            
-            rm -rf .git
-            rm -rf .github
-            
-            php artisan optimize:clear || true
+
+
+
 
             

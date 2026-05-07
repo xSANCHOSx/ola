@@ -13,7 +13,7 @@ var config = {
         if (typeof WICard === 'function') {
             cart = new WICard('cart');
             cart.init("basketwidjet", config);
-            console.log('Cart initialized successfully');
+            //console.log('Cart initialized successfully');
         } else {
             // Если WICard еще не загружен, попробуем еще раз через короткий промежуток времени
             setTimeout(initCart, 100);

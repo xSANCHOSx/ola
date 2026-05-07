@@ -29,7 +29,7 @@
 						<a href="https://wa.me/79096962720"><img src="images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
 					</div>
 					<div class="cart cart_full" onclick="cart.showWinow('bcontainer', 1);">
-						<img src="images/basket.png" alt="Корзина" />
+						<img class="basket_logo" src="images/basket.png" alt="Корзина" />
 						<span id="basketwidjet" class="cart-widget-count">0</span>
 					</div>
 				</div>
@@ -40,7 +40,7 @@
 					<a href="https://wa.me/79096962720"><img src="images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
 				</div>
 				<div class="cart cart_mobile" onclick="cart.showWinow('bcontainer', 1);">
-					<img src="images/basket.png" alt="Корзина" />
+					<img class="basket_logo" src="images/basket.png" alt="Корзина" />
 					<span id="basketwidjet2" class="cart-widget-count">0</span>
 				</div>
 			</div>

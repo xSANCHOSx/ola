@@ -75,7 +75,7 @@
 }
 
 .minicart-badge {
-  background: #00b3e4;
+  background: #ba385c;
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -227,7 +227,7 @@
 }
 
 .minicart-item__name:hover {
-  color: #00b3e4;
+  color: #ba4b6b;
 }
 
 .minicart-item__price {
@@ -263,9 +263,9 @@
 }
 
 .minicart-qty-btn:hover {
-  border-color: #00b3e4;
+  border-color: #ba385c;
   background: #e8f8fd;
-  color: #00b3e4;
+  color: #ba385c;
 }
 
 .minicart-qty-value {
@@ -375,7 +375,7 @@
 
 /* Go to checkout — filled primary */
 .bbutton.checkout {
-  background: #00b3e4;
+  background: #ba385c;
   color: #fff;
   border: none;
   padding: 13px 16px;
@@ -394,7 +394,7 @@
 }
 
 .bbutton.checkout:hover {
-  background: #009bc7;
+  background: #ba385c;
   transform: translateY(-1px);
 }
 
@@ -466,7 +466,7 @@
 }
 
 .coupon_input>input:focus {
-  border-color: #00b3e4;
+  border-color: #ba385c;
 }
 
 .coupon_input button {
@@ -595,7 +595,7 @@
 
 .popup input[type='text']:focus,
 .popup input[type='email']:focus {
-  border-color: #00b3e4;
+  border-color: #ba385c;
 }
 
 .popup textarea {

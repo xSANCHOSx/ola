@@ -476,9 +476,9 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 	</script>
 	<!-- <script src="js/coupon.js"></script> -->
 
-	<link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css">
+	<!-- <link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css">
 	<script type="text/javascript" src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4d8a7b33dcf97067342ac246b5aecaa"
-		charset="UTF-8" async></script>
+		charset="UTF-8" async></script> -->
 
 </body>
 

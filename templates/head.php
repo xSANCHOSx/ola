@@ -3,10 +3,11 @@
 // Змінні: $pageTitle, $pageDescription, $extraCss
 $pageTitle       ??= 'Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине';
 $pageDescription ??= 'Средства для волос Olaplex (Олаплекс) для домашнего использования можно заказать у нас! Отличные цены, доставка по всей территории России!';
-$cssBust = function(string $f) {
+$cssBust = function (string $f) {
     return file_exists(__DIR__ . '/../' . $f) ? filemtime(__DIR__ . '/../' . $f) : time();
 };
 ?>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,10 +17,13 @@ $cssBust = function(string $f) {
     <meta name="description" content="<?= htmlspecialchars($pageDescription) ?>">
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&amp;subset=cyrillic-ext" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap&subset=cyrillic-ext"
+        rel="stylesheet">
     <!-- Libs -->
     <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
     <link rel="stylesheet" href="css/animate.css">
     <link rel="stylesheet" href="css/icon.css">
     <link rel="stylesheet" href="css/flexslider.css">
@@ -28,7 +32,7 @@ $cssBust = function(string $f) {
     <!-- App CSS -->
     <link rel="stylesheet" href="css/styles.css?v=<?= $cssBust('css/styles.css') ?>">
     <link rel="stylesheet" href="css/wicart.css?v=<?= $cssBust('css/wicart.css') ?>">
-    
+
     <?php if (!empty($extraCss)) echo $extraCss; ?>
 
     <!-- Analytics -->

@@ -10,20 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Remove unnecessary files
-        run: |
-          rm -rf .git
-          rm -rf .github
-          rm -rf node_modules
-
-      - name: Upload files
+      - name: Deploy via rsync
         uses: SamKirkland/web-deploy@v1
         with:
           target-server: ${{ secrets.HOST }}
           remote-user: ${{ secrets.USERNAME }}
           private-ssh-key: ${{ secrets.SSH_KEY }}
           destination-path: /var/www/www-root/data/www/sanchos-dev.website
+          rsync-options: >
+            --exclude=".git/"
+            --exclude=".github/"
+            --exclude="node_modules/"
+            --exclude="README.md"
+          
 

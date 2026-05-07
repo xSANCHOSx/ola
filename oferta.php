@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 
-<?php 
+<?php
 $pageTitle = 'Соглашение на обработку персональный данных';
 $extraCss = '<meta name="robots" content="noindex, nofollow" />';
-require __DIR__ . '/templates/head.php'; 
+require __DIR__ . '/templates/head.php';
 ?>
 
 <body>
@@ -110,23 +110,8 @@ require __DIR__ . '/templates/head.php';
 	</section>
 
 
-	<!-- ./About us section end -->
 	<?php include 'templates/footer.php'; ?>
-	<!---Форма для магазина-------------------------------->
-	<div id="order" class="popup">
-		<a href="#" onclick="cart.closeWindow('order', 0)" style="float:right">[закрыть]</a>
-		<h4>Введите ваши контактные данные</h4>
-
-		<form id="formToSend">
-			<input id="fio" type="text" placeholder="Ваши фамилия и имя" class="" />
-			<input id="city" type="text" placeholder="Город" class="text-input" />
-			<input id="phone" type="text" placeholder="Контактный телефон" class="text-input" />
-			<input id="email" type="text" placeholder="Электронная почта" class="" />
-			<br>
-			<textarea id="question" placeholder="Адрес"></textarea>
-		</form>
-		<button onclick="cart.sendOrder('formToSend,overflw,bsum');" href="#">Отправить заказ</button>
-	</div>
+	<?php include 'templates/order_form.php'; ?>
 
 
 	<!----------------------------------------------------->
@@ -135,8 +120,8 @@ require __DIR__ . '/templates/head.php';
 	<script src="js/jquery-3.7.1.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/jquery.inputmask.bundle.js"></script>
-		<script src="js/cart.js" type="text/javascript"></script>
-		<script src="js/cart-init.js" type="text/javascript"></script>
+	<script src="js/cart.js" type="text/javascript"></script>
+	<script src="js/cart-init.js" type="text/javascript"></script>
 
 	<!-- Custom JavaScript -->
 	<script src="js/main.js"></script>

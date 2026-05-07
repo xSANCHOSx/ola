@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 
-<?php 
+<?php
 $pageTitle = 'Политика конфиденциальности персональных данных';
 $extraCss = '<meta name="robots" content="noindex, nofollow" />';
-require __DIR__ . '/templates/head.php'; 
+require __DIR__ . '/templates/head.php';
 ?>
 
 <body>
@@ -65,7 +65,8 @@ require __DIR__ . '/templates/head.php';
 					<div id="max-feature-para" class="animate--one" data-animate="fadeInDown" data-duration="1"
 						style="text-align:justify; font-size:17px;">
 						<p>Настоящая Политика конфиденциальности персональных данных (далее &mdash; Политика) действует в отношении
-							всей информации, которую ИП Зубова Анастасия Александровна, может получить о пользователе во время использования
+							всей информации, которую ИП Зубова Анастасия Александровна, может получить о пользователе во время
+							использования
 							сайта, включая его сервисы, формы и функциональность.</p>
 						<ol>
 							<li>Общие положения</li>
@@ -80,7 +81,8 @@ require __DIR__ . '/templates/head.php';
 							<li>Основные понятия</li>
 						</ol>
 						<ul>
-							<li aria-level="1">Оператор &mdash; ИП Зубова Анастасия Александровна, самостоятельно или совместно с другими
+							<li aria-level="1">Оператор &mdash; ИП Зубова Анастасия Александровна, самостоятельно или совместно с
+								другими
 								лицами организующее обработку персональных данных.</li>
 							<li aria-level="1">Пользователь &mdash; лицо, использующее Сайт.</li>
 							<li aria-level="1">Персональные данные &mdash; любая информация, относящаяся к прямо или косвенно
@@ -170,24 +172,8 @@ require __DIR__ . '/templates/head.php';
 	</section>
 
 
-	<!-- ./About us section end -->
 	<?php include 'templates/footer.php'; ?>
-	<!---Форма для магазина-------------------------------->
-	<div id="order" class="popup">
-		<a href="#" onclick="cart.closeWindow('order', 0)" style="float:right">[закрыть]</a>
-		<h4>Введите ваши контактные данные</h4>
-
-		<form id="formToSend">
-			<input id="fio" type="text" placeholder="Ваши фамилия и имя" class="" />
-			<input id="city" type="text" placeholder="Город" class="text-input" />
-			<input id="phone" type="text" placeholder="Контактный телефон" class="text-input" />
-			<input id="email" type="text" placeholder="Электронная почта" class="" />
-			<br>
-			<textarea id="question" placeholder="Адрес"></textarea>
-		</form>
-		<button onclick="cart.sendOrder('formToSend,overflw,bsum');" href="#">Отправить заказ</button>
-	</div>
-
+	<?php include 'templates/order_form.php'; ?>
 
 	<!----------------------------------------------------->
 
@@ -195,8 +181,8 @@ require __DIR__ . '/templates/head.php';
 	<script src="js/jquery-3.7.1.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/jquery.inputmask.bundle.js"></script>
-		<script src="js/cart.js" type="text/javascript"></script>
-		<script src="js/cart-init.js" type="text/javascript"></script>
+	<script src="js/cart.js" type="text/javascript"></script>
+	<script src="js/cart-init.js" type="text/javascript"></script>
 
 	<!-- Custom JavaScript -->
 	<script src="js/main.js"></script>

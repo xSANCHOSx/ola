@@ -390,9 +390,9 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 		?>
 		window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
 	</script>
-		<script src="js/cart.js" type="text/javascript"></script>
-		<script src="js/cart-init.js" type="text/javascript"></script>
-		<script defer src="js/jquery.flexslider-min.js"></script>
+	<script src="js/cart.js" type="text/javascript"></script>
+	<script src="js/cart-init.js" type="text/javascript"></script>
+	<script defer src="js/jquery.flexslider-min.js"></script>
 	<script type="text/javascript">
 		$(window).on('load', function() {
 			$('.flexslider').flexslider({
@@ -474,7 +474,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 			})
 		});
 	</script>
-	<script src="js/coupon.js"></script>
+	<!-- <script src="js/coupon.js"></script> -->
 
 	<link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css">
 	<script type="text/javascript" src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4d8a7b33dcf97067342ac246b5aecaa"

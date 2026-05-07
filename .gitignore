@@ -25,6 +25,8 @@ env/
 *.sublime-workspace
 .project
 .settings/
+config/db.php
+config/local.php
 
 # Збірка та дистрибутиви
 dist/

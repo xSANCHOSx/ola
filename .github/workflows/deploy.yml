@@ -21,7 +21,8 @@ jobs:
 
           script: |
             cd /var/www/www-root/data/www/sanchos-dev.website
+            git fetch origin
+            git reset --hard origin/main
+            php artisan optimize:clear || true
 
-            git pull origin main
-
-            php artisan cache:clear || true
+            

@@ -18,25 +18,30 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # 1. Створюємо папку temp, якщо її немає
-            mkdir -p /var/www/www-root/data/www/sanchos-dev.website/temp
-            
-            # 2. Переходимо в temp і оновлюємо репозиторій
-            cd /var/www/www-root/data/www/sanchos-dev.website/temp
-            
-            # Якщо папка порожня — ініціалізуємо гіт, якщо ні — просто оновлюємо
+            # Шлях до папок
+            BASE_DIR="/var/www/www-root/data/www/sanchos-dev.website"
+            TEMP_DIR="$BASE_DIR/temp"
+            REPO="git@github.com:REAL_USER/REAL_REPO.git"
+
+            # Створюємо структуру папок
+            mkdir -p $TEMP_DIR
+            cd $TEMP_DIR
+
+            # Ініціалізація або оновлення репозиторію
             if [ ! -d ".git" ]; then
-              git clone git@github.com:REAL_USER/REAL_REPO.git .
+              # Використовуємо -o StrictHostKeyChecking=no для SSH всередині сервера
+              git clone $REPO .
             else
               git fetch origin main
               git reset --hard origin/main
             fi
 
-            # 3. Видаляємо сміття macOS всередині temp перед копіюванням
+            # Видаляємо сміття перед копіюванням
             find . -name ".DS_Store" -delete
+            find . -name "Thumbs.db" -delete
 
-            # 4. Синхронізуємо файли з temp в корінь сайту
-            # --exclude дозволяє НЕ копіювати саму папку temp та git-файли в корінь
+            # Синхронізація в корінь сайту (на рівень вище)
+            # --exclude='temp/' важливо, щоб не видалити саму папку temp
             rsync -avz --delete \
               --exclude='temp/' \
               --exclude='.git/' \
@@ -45,4 +50,4 @@ jobs:
               --exclude='.gitattributes' \
               ./ ../
 
-            echo "Деплой завершено: файли скопійовано в корінь, сміття видалено."
+            echo "Деплой виконано успішно."

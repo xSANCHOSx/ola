@@ -5,6 +5,10 @@ admin_require_auth();
 $pdo = dev_db_connection();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
+    if (!validate_csrf_token()) {
+        http_response_code(403);
+        exit('CSRF check failed');
+    }
     $id = (int)($_POST['id'] ?? 0);
     $data = [
         'external_id' => trim((string)($_POST['external_id'] ?? '')),
@@ -80,6 +84,7 @@ if (isset($_GET['edit'])) {
     <h3>Товары</h3>
     <form method="post" enctype="multipart/form-data" class="well">
         <input type="hidden" name="id" value="<?= admin_h((string)($edit['id'] ?? '')) ?>">
+        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
         <div class="row">
             <div class="col-md-2"><input class="form-control" name="external_id" placeholder="ID" value="<?= admin_h((string)($edit['external_id'] ?? '')) ?>" required></div>
             <div class="col-md-2"><input class="form-control" name="cat_number" placeholder="Cat" value="<?= admin_h((string)($edit['cat_number'] ?? '')) ?>"></div>

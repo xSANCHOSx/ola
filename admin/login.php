@@ -9,10 +9,14 @@ if (admin_is_auth()) {
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim((string)($_POST['username'] ?? ''));
-    $password = (string)($_POST['password'] ?? '');
-    $pdo = dev_db_connection();
-    if ($pdo instanceof PDO) {
+    $loginKey = 'admin_login_' . md5($_SERVER['REMOTE_ADDR'] ?? '');
+    if (!check_rate_limit($loginKey, 10, 300)) {
+        $error = 'Забагато спроб входу. Спробуйте через 5 хвилин.';
+    } else {
+        $username = trim((string)($_POST['username'] ?? ''));
+        $password = (string)($_POST['password'] ?? '');
+        $pdo = dev_db_connection();
+        if ($pdo instanceof PDO) {
         $stmt = $pdo->prepare('SELECT id, username, password_hash FROM admin_users WHERE username = :username LIMIT 1');
         $stmt->execute(['username' => $username]);
         $user = $stmt->fetch();
@@ -24,7 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     }
-    $error = 'Неверный логин или пароль';
+        $error = 'Неверный логин или пароль';
+    }
 }
 ?>
 <!doctype html>

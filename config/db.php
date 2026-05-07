@@ -1,33 +1,53 @@
 <?php
 
-// Database configuration for MariaDB (production)
-$dbHost = getenv('DB_HOST') ?: 'localhost';
-$dbName = getenv('DB_NAME') ?: 'olap_san'; // Default for development
-$dbUser = getenv('DB_USER') ?: 'olap_adm'; // Default for development
-$dbPass = getenv('DB_PASS') ?: 'dI3wW1tT3d'; // Default for development
+declare(strict_types=1);
 
-// Fallback to SQLite for local development if DB_HOST is not set and a SQLite file exists
-if (!getenv('DB_HOST') && file_exists(__DIR__ . '/../database/dev_shop.sqlite')) {
-    $dsn = 'sqlite:' . __DIR__ . '/../database/dev_shop.sqlite';
-    $dbUser = null;
-    $dbPass = null;
-} else {
-    $dsn = "mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4";
-}
+/**
+ * Get global PDO connection instance (Singleton)
+ */
+function dev_db_connection(): PDO
+{
+    static $instance = null;
+    if ($instance !== null) {
+        return $instance;
+    }
 
-$pdoOptions = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES   => false,
-];
+    $dbHost = getenv('DB_HOST') ?: 'localhost';
+    $dbName = getenv('DB_NAME') ?: 'olap_san';
+    $dbUser = getenv('DB_USER') ?: 'olap_adm';
+    $dbPass = getenv('DB_PASS');
 
-try {
-    $pdo = new PDO($dsn, $dbUser, $dbPass, $pdoOptions);
-} catch (PDOException $e) {
-    error_log('Database connection error: ' . $e->getMessage());
-    // In a real application, you might want to show a user-friendly error page or message.
-    // For now, we'll just re-throw or handle gracefully.
-    throw new PDOException($e->getMessage(), (int)$e->getCode());
+    if ($dbPass === false || $dbPass === '') {
+        if (php_sapi_name() === 'cli' || getenv('APP_ENV') === 'development') {
+            $dbPass = 'dev_only_password';
+        } else {
+            throw new RuntimeException('DB_PASS env variable is required');
+        }
+    }
+
+    // Fallback to SQLite for local development
+    if (!getenv('DB_HOST') && file_exists(__DIR__ . '/../database/dev_shop.sqlite')) {
+        $dsn = 'sqlite:' . __DIR__ . '/../database/dev_shop.sqlite';
+        $dbUser = null;
+        $dbPass = null;
+    } else {
+        $dsn = "mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4";
+    }
+
+    $pdoOptions = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+
+    try {
+        $instance = new PDO($dsn, $dbUser, $dbPass, $pdoOptions);
+    } catch (PDOException $e) {
+        error_log('Database connection error: ' . $e->getMessage());
+        throw new PDOException($e->getMessage(), (int)$e->getCode());
+    }
+
+    return $instance;
 }
 
 /**
@@ -40,15 +60,6 @@ function dev_app_config(): array
         $config = require __DIR__ . '/app.php';
     }
     return $config;
-}
-
-/**
- * Get global PDO connection instance
- */
-function dev_db_connection(): ?PDO
-{
-    global $pdo;
-    return $pdo instanceof PDO ? $pdo : null;
 }
 
 /**
@@ -72,6 +83,9 @@ function dev_log_runtime(string $message): void
  */
 function csrf_token(): string
 {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     if (!isset($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
@@ -83,6 +97,9 @@ function csrf_token(): string
  */
 function validate_csrf_token(): bool
 {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     $token = $_POST['csrf_token'] ?? '';
     if (empty($token) || empty($_SESSION['csrf_token'])) {
         return false;
@@ -139,10 +156,12 @@ function check_rate_limit(string $key, int $limit = 5, int $window = 60): bool
     $cache_file = $dir . '/ratelimit_' . md5($key) . '.json';
     $now = time();
 
-    $data = [];
-    if (file_exists($cache_file)) {
-        $data = json_decode((string)file_get_contents($cache_file), true) ?? [];
-    }
+    $fp = fopen($cache_file, 'c+');
+    if (!$fp) return true;
+    flock($fp, LOCK_EX);
+
+    $content = stream_get_contents($fp);
+    $data = json_decode($content, true) ?? [];
 
     $window_start = $now - $window;
     $data['timestamps'] = array_filter(
@@ -150,14 +169,20 @@ function check_rate_limit(string $key, int $limit = 5, int $window = 60): bool
         fn($ts) => $ts > $window_start
     );
 
+    $allowed = true;
     if (count($data['timestamps']) >= $limit) {
-        return false;
+        $allowed = false;
+    } else {
+        $data['timestamps'][] = $now;
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($data));
     }
 
-    $data['timestamps'][] = $now;
-    @file_put_contents($cache_file, json_encode($data));
+    flock($fp, LOCK_UN);
+    fclose($fp);
 
-    return true;
+    return $allowed;
 }
 
 /**

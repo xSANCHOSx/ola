@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /config/
+Disallow: /log/
+Disallow: /database/
+Disallow: /amo/
+Disallow: /sendmail.php
+Disallow: /setup.php
+Disallow: /create_feed.php
+
+Sitemap: https://olaplex-shop.ru/sitemap.xml

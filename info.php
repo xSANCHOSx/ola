@@ -1,22 +1,11 @@
 <!DOCTYPE html>
 <html lang="ru">
 
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Информация о продукции Olaplex</title>
-	<meta name="description"
-		content="FAQ о том, как правильно пользоваться продукцией Олаплекс, что нужно знать перед тем как начать использовать продукцию." />
-
-	<!-- CSS Libraries -->
-	<link rel="stylesheet" href="css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-	<link href="css/animate.css" rel="stylesheet" type="text/css" />
-	<link href="css/icon.css" rel="stylesheet" type="text/css" />
-	<!-- Custom CSS -->
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="css/wicart.css">
-</head>
+<?php 
+$pageTitle = 'Информация о продукции Olaplex';
+$pageDescription = 'FAQ о том, как правильно пользоваться продукцией Олаплекс, что нужно знать перед тем как начать использовать продукцию.';
+require __DIR__ . '/templates/head.php'; 
+?>
 
 <body>
 	<header id="header" class="sticky">

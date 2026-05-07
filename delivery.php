@@ -1,21 +1,10 @@
 < !DOCTYPE html>
 	<html lang="ru">
 
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Доставка и оплата - Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине</title>
-		<meta name="description"
-			content="Средства для волос Olaplex (Олаплекс) для домашнего использования можно заказать у нас! Отличные цены, доставка по всей территории России!" />
-		< !-- CSS Libraries -->
-			<link rel="stylesheet" href="css/bootstrap.min.css">
-			<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-			<link href="css/animate.css" rel="stylesheet" type="text/css" />
-			<link href="css/icon.css" rel="stylesheet" type="text/css" />
-			< !-- Custom CSS -->
-				<link rel="stylesheet" href="css/styles.css">
-				<link rel="stylesheet" href="css/wicart.css">
-	</head>
+<?php 
+$pageTitle = 'Доставка и оплата - Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине';
+require __DIR__ . '/templates/head.php'; 
+?>
 
 	<body>
 		<header id="header" class="sticky">

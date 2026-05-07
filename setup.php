@@ -1,5 +1,10 @@
 <?php
 
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    exit('Forbidden');
+}
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/config/db.php';

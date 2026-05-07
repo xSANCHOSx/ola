@@ -4,68 +4,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 <!DOCTYPE html>
 <html lang="ru">
 
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="yandex-verification" content="0bef8202615abb0b" />
-	<meta name="google-site-verification" content="RzlStn4gRa1keV7FRXBfC3k3Ns_qAVPFEEos43KSWsA" />
-	<title>Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине</title>
-	<meta name="description"
-		content="Средства для волос Olaplex (Олаплекс) для домашнего использования можно заказать у нас! Отличные цены, доставка по всей территории России!" />
-	<!-- CSS Libraries -->
-	<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&amp;subset=cyrillic-ext" rel="stylesheet">
-	<link rel="stylesheet" href="css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-	<link href="css/animate.css" rel="stylesheet" type="text/css" />
-	<link href="css/icon.css" rel="stylesheet" type="text/css" />
-	<link rel="icon" href="favicon.ico" type="image/x-icon">
-	<link href="css/flexslider.css" rel="stylesheet" type="text/css" />
-	<!-- Custom CSS -->
-	<link rel="stylesheet" href="css/styles.css?v=<?php echo date('Ymd', filemtime('css/styles.css')); ?>">
-	<link rel="stylesheet" href="css/wicart.css">
-	<!-- Yandex.Metrika counter -->
-	<script type="text/javascript">
-		(function(m, e, t, r, i, k, a) {
-			m[i] = m[i] || function() {
-				(m[i].a = m[i].a || []).push(arguments)
-			}
-			m[i].l = 1 * new Date()
-			for (var j = 0; j < document.scripts.length; j++) {
-				if (document.scripts[j].src === r) {
-					return
-				}
-			}
-			k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-		})
-		(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym")
-
-		ym(48443993, "init", {
-			clickmap: true,
-			trackLinks: true,
-			accurateTrackBounce: true,
-			webvisor: true,
-			ecommerce: "dataLayer"
-		});
-	</script>
-	<noscript>
-		<div><img src="https://mc.yandex.ru/watch/48443993" style="position:absolute; left:-9999px;" alt="" /></div>
-	</noscript>
-	<!-- /Yandex.Metrika counter -->
-
-	<!-- Google tag (gtag.js) -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=G-MGSPT3K11Y"></script>
-	<script>
-		window.dataLayer = window.dataLayer || []
-
-		function gtag() {
-			dataLayer.push(arguments)
-		}
-		gtag('js', new Date())
-
-		gtag('config', 'G-MGSPT3K11Y');
-	</script>
-
-</head>
+<?php require __DIR__ . '/templates/head.php'; ?>
 
 <body>
 	<?php include 'templates/header.php'; ?>

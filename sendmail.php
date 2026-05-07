@@ -170,9 +170,42 @@ if (empty($orderResult)) {
     echo json_encode(['error' => 'Корзина пуста']);
     exit(1);
 }
+// ═══ Верифікація цін з БД ═══════════════════════════════════════════════════
 $totalSum = 0.0;
-foreach ($orderResult as $item) {
-    $totalSum += ((float)($item['price'] ?? 0) * (int)($item['num'] ?? 0));
+$pdo = dev_db_connection();
+if ($pdo instanceof PDO && !empty($orderResult)) {
+    $productIds  = array_unique(array_column($orderResult, 'id'));
+    $placeholders = implode(',', array_fill(0, count($productIds), '?'));
+    $stmt = $pdo->prepare(
+        "SELECT external_id, price FROM products WHERE external_id IN ($placeholders)"
+    );
+    $stmt->execute(array_values($productIds));
+    $dbPrices = array_column($stmt->fetchAll(), 'price', 'external_id');
+
+    foreach ($orderResult as $item) {
+        $pid = (string)($item['id'] ?? '');
+        if (!isset($dbPrices[$pid])) {
+            log_security_event('UNKNOWN_PRODUCT', ['id' => $pid]);
+            http_response_code(400);
+            echo json_encode(['error' => 'Unknown product: ' . $pid]);
+            exit;
+        }
+        $totalSum += (float)$dbPrices[$pid] * (int)($item['num'] ?? 0);
+    }
+} else {
+    // Fallback якщо БД недоступна
+    foreach ($orderResult as $item) {
+        $totalSum += ((float)($item['price'] ?? 0) * (int)($item['num'] ?? 0));
+    }
+}
+
+// ═══ Верифікація купону на сервері ═══════════════════════════════════════════
+$cfg     = dev_app_config();
+$coupons = $cfg['coupons'] ?? [];
+$couponCode = $payload['coupon'] ?? '';
+if ($couponCode !== '' && isset($coupons[$couponCode])) {
+    $discount = $coupons[$couponCode]['discount'];
+    $totalSum = max(0, $totalSum - $discount);
 }
 
 $orderNumber = null;

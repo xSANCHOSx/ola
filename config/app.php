@@ -11,4 +11,7 @@ return [
     'csrf_token_key' => 'csrf_token',
     'rate_limit_window' => 60,  // seconds
     'rate_limit_max_requests' => 5,  // max orders per window
+    'coupons' => [
+        'OLA5600' => ['discount' => 5600, 'type' => 'fixed'],
+    ],
 ];

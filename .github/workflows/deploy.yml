@@ -1,4 +1,4 @@
-name: Deploy Site
+name: Deploy
 
 on:
   push:
@@ -10,29 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.0
 
-      - name: Remove unnecessary files
-        run: |
-          rm -rf .git
-          rm -rf .github
-          rm -rf node_modules
-
-      - name: Upload files
-        uses: SamKirkland/web-deploy@v1
         with:
-          target-server: ${{ secrets.HOST }}
-          remote-user: ${{ secrets.USERNAME }}
-          private-ssh-key: ${{ secrets.SSH_KEY }}
-          destination-path: /var/www/www-root/data/www/sanchos-dev.website
-
-
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
 
           script: |
             cd /var/www/www-root/data/www/sanchos-dev.website
             git fetch origin
             git reset --hard origin/main
+            
+            rm -rf .git
+            rm -rf .github
+            
             php artisan optimize:clear || true
 
             

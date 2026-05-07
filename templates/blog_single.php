@@ -66,88 +66,91 @@ if ($pdo instanceof PDO) {
 <?php require __DIR__ . '/head.php'; ?>
 
 <body>
-<?php require __DIR__ . '/header.php'; ?>
+	<?php require __DIR__ . '/header.php'; ?>
 
-<div class="container" style="padding-top: 40px; padding-bottom: 60px;">
-    <div class="row">
-        <div class="col-md-8">
-            <!-- Хлебная крошка -->
-            <nav style="margin-bottom: 20px;">
-                <a href="/" style="color: #3e7ab6; text-decoration: none;">Главная</a> → 
-                <a href="/blog" style="color: #3e7ab6; text-decoration: none;">Блог</a> → 
-                <span style="color: #999;"><?= htmlspecialchars((string)$post['title']) ?></span>
-            </nav>
+	<div class="container" style="padding-top: 40px; padding-bottom: 60px;">
+		<div class="row">
+			<div class="col-md-8">
+				<!-- Хлебная крошка -->
+				<nav style="margin-bottom: 20px;">
+					<a href="/" style="color: #3e7ab6; text-decoration: none;">Главная</a> →
+					<a href="/blog" style="color: #3e7ab6; text-decoration: none;">Блог</a> →
+					<span style="color: #999;"><?= htmlspecialchars((string)$post['title']) ?></span>
+				</nav>
 
-            <article>
-                <h1 style="margin-bottom: 15px; color: #333;">
-                    <?= htmlspecialchars((string)$post['title']) ?>
-                </h1>
+				<article>
+					<h1 style="margin-bottom: 15px; color: #333;">
+						<?= htmlspecialchars((string)$post['title']) ?>
+					</h1>
 
-                <div style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; font-size: 14px; color: #999;">
-                    <span>📅 Опубліковано: <?= date('d.m.Y', strtotime((string)$post['published_at'])) ?></span>
-                    <span style="margin-left: 20px;">👁 Переглядів: <?= (int)$post['views'] ?></span>
-                    <?php if (!empty($post['author_id'])): ?>
-                        <span style="margin-left: 20px;">✏️ Автор: Адміністратор</span>
-                    <?php endif; ?>
-                </div>
+					<div
+						style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; font-size: 14px; color: #999;">
+						<span>📅 Опубліковано: <?= date('d.m.Y', strtotime((string)$post['published_at'])) ?></span>
+						<span style="margin-left: 20px;">👁 Переглядів: <?= (int)$post['views'] ?></span>
+						<?php if (!empty($post['author_id'])): ?>
+						<span style="margin-left: 20px;">✏️ Автор: Адміністратор</span>
+						<?php endif; ?>
+					</div>
 
-                <!-- Главное изображение -->
-                <?php if (!empty($post['featured_image'])): ?>
-                    <img src="/<?= htmlspecialchars((string)$post['featured_image']) ?>" 
-                         alt="<?= htmlspecialchars((string)$post['title']) ?>" 
-                         style="width: 100%; max-height: 500px; object-fit: cover; border-radius: 5px; margin-bottom: 30px;">
-                <?php endif; ?>
+					<!-- Главное изображение -->
+					<?php if (!empty($post['featured_image'])): ?>
+					<img src="/<?= htmlspecialchars((string)$post['featured_image']) ?>"
+						alt="<?= htmlspecialchars((string)$post['title']) ?>"
+						style="width: 100%; max-height: 500px; object-fit: cover; border-radius: 5px; margin-bottom: 30px;">
+					<?php endif; ?>
 
-                <!-- Содержание -->
-                <div style="font-size: 16px; line-height: 1.8; color: #333; margin-bottom: 40px;">
-                    <?= $post['content'] ?>
-                </div>
+					<!-- Содержание -->
+					<div style="font-size: 16px; line-height: 1.8; color: #333; margin-bottom: 40px;">
+						<?= $post['content'] ?>
+					</div>
 
-                <!-- Теги -->
-                <?php if (!empty($tags)): ?>
-                    <div style="padding-top: 20px; padding-bottom: 30px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 30px;">
-                        <div style="margin-bottom: 10px; color: #999; font-size: 14px;">Теги:</div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                            <?php foreach ($tags as $tag): ?>
-                                <a href="/blog?tag=<?= htmlspecialchars((string)$tag['slug']) ?>" 
-                                   style="background: #f0f0f0; padding: 6px 12px; border-radius: 20px; font-size: 13px; text-decoration: none; color: #3e7ab6;">
-                                    #<?= htmlspecialchars((string)$tag['name']) ?>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
+					<!-- Теги -->
+					<?php if (!empty($tags)): ?>
+					<div
+						style="padding-top: 20px; padding-bottom: 30px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 30px;">
+						<div style="margin-bottom: 10px; color: #999; font-size: 14px;">Теги:</div>
+						<div style="display: flex; flex-wrap: wrap; gap: 8px;">
+							<?php foreach ($tags as $tag): ?>
+							<a href="/blog?tag=<?= htmlspecialchars((string)$tag['slug']) ?>"
+								style="background: #f0f0f0; padding: 6px 12px; border-radius: 20px; font-size: 13px; text-decoration: none; color: #3e7ab6;">
+								#<?= htmlspecialchars((string)$tag['name']) ?>
+							</a>
+							<?php endforeach; ?>
+						</div>
+					</div>
+					<?php endif; ?>
 
-                <!-- Навигация между постами -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-top: 1px solid #eee;">
-                    <?php if ($prevPost): ?>
-                        <a href="/blog/<?= htmlspecialchars((string)$prevPost['slug']) ?>" 
-                           style="color: #3e7ab6; text-decoration: none; max-width: 45%;">
-                            ← <?= htmlspecialchars((string)$prevPost['title']) ?>
-                        </a>
-                    <?php else: ?>
-                        <span></span>
-                    <?php endif; ?>
-                    
-                    <a href="/blog" style="color: #3e7ab6; text-decoration: none;">Все посты</a>
-                    
-                    <?php if ($nextPost): ?>
-                        <a href="/blog/<?= htmlspecialchars((string)$nextPost['slug']) ?>" 
-                           style="color: #3e7ab6; text-decoration: none; max-width: 45%; text-align: right;">
-                            <?= htmlspecialchars((string)$nextPost['title']) ?> →
-                        </a>
-                    <?php else: ?>
-                        <span></span>
-                    <?php endif; ?>
-                </div>
-            </article>
-        </div>
+					<!-- Навигация между постами -->
+					<div
+						style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-top: 1px solid #eee;">
+						<?php if ($prevPost): ?>
+						<a href="/blog/<?= htmlspecialchars((string)$prevPost['slug']) ?>"
+							style="color: #3e7ab6; text-decoration: none; max-width: 45%;">
+							← <?= htmlspecialchars((string)$prevPost['title']) ?>
+						</a>
+						<?php else: ?>
+						<span></span>
+						<?php endif; ?>
 
-        <div class="col-md-4">
-            <!-- Боковая панель с похожими постами -->
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 5px;">
-                <h3 style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3e7ab6;">Inший Пості</h3>
-                <?php 
+						<a href="/blog" style="color: #3e7ab6; text-decoration: none;">Все посты</a>
+
+						<?php if ($nextPost): ?>
+						<a href="/blog/<?= htmlspecialchars((string)$nextPost['slug']) ?>"
+							style="color: #3e7ab6; text-decoration: none; max-width: 45%; text-align: right;">
+							<?= htmlspecialchars((string)$nextPost['title']) ?> →
+						</a>
+						<?php else: ?>
+						<span></span>
+						<?php endif; ?>
+					</div>
+				</article>
+			</div>
+
+			<div class="col-md-4">
+				<!-- Боковая панель с похожими постами -->
+				<div style="background: #f9f9f9; padding: 20px; border-radius: 5px;">
+					<h3 style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3e7ab6;">Inший Пості</h3>
+					<?php 
                 if ($pdo instanceof PDO) {
                     $related = $pdo->query(
                         'SELECT id, title, slug, published_at FROM blog_posts 
@@ -158,35 +161,36 @@ if ($pdo instanceof PDO) {
                     if (!empty($related)):
                         foreach ($related as $rel):
                 ?>
-                <div style="padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #ddd;">
-                    <a href="/blog/<?= htmlspecialchars((string)$rel['slug']) ?>" 
-                       style="color: #3e7ab6; text-decoration: none; font-weight: 500;">
-                        <?= htmlspecialchars((string)$rel['title']) ?>
-                    </a>
-                    <div style="color: #999; font-size: 12px; margin-top: 5px;">
-                        <?= date('d.m.Y', strtotime((string)$rel['published_at'])) ?>
-                    </div>
-                </div>
-                <?php 
+					<div style="padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #ddd;">
+						<a href="/blog/<?= htmlspecialchars((string)$rel['slug']) ?>"
+							style="color: #3e7ab6; text-decoration: none; font-weight: 500;">
+							<?= htmlspecialchars((string)$rel['title']) ?>
+						</a>
+						<div style="color: #999; font-size: 12px; margin-top: 5px;">
+							<?= date('d.m.Y', strtotime((string)$rel['published_at'])) ?>
+						</div>
+					</div>
+					<?php 
                         endforeach;
                     endif;
                 }
                 ?>
-            </div>
+				</div>
 
-            <!-- About блога -->
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px;">
-                <h3 style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3e7ab6;">Про Блог</h3>
-                <p style="color: #666; line-height: 1.6; font-size: 14px;">
-                    Статьи про восстановлення і правильний догляд за волоссям з інноваційними засобами Olaplex.
-                </p>
-                <a href="/blog" style="color: #3e7ab6; text-decoration: none; font-weight: bold;">Всі пости →</a>
-            </div>
-        </div>
-    </div>
-</div>
+				<!-- About блога -->
+				<div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px;">
+					<h3 style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3e7ab6;">Про Блог</h3>
+					<p style="color: #666; line-height: 1.6; font-size: 14px;">
+						Статьи про восстановлення і правильний догляд за волоссям з інноваційними засобами Olaplex.
+					</p>
+					<a href="/blog" style="color: #3e7ab6; text-decoration: none; font-weight: bold;">Всі пости →</a>
+				</div>
+			</div>
+		</div>
+	</div>
 
-<?php require __DIR__ . '/footer.php'; ?>
+	<?php require __DIR__ . '/footer.php'; ?>
 
 </body>
+
 </html>

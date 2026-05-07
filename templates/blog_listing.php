@@ -42,7 +42,7 @@ $pageDescription = 'Читайте полезные статьи о восста
 					</div>
 				<?php else: ?>
 					<?php foreach ($posts as $post): ?>
-						<!-- DEBUG: <?php echo json_encode(['title' => $post['title'], 'excerpt' => $post['excerpt'] ?? 'EMPTY']); ?> -->
+				<!-- DEBUG: EXCERPT LENGTH = <?php echo strlen(trim((string)($post['excerpt'] ?? ''))); ?>, VALUE = "<?php echo trim((string)($post['excerpt'] ?? '')); ?>" -->
 						<article style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid #eee;">
 							<?php if (!empty($post['featured_image'])): ?>
 								<img src="/<?= htmlspecialchars((string)$post['featured_image']) ?>"
@@ -62,14 +62,12 @@ $pageDescription = 'Читайте полезные статьи о восста
 								<span style="margin-left: 20px;">👁 <?= (int)$post['views'] ?> переглядів</span>
 							</div>
 
-							<?php if (!empty($post['excerpt'])): ?>
-								<p style="color: #666; line-height: 1.6; font-size: 15px; margin-bottom: 15px;">
-									<?= htmlspecialchars((string)$post['excerpt']) ?>
-								</p>
-							<?php endif; ?>
-
-							<a href="/blog/<?= htmlspecialchars((string)$post['slug']) ?>"
-								style="color: #3e7ab6; font-weight: bold; text-decoration: none;">
+				<?php 
+					$excerpt = trim((string)($post['excerpt'] ?? ''));
+					if (!empty($excerpt)): 
+				?>
+				<p style="color: #666; line-height: 1.6; font-size: 15px; margin-bottom: 15px;">
+					<?= htmlspecialchars($excerpt) ?>
 								Подробнее →
 							</a>
 						</article>

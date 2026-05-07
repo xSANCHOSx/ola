@@ -237,6 +237,10 @@ if (isset($_GET['msg'])) {
 		display: block;
 	}
 
+	.ck-editor__editable_inline {
+		min-height: 400px;
+	}
+
 	.alert {
 		padding: 10px;
 		margin-bottom: 15px;

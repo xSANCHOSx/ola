@@ -190,55 +190,71 @@ header.sticky .navbar-default .navbar-brand {
   color: #363636 !important;
 }
 
+.header-right-area,
+.header-right-area-mobile {
+  float: right;
+  display: flex;
+  align-items: center;
+}
+
 header.sticky .navbar-default .cart {
   color: #363636 !important;
   font-weight: 600;
-  width: 8%;
-  margin-right: 15px;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   cursor: pointer;
-  vertical-align: middle;
+  margin-left: 10px;
 }
 
 header.navbar-default .cart {
-  display: inline-block;
-  margin-left: 15px;
-  margin-right: 0;
+  display: inline-flex;
+  align-items: center;
   cursor: pointer;
-  vertical-align: middle;
   font-size: 16px;
+  position: relative;
 }
 
 header.navbar-default .cart img {
-  width: 32px;
-  height: 32px;
+  width: 25px;
+  height: 25px;
   vertical-align: middle;
-  margin-right: 5px;
 }
 
 header.navbar-default .cart span {
   background: #ba385c;
   color: white;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   display: inline-block;
   text-align: center;
-  line-height: 24px;
-  font-size: 12px;
+  line-height: 18px;
+  font-size: 10px;
   font-weight: bold;
-  margin-left: -8px;
-  vertical-align: top;
+  position: absolute;
+  top: -8px;
+  right: -8px;
 }
 
 header.sticky .navbar-default .number {
   color: #363636 !important;
   font-weight: 600;
-  padding: 15px 5px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  height: 50px;
+  margin: 0;
+}
+
+header.sticky .navbar-default .number a {
+  display: flex;
+  align-items: center;
 }
 
 header.sticky .navbar-default .number .whatsapp {
   width: 25px;
+  height: 25px;
+  margin-left: 10px;
 }
 
 /*

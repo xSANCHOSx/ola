@@ -132,10 +132,9 @@
 		updateWidgets(widgetSelector) {
 			const count = this.store.totalItems()
 			const txt = count > 0 ? '(' + count + ')' : '(0)'
-			$(widgetSelector).html(txt)
-			$('#basketwidjet2').html(txt)
-
-			// ОБНОВИТЬ: обновление badge в drawer
+			// Уніфіковані селектори: клас замість ID
+			$('.cart-widget-count').text(txt)
+			// Обновление badge в drawer
 			$('.minicart-badge').text(count > 0 ? count : '0')
 		}
 		ensureBasketModal() {
@@ -446,8 +445,12 @@
 		}
 		clearBasket() {
 			this.store.clear()
+			this.ui.renderTable(
+				id => this.store.updateQty(id, -1),
+				id => this.store.updateQty(id, 1),
+				id => this.store.remove(id)
+			)
 			this.ui.updateWidgets(this.widgetSelector)
-			$('#btable').html('')
 		}
 		sendOrder() {
 			const items = this.store.asOrderItems()

@@ -8,56 +8,7 @@ require __DIR__ . '/templates/head.php';
 ?>
 
 <body>
-	<header id="header" class="sticky">
-		<div class="container-fluid">
-			<nav class="navbar navbar-default ">
-
-				<!-- Brand and toggle get grouped for better mobile display -->
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-						data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-						<span class="sr-only">Toggle navigation</span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					<a class="navbar-brand" href="/">
-						<img id="logo" src="images/logo.png" alt="Olaplex Logo">
-					</a>
-
-				</div>
-
-				<!-- Collect the nav links, forms, and other content for toggling -->
-				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-					<ul class="nav navbar-nav main">
-						<li><a href="/#max-aboutus-section">Что это?</a></li>
-						<li><a href="/#max-featured-section">Продукция</a></li>
-						<li><a href="/#max-work-section">Как использовать</a></li>
-						<li><a href="/#max-purchase-section">Доставка</a></li>
-						<li><a href="info.html">Справка</a></li>
-					</ul>
-					<div class="number navbar-brand hidden-sm hidden-xs">
-						<a href="tel:+74950322929">+7 (495) 032-29-29</a>
-						<a href="https://wa.me/79096962720"><img src="images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
-					</div>
-					<div class="cart visible-lg visible-md cart_full" onclick="cart.showWinow('bcontainer', 1)">
-						<img src="images/basket.png" />
-						<span id="basketwidjet"></span>
-					</div>
-				</div>
-				<div class="number navbar-brand hidden-md hidden-lg"><a href="tel:+74950322929">+7 (495) 032-29-29</a>
-					<a href="https://wa.me/79096962720"><img src="images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
-				</div>
-				<div class="cart visible-sm visible-xs cart_mobile" onclick="cart.showWinow('bcontainer', 1)">
-					<img src="images/basket.png" /><span id="basketwidjet"></span>
-				</div>
-				<!-- /.navbar-collapse -->
-			</nav>
-		</div>
-		<!-- /.container-fluid -->
-
-	</header>
-
+	<?php include 'templates/header.php'; ?>
 
 	<!-- About us section -->
 	<section id="max-aboutus-section product">
@@ -114,39 +65,19 @@ require __DIR__ . '/templates/head.php';
 			</div>
 		</div>
 	</section>
-
 	<!-- ./About us section end -->
+
 	<?php include 'templates/footer.php'; ?>
-	<!-- ./About us section end -->
-	<!---Форма для магазина-------------------------------->
-	<div id="order" class="popup">
-		<a href="#" onclick="cart.closeWindow('order', 0)" style="float:right">[закрыть]</a>
-		<h4>Введите ваши контактные данные</h4>
-
-		<form id="formToSend">
-			<input id="fio" type="text" placeholder="Ваши фамилия и имя" class="" />
-			<input id="city" type="text" placeholder="Город" class="text-input" />
-			<input id="phone" type="text" placeholder="Контактный телефон" class="text-input" />
-			<input id="email" type="text" placeholder="Электронная почта" class="" />
-			<br>
-			<textarea id="question" placeholder="Адрес"></textarea>
-		</form>
-		<button onclick="cart.sendOrder('formToSend,overflw,bsum');" href="#">Отправить заказ</button>
-	</div>
-
-
-	<!----------------------------------------------------->
+	<?php include 'templates/order_form.php'; ?>
 
 	<!-- All JavaScript libraries -->
 	<script src="js/jquery-3.7.1.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
-		<script src="js/jquery.inputmask.bundle.js"></script>
-		<script src="js/cart.js" type="text/javascript"></script>
-		<script src="js/cart-init.js" type="text/javascript"></script>
-	
-		<!-- Custom JavaScript -->
-		<script src="js/main.js"></script>
-
+	<script src="js/jquery.inputmask.bundle.js"></script>
+	<script src="js/cart.js" type="text/javascript"></script>
+	<script src="js/cart-init.js" type="text/javascript"></script>
+	<!-- Custom JavaScript -->
+	<script src="js/main.js"></script>
 </body>
 
 </html>

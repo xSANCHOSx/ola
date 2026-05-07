@@ -157,3 +157,43 @@ window.onload = function () {
     document.getElementById('cookie-notice').style.display = 'none';
   }
 };
+
+
+/**
+ * Contact method field visibility toggle
+ * Shows/hides username field based on selected communication method
+ */
+document.addEventListener('DOMContentLoaded', function() {
+	const radios = document.querySelectorAll('input[name="contact_method"]');
+	const wrapper = document.getElementById('contact-username-wrapper');
+	const input = document.getElementById('contact_username');
+
+	if (!wrapper || !input) return; // Exit if elements don't exist
+
+	function updateField(value) {
+		if (value === 'email') {
+			wrapper.style.display = 'none';
+			input.removeAttribute('required');
+		} else {
+			wrapper.style.display = 'block';
+			input.setAttribute('required', 'required');
+
+			let placeholder = '@username';
+
+			if (value === 'whatsapp') placeholder = 'Номер WhatsApp';
+			if (value === 'telegram') placeholder = '@telegram_username';
+			if (value === 'max') placeholder = '@max_username';
+
+			input.placeholder = placeholder;
+		}
+	}
+
+	radios.forEach(radio => {
+		radio.addEventListener('change', function() {
+			updateField(this.value);
+		});
+	});
+
+	const checked = document.querySelector('input[name="contact_method"]:checked');
+	if (checked) updateField(checked.value);
+});

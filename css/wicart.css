@@ -652,3 +652,18 @@
     margin-left: 0;
   }
 }
+
+
+/* ---- Contact method (from order_form.php) ---- */
+.contact-method {
+  margin: 15px 0;
+}
+
+.contact-method label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+#contact-username-wrapper {
+  margin-bottom: 10px;
+}

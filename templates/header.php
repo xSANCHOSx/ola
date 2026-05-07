@@ -22,6 +22,7 @@
 					<li><a href="/#max-work-section">Как использовать</a></li>
 					<li><a href="/#max-purchase-section">Доставка</a></li>
 					<li><a href="/info">Справка</a></li>
+					<li><a href="/blog">Блог</a></li>
 				</ul>
 				<div class="header-right-area hidden-sm hidden-xs">
 					<div class="number navbar-brand">

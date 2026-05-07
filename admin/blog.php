@@ -143,7 +143,8 @@ if (isset($_GET['msg'])) {
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
 	<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 	<script>
-		// Кастомний адаптер для сумісності з вашим бекендом (/admin/blog-upload.php)
+	document.addEventListener('DOMContentLoaded', function() {
+		// Кастомний адаптер для сумісності з вашим бекендом (повертає 'location')
 		class UploadAdapter {
 			constructor(loader) {
 				this.loader = loader;
@@ -156,17 +157,21 @@ if (isset($_GET['msg'])) {
 					xhr.open('POST', '/admin/blog-upload.php');
 					xhr.onload = () => {
 						if (xhr.status >= 200 && xhr.status < 300) {
-							const response = JSON.parse(xhr.responseText);
-							// Ваш бекенд повертає { location: "..." }, CKEditor очікує { default: "..." }
-							if (response && response.location) {
-								resolve({
-									default: response.location
-								});
-							} else {
-								reject('Invalid response from server');
+							try {
+								const response = JSON.parse(xhr.responseText);
+								// Ваш бекенд повертає { location: "..." }, CKEditor очікує { default: "..." }
+								if (response && response.location) {
+									resolve({
+										default: response.location
+									});
+								} else {
+									reject('Invalid response from server');
+								}
+							} catch (e) {
+								reject('JSON parse error');
 							}
 						} else {
-							reject(xhr.statusText);
+							reject('HTTP error: ' + xhr.status);
 						}
 					};
 					xhr.onerror = () => reject('Network error');
@@ -180,75 +185,80 @@ if (isset($_GET['msg'])) {
 			editor.plugins.get('FileRepository').createUploadAdapter = (loader) => new UploadAdapter(loader);
 		}
 
-		ClassicEditor
-			.create(document.querySelector('#content'), {
-				toolbar: [
-					'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
-					'blockQuote', 'imageUpload', 'insertTable', 'code', '|', 'undo', 'redo'
-				],
-				extraPlugins: [registerUploadAdapter],
-				heading: {
-					options: [{
-							model: 'paragraph',
-							title: 'Paragraph',
-							class: 'ck-heading_paragraph'
-						},
-						{
-							model: 'heading1',
-							view: 'h1',
-							title: 'Heading 1',
-							class: 'ck-heading_heading1'
-						},
-						{
-							model: 'heading2',
-							view: 'h2',
-							title: 'Heading 2',
-							class: 'ck-heading_heading2'
-						},
-						{
-							model: 'heading3',
-							view: 'h3',
-							title: 'Heading 3',
-							class: 'ck-heading_heading3'
-						}
-					]
-				}
-			})
-			.catch(error => console.error(error));
+		// Ініціалізуємо тільки якщо елемент існує
+		const contentElement = document.querySelector('#content');
+		if (contentElement) {
+			ClassicEditor
+				.create(contentElement, {
+					toolbar: [
+						'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
+						'blockQuote', 'imageUpload', 'insertTable', 'code', '|', 'undo', 'redo'
+					],
+					extraPlugins: [registerUploadAdapter],
+					heading: {
+						options: [{
+								model: 'paragraph',
+								title: 'Paragraph',
+								class: 'ck-heading_paragraph'
+							},
+							{
+								model: 'heading1',
+								view: 'h1',
+								title: 'Heading 1',
+								class: 'ck-heading_heading1'
+							},
+							{
+								model: 'heading2',
+								view: 'h2',
+								title: 'Heading 2',
+								class: 'ck-heading_heading2'
+							},
+							{
+								model: 'heading3',
+								view: 'h3',
+								title: 'Heading 3',
+								class: 'ck-heading_heading3'
+							}
+						]
+					}
+				})
+				.catch(error => console.error('CKEditor initialization error:', error));
+		}
+	});
 	</script>
 	<style>
-		.form-group {
-			margin-bottom: 15px;
-		}
+	.form-group {
+		margin-bottom: 15px;
+	}
 
-		.form-group label {
-			font-weight: bold;
-			margin-bottom: 5px;
-			display: block;
-		}
+	.form-group label {
+		font-weight: bold;
+		margin-bottom: 5px;
+		display: block;
+	}
 
-		.alert {
-			padding: 10px;
-			margin-bottom: 15px;
-			border-radius: 4px;
-		}
+	.alert {
+		padding: 10px;
+		margin-bottom: 15px;
+		border-radius: 4px;
+	}
 
-		.alert-success {
-			background: #d4edda;
-			color: #155724;
-			border: 1px solid #c3e6cb;
-		}
+	.alert-success {
+		background: #d4edda;
+		color: #155724;
+		border: 1px solid #c3e6cb;
+	}
 
-		.alert-error {
-			background: #f8d7da;
-			color: #721c24;
-			border: 1px solid #f5c6cb;
-		}
+	.alert-error {
+		background: #f8d7da;
+		color: #721c24;
+		border: 1px solid #f5c6cb;
+	}
 
-		/* CKEditor 5 не підтримує height у конфігурації, тому задаємо через CSS */
-		.ck-editor__editable_inline {
-			min-height: 400px;
-		}
+	/* CKEditor 5 не підтримує height у конфігурації, тому задаємо через CSS */
+	.ck-editor__editable_inline {
+		min-height: 400px;
+	}
 	</style>
 </head>
 
@@ -257,9 +267,9 @@ if (isset($_GET['msg'])) {
 		<?php require __DIR__ . '/_nav.php'; ?>
 		<h2>Управління блогом</h2>
 		<?php if ($msg): ?>
-			<div class="alert alert-<?= strpos($msg, 'Помилка') !== false ? 'error' : 'success' ?>">
-				<?= admin_h($msg) ?>
-			</div>
+		<div class="alert alert-<?= strpos($msg, 'Помилка') !== false ? 'error' : 'success' ?>">
+			<?= admin_h($msg) ?>
+		</div>
 		<?php endif; ?>
 		<form method="post" enctype="multipart/form-data"
 			style="background:#f9f9f9; padding:20px; border:1px solid #ddd; margin-bottom:30px;">
@@ -310,8 +320,8 @@ if (isset($_GET['msg'])) {
 						</div>
 						<input type="file" class="form-control" name="image_upload" accept="image/*">
 						<?php if (!empty($edit['featured_image'])): ?>
-							<img src="/<?= admin_h((string)$edit['featured_image']) ?>"
-								style="max-width:200px; max-height:200px; margin-top:10px;">
+						<img src="/<?= admin_h((string)$edit['featured_image']) ?>"
+							style="max-width:200px; max-height:200px; margin-top:10px;">
 						<?php endif; ?>
 					</div>
 				</div>
@@ -344,7 +354,7 @@ if (isset($_GET['msg'])) {
 					<?= $edit ? 'Зберегти' : 'Створити пост' ?>
 				</button>
 				<?php if ($edit): ?>
-					<a href="/admin/blog.php" class="btn btn-secondary">Скасувати</a>
+				<a href="/admin/blog.php" class="btn btn-secondary">Скасувати</a>
 				<?php endif; ?>
 			</div>
 		</form>
@@ -363,30 +373,30 @@ if (isset($_GET['msg'])) {
 			</thead>
 			<tbody>
 				<?php foreach ($posts as $p): ?>
-					<tr>
-						<td><?= admin_h((string)$p['id']) ?></td>
-						<td><?= admin_h((string)$p['title']) ?></td>
-						<td><code><?= admin_h((string)$p['slug']) ?></code></td>
-						<td>
-							<span
-								style="background:<?= $p['status'] === 'published' ? '#d4edda' : '#fff3cd' ?>; padding:3px 8px; border-radius:3px; font-size:12px;">
-								<?= admin_h((string)$p['status']) ?>
-							</span>
-						</td>
-						<td><?= admin_h(date('d.m.Y H:i', strtotime((string)$p['created_at']))) ?></td>
-						<td><?= admin_h((string)$p['views']) ?></td>
-						<td>
-							<a href="/admin/blog.php?edit=<?= (int)$p['id'] ?>" class="btn btn-sm btn-info" style="margin-right:5px;">✎
-								Редакт</a>
-							<form method="post" style="display:inline;">
-								<input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
-								<input type="hidden" name="action" value="delete">
-								<input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-								<button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Видалити?')">✕
-									Видалити</button>
-							</form>
-						</td>
-					</tr>
+				<tr>
+					<td><?= admin_h((string)$p['id']) ?></td>
+					<td><?= admin_h((string)$p['title']) ?></td>
+					<td><code><?= admin_h((string)$p['slug']) ?></code></td>
+					<td>
+						<span
+							style="background:<?= $p['status'] === 'published' ? '#d4edda' : '#fff3cd' ?>; padding:3px 8px; border-radius:3px; font-size:12px;">
+							<?= admin_h((string)$p['status']) ?>
+						</span>
+					</td>
+					<td><?= admin_h(date('d.m.Y H:i', strtotime((string)$p['created_at']))) ?></td>
+					<td><?= admin_h((string)$p['views']) ?></td>
+					<td>
+						<a href="/admin/blog.php?edit=<?= (int)$p['id'] ?>" class="btn btn-sm btn-info" style="margin-right:5px;">✎
+							Редакт</a>
+						<form method="post" style="display:inline;">
+							<input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+							<input type="hidden" name="action" value="delete">
+							<input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+							<button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Видалити?')">✕
+								Видалити</button>
+						</form>
+					</td>
+				</tr>
 				<?php endforeach; ?>
 			</tbody>
 		</table>

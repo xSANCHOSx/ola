@@ -1,0 +1,75 @@
+AddDefaultCharset UTF-8
+Options -Indexes
+
+# Указываем серверу файл для ошибки 404
+ErrorDocument 404 /404.php
+
+<IfModule mod_php5.c>
+    php_flag allow_url_include off
+    php_flag allow_url_fopen off
+    php_flag display_errors off
+    php_flag log_errors on
+</IfModule>
+
+# Перенаправление на gzip файлы
+AddEncoding gzip .gz
+<FilesMatch "\.js.gz$">
+    ForceType text/javascript
+    Header set Content-Encoding: gzip
+</FilesMatch>
+
+# Включаем кэш в браузерах
+<IfModule mod_headers.c>
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "max-age=43200"
+    </FilesMatch>
+    <FilesMatch "\.(js|css|txt)$">
+        Header set Cache-Control "max-age=604800"
+    </FilesMatch>
+    <FilesMatch "\.(flv|swf|ico|gif|jpg|jpeg|png)$">
+        Header set Cache-Control "max-age=2592000"
+    </FilesMatch>
+    <FilesMatch "\.(pl|php|cgi|spl|scgi|fcgi)$">
+        Header unset Cache-Control
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_dir.c>
+    DirectoryIndex index.php index.html
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType image/jpeg "access plus 3 day"
+    ExpiresByType image/png "access plus 3 day"
+    ExpiresByType image/gif "access plus 3 day"
+</IfModule>
+
+Options +FollowSymLinks
+RewriteEngine On
+RewriteBase /
+
+# 1. Убираем .php из URL
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+)$ $1.php [L]
+
+# 2. Редирект старых ссылок с .html на чистые URL
+RewriteCond %{THE_REQUEST} \s/([^/.]+)\.(htm|html)[^\s]* [NC]
+RewriteRule ^ https://%{HTTP_HOST}/%1 [R=301,L]
+
+# 3. Редирект с www на без www
+RewriteCond %{HTTP_HOST} ^www\.(.*)$
+RewriteRule ^(.*)$ https://%1/$1 [L,R=301]
+
+# 4. Редирект index.php на главную
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.(php|html|htm)\ HTTP/
+RewriteRule ^(.*)index\.(php|html|htm)$ https://olaplex-shop.ru/$1 [R=301,L]
+
+# 5. ОСНОВНОЙ РОУТИНГ ТОВАРОВ
+# Если это НЕ реальный файл и НЕ реальная папка
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+# И это НЕ сама страница 404
+RewriteCond %{REQUEST_URI} !^/404\.php$
+# Отдаем запрос в шаблон товара
+RewriteRule .? templates/single_product_template.php [L,QSA]

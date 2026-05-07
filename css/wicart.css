@@ -1,0 +1,627 @@
+/* ============================================================
+   WICART — Modern Right-Side Cart Stylesheet
+   ============================================================ */
+
+/* ---- Utility ---- */
+.bird {
+  width: 100px;
+  height: 30px;
+  position: absolute;
+  text-align: left;
+  display: none;
+  vertical-align: middle;
+  font-size: 18px;
+}
+
+/* ---- Overlay ---- */
+.blindLayer {
+  background: rgba(0, 0, 0, 0.55);
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.blindLayer.active {
+  opacity: 1;
+}
+
+/* ---- Cart drawer (right side) ---- */
+.bcontainer {
+  background: #ffffff;
+  position: fixed;
+  top: 5vh;
+  right: 0;
+  /* ← правий бік */
+  width: 420px;
+  max-width: calc(100vw - 16px);
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 1002;
+  overflow: hidden;
+  transform: translateX(100%);
+  /* ← виїжджає праворуч */
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.18);
+  border-radius: 12px 0 0 12px;
+  overflow: hidden;
+}
+
+.bcontainer.active {
+  transform: translateX(0);
+}
+
+/* ---- Cart header ---- */
+#bsubject {
+  background: #1a1a2e;
+  color: #fff;
+  padding: 18px 20px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+#bclose {
+  color: #aaa;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s, color 0.2s;
+  position: static;
+  /* override legacy */
+  margin: 0;
+}
+
+#bclose:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* ---- Cart item list ---- */
+#overflw {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  padding: 8px 0;
+  background: #f7f8fa;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
+}
+
+#overflw::-webkit-scrollbar {
+  width: 4px;
+}
+
+#overflw::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+/* ---- Table reset ---- */
+.btable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* ---- Empty state ---- */
+.bitem__empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: #aaa;
+  font-size: 14px;
+}
+
+/* ---- Single cart item ---- */
+.bitem {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.15s;
+}
+
+.bitem:last-child {
+  border-bottom: none;
+}
+
+.bitem:hover {
+  background: #fafafa;
+}
+
+/* Image cell */
+.bitem__img-cell {
+  width: 76px;
+  padding: 12px 8px 12px 14px;
+  vertical-align: middle;
+}
+
+.bitem__img-cell img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f5f5f5;
+  display: block;
+  border: 1px solid #ececec;
+}
+
+.bitem__img-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  font-size: 24px;
+}
+
+.bitem__img-placeholder::after {
+  content: '🛒';
+}
+
+/* Info cell */
+.bitem__info-cell {
+  padding: 12px 8px;
+  vertical-align: middle;
+}
+
+.bitem__name {
+  display: block;
+  font-size: 14px;
+  color: #1a1a2e;
+  text-decoration: none;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 6px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.bitem__name:hover {
+  color: #00b3e4;
+}
+
+.bitem__price {
+  font-size: 14px;
+  font-weight: 700;
+  color: #c0392b;
+}
+
+.bitem__price span {
+  font-weight: 400;
+  font-size: 13px;
+  color: #888;
+}
+
+/* Qty cell */
+.bitem__qty-cell {
+  width: 90px;
+  padding: 12px 6px;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.bitem__qty-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.basket_num_buttons {
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  color: #555;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  padding: 0;
+  line-height: 1;
+}
+
+.basket_num_buttons:hover {
+  border-color: #00b3e4;
+  background: #e8f8fd;
+  color: #00b3e4;
+}
+
+.basket_num {
+  min-width: 22px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+  background: #f4f4f4;
+  border-radius: 4px;
+  padding: 2px 4px;
+  display: inline-block;
+}
+
+.bitem__subtotal {
+  font-size: 13px;
+  color: #999;
+}
+
+/* Delete cell */
+.bitem__del-cell {
+  width: 36px;
+  padding: 12px 10px 12px 2px;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.bitem__del-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 18px;
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+.bitem__del-btn:hover {
+  background: #fff0f0;
+  color: #e74c3c;
+}
+
+/* ---- Footer ---- */
+#bfooter {
+  padding: 16px 20px;
+  border-top: 1px solid #ebebeb;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+/* Total */
+#bsum {
+  display: block;
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 14px;
+  text-align: right;
+}
+
+#bsum .price_value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #c0392b;
+  margin-left: 4px;
+}
+
+/* CTA buttons */
+.btn_footer_order {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.bbutton {
+  background: #1a1a2e;
+  color: #fff;
+  border: none;
+  padding: 13px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  flex: 1;
+  text-align: center;
+  transition: background 0.2s, transform 0.1s;
+  font-family: inherit;
+}
+
+.bbutton:hover {
+  background: #00b3e4;
+  transform: translateY(-1px);
+}
+
+.bbutton:active {
+  transform: translateY(0);
+}
+
+.bbutton.skip {
+  background: transparent;
+  color: #888;
+  border: 1.5px solid #e0e0e0;
+}
+
+.bbutton.skip:hover {
+  background: #f5f5f5;
+  color: #555;
+  border-color: #bbb;
+}
+
+/* Delivery */
+.delivery_checkout_text {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #aaa;
+  margin: 14px 0 8px;
+  text-transform: uppercase;
+}
+
+.delivery_checkout {
+  font-size: 14px;
+  color: #666;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.delivery_checkout span {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+#moscow,
+#region {
+  font-size: 14px;
+}
+
+/* ---- Coupon ---- */
+.coupon {
+  margin-top: 12px;
+}
+
+.coupon_value {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  display: none;
+}
+
+.coupon_input {
+  position: relative;
+}
+
+.coupon_input>span {
+  display: block;
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 8px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.coupon_input>input {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  font-family: inherit;
+  margin-bottom: 8px;
+}
+
+.coupon_input>input:focus {
+  border-color: #00b3e4;
+}
+
+.coupon_input button {
+  width: 100%;
+  padding: 10px;
+  background: #f0ad4e;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.coupon_input button:hover {
+  background: #ec971f;
+}
+
+
+/* ---- Coupon toggle ---- */
+.coupon__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  cursor: pointer;
+  color: #888;
+  font-size: 13px;
+  user-select: none;
+}
+
+.coupon__toggle:hover {
+  color: #555;
+}
+
+.coupon__toggle-icon {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #ccc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.coupon__toggle.is-open .coupon__toggle-icon {
+  border-color: #00b3e4;
+  color: #00b3e4;
+  transform: rotate(45deg);
+}
+
+.coupon_body {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.coupon_body.is-open {
+  max-height: 200px;
+  opacity: 1;
+}
+
+/* ---- Toast ---- */
+.cart-toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  /* ← права сторона */
+  background: #1a1a2e;
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+  font-size: 14px;
+  display: none;
+  max-width: 280px;
+  word-wrap: break-word;
+  border-left: 4px solid #27ae60;
+}
+
+/* ---- Order popup ---- */
+.popup {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  left: 50%;
+  margin-left: -275px;
+  padding: 28px 24px;
+  position: fixed;
+  top: 50px;
+  width: 550px;
+  z-index: 2002;
+  display: none;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+}
+
+.popup h4 {
+  margin-bottom: 4px;
+  font-size: 18px;
+}
+
+.popup form {
+  padding: 24px 0 0;
+}
+
+.popup input[type='text'],
+.popup input[type='email'] {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  height: 42px;
+  padding: 0 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.popup input[type='text']:focus,
+.popup input[type='email']:focus {
+  border-color: #00b3e4;
+}
+
+.popup textarea {
+  display: block;
+  width: 100%;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  margin-bottom: 10px;
+}
+
+.popup .alignCenter {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* ---- Cart widget counter ---- */
+#basketwidjet,
+#basketwidjet2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ---- Send button ---- */
+.send {
+  text-align: center;
+}
+
+/* ---- Responsive ---- */
+@media screen and (max-width: 768px) {
+  .bcontainer {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    top: 0;
+    height: 100vh;
+  }
+
+  .cart-toast {
+    bottom: 16px;
+    right: 10px;
+    left: 10px;
+    max-width: calc(100% - 20px);
+  }
+
+  .popup {
+    width: calc(100% - 32px);
+    left: 16px;
+    margin-left: 0;
+  }
+
+  .btn_footer_order {
+    flex-direction: column;
+  }
+}

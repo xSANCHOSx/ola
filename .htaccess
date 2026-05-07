@@ -74,7 +74,7 @@ RewriteRule ^blog/?$ templates/blog_listing.php [L,QSA]
 # /blog/slug -> одиночный пост
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^blog/([a-z0-9\-]+)/?$ templates/blog_single.php?slug=$1 [L,QSA]
+RewriteRule ^blog/([a-z0-9\-]+)/?$ templates/blog_single.php?slug=$1 [L,QSA,NC]
 
 # 6. ОСНОВНОЙ РОУТИНГ ТОВАРОВ
 # Если это НЕ реальный файл и НЕ реальная папка

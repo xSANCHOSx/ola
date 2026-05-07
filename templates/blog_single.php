@@ -85,9 +85,10 @@ if ($pdo instanceof PDO) {
 
 					<div
 						style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; font-size: 14px; color: #999;">
-						<span>📅 Опубліковано: <?= date('d.m.Y', strtotime((string)$post['published_at'])) ?></span>
-						<span style="margin-left: 20px;">👁 Переглядів: <?= (int)$post['views'] ?></span>
-						<?php if (!empty($post['author_id'])): ?>
+					<span>📅 Опубліковано: <?php 
+						$ts = strtotime((string)$post['published_at']);
+						echo $ts ? date('d.m.Y', $ts) : 'Дата невідома';
+					?></span>
 						<span style="margin-left: 20px;">✏️ Автор: Адміністратор</span>
 						<?php endif; ?>
 					</div>

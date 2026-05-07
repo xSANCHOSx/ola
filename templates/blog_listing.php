@@ -42,7 +42,7 @@ $pageDescription = 'Читайте полезные статьи о восста
 					</div>
 				<?php else: ?>
 					<?php foreach ($posts as $post): ?>
-						<!-- DEBUG: EXCERPT LENGTH = <?php echo strlen(trim((string)($post['excerpt'] ?? ''))); ?>, VALUE = "<?php echo trim((string)($post['excerpt'] ?? '')); ?>" -->
+
 						<article style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid #eee;">
 							<?php if (!empty($post['featured_image'])): ?>
 								<img src="/<?= htmlspecialchars((string)$post['featured_image']) ?>"

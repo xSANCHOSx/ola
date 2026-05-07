@@ -59,9 +59,8 @@ $pageDescription = 'Читайте полезные статьи о восста
 
 							<div style="margin-bottom: 15px; color: #999; font-size: 14px;">
 								<span>📅 <?php
-													$ts = strtotime((string)$post['published_at']);
-													echo $ts ? date('d.m.Y', $ts) : 'Дата невідома';
-													?></span>
+								$dateField = !empty($post['published_at']) ? $post['published_at'] : $post['created_at'];
+								$ts = strtotime((string)$dateField);
 								<span style="margin-left: 20px;">👁 <?= (int)$post['views'] ?> переглядів</span>
 							</div>
 

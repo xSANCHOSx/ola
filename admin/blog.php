@@ -66,7 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 			if ($id > 0) {
 				// Update
 				$data['id'] = $id;
-				$sql = 'UPDATE blog_posts SET title=:title, slug=:slug, content=:content, excerpt=:excerpt, featured_image=:featured_image, status=:status, seo_title=:seo_title, seo_description=:seo_description WHERE id=:id';
+				// Если меняем статус на published и дата еще не установлена, установить ее
+				if ($data['status'] === 'published' && empty($post['published_at'])) {
+					$data['published_at'] = date('Y-m-d H:i:s');
+				}
+				$sql = 'UPDATE blog_posts SET title=:title, slug=:slug, content=:content, excerpt=:excerpt, featured_image=:featured_image, status=:status, seo_title=:seo_title, seo_description=:seo_description' . (isset($data['published_at']) ? ', published_at=:published_at' : '') . ' WHERE id=:id';
 				$pdo->prepare($sql)->execute($data);
 			} else {
 				// Insert

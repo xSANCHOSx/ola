@@ -249,7 +249,7 @@
 
 							/* WI-GLOBAL-VARS */
 							$(document).ready(function() {
-									cart = new WICard("cart") config = {
+									cart = new WICard("cart"); config = {
 										'clearAfterSend': true,
 										'showAfterAdd': false
 									}

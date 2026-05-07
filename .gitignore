@@ -1,0 +1,41 @@
+# Системні файли
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Логи та тимчасові файли
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.tmp
+.swp
+
+# Залежності (node, python, composer)
+node_modules/
+__pycache__/
+vendor/
+.venv/
+env/
+
+# IDE та редактори
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+
+# Збірка та дистрибутиви
+dist/
+build/
+out/
+bin/
+obj/
+
+# Секретні дані (Environment variables)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key

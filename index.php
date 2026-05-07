@@ -458,7 +458,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 		var config;
 
 		$(document).ready(function() {
-			const cart = new WICard('cart');
+			cart = new WICard('cart');
 			config = {
 				'clearAfterSend': true,
 				'showAfterAdd': false

@@ -22,7 +22,7 @@ require __DIR__ . '/templates/head.php';
 						<span class="icon-bar"></span>
 					</button>
 					<a class="navbar-brand" href="/">
-						<img id="logo" src="images/logo.png" alt="Olaplex Logo">
+						<img id="logo" src="/images/logo.png" alt="Olaplex Logo">
 					</a>
 
 				</div>
@@ -38,13 +38,13 @@ require __DIR__ . '/templates/head.php';
 					</ul>
 					<div class="number navbar-brand hidden-sm hidden-xs">+7 (495) 135-28-44</div>
 					<div class="cart visible-lg visible-md cart_full" onclick="cart.showWinow('bcontainer', 1)">
-						<img src="images/basket.png" />
+						<img src="/images/basket.png" />
 						<span id="basketwidjet"></span>
 					</div>
 				</div>
 				<div class="number navbar-brand hidden-md hidden-lg">+7 (495) 135-28-44</div>
 				<div class="cart visible-sm visible-xs cart_mobile" onclick="cart.showWinow('bcontainer', 1)">
-					<img src="images/basket.png" /><span id="basketwidjet"></span>
+					<img src="/images/basket.png" /><span id="basketwidjet"></span>
 				</div>
 				<!-- /.navbar-collapse -->
 			</nav>

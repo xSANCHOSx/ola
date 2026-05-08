@@ -120,11 +120,11 @@ if ($productIndex !== false) {
 									<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
 								</p>
 								<div class="stars">
-									<img style="width: 18px;" src="images/star.png">
-									<img style="width: 18px;" src="images/star.png">
-									<img style="width: 18px;" src="images/star.png">
-									<img style="width: 18px;" src="images/star.png">
-									<img style="width: 18px;" src="images/star.png">
+									<img style="width: 18px;" src="/images/star.png">
+									<img style="width: 18px;" src="/images/star.png">
+									<img style="width: 18px;" src="/images/star.png">
+									<img style="width: 18px;" src="/images/star.png">
+									<img style="width: 18px;" src="/images/star.png">
 									<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
 										itemtype="http://schema.org/AggregateRating">
 										<meta itemprop="bestRating" content="5">

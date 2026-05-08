@@ -21,7 +21,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 									<!--Гарантия Защиты Волос-->
 								</span>
 							</div>
-							<img src="images/banner-1.jpg" />
+							<img src="/images/banner-1.jpg" />
 							<div class="flex-caption_r">
 								<span>
 									<!--Один Ингридиент меняет все-->
@@ -29,7 +29,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 							</div>
 						</li>
 						<li>
-							<img src="images/banner-2.jpg" />
+							<img src="/images/banner-2.jpg" />
 						</li>
 					</ul>
 				</div>
@@ -70,17 +70,17 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 					<div class="flexslider" id="slider">
 						<ul class="slides">
 							<li id="slide1">
-								<img src="images/bg.png">
+								<img src="/images/bg.png">
 								<!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/NKfTbACBRfs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>-->
 							</li>
 
 							<li id="slide2">
-								<img src="images/poster.png">
+								<img src="/images/poster.png">
 								<!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/NKfTbACBRfs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>-->
 							</li>
 						</ul>
 					</div>
-					<!--<img src="images/bg.png">
+					<!--<img src="/images/bg.png">
 						 <iframe width="560" height="328" src="https://www.youtube.com/embed/e80xWGah3PM?rel=0&amp;showinfo=0&amp;autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>-->
 				</div>
 			</div>
@@ -188,7 +188,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 				<div class="col-md-4 col-xs-12">
 					<div class="member-box animate--one" data-animate="zoomIn">
 						<div class="member-profile">
-							<img src="images/5.png" alt="Member 1">
+							<img src="/images/5.png" alt="Member 1">
 						</div>
 
 					</div>
@@ -196,7 +196,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 				<div class="col-md-4 col-xs-12">
 					<div class="member-box animate--one" data-animate="zoomIn">
 						<div class="member-profile">
-							<img src="images/6.jpg" alt="Member 1">
+							<img src="/images/6.jpg" alt="Member 1">
 						</div>
 					</div>
 				</div>
@@ -204,7 +204,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 
 					<div class="member-box animate--one" data-animate="zoomIn">
 						<div class="member-profile">
-							<img src="images/5.png" alt="Member 1">
+							<img src="/images/5.png" alt="Member 1">
 						</div>
 					</div>
 				</div>
@@ -232,7 +232,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 								<div class="item active">
 									<div class="row">
 										<div class="col-sm-2 col-sm-offset-2  col-xs-12 testimonial-box">
-											<img class="img-responsive " src="images/test1.png" alt="Profile 1">
+											<img class="img-responsive " src="/images/test1.png" alt="Profile 1">
 										</div>
 										<div class="col-sm-6 col-xs-12 testimonial-box">
 											<div class="testimonial-name">Татьяна</h2>
@@ -255,7 +255,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 								<div class="item">
 									<div class="row">
 										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
-											<img class="img-responsive " src="images/test2.png" alt="Profile 2">
+											<img class="img-responsive " src="/images/test2.png" alt="Profile 2">
 										</div>
 										<div class="col-sm-6 col-xs-12 testimonial-box">
 											<div class="testimonial-name">Анна</h2>
@@ -277,7 +277,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 								<div class="item">
 									<div class="row">
 										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
-											<img class="img-responsive " src="images/test3.png" alt="Profile 3">
+											<img class="img-responsive " src="/images/test3.png" alt="Profile 3">
 										</div>
 										<div class="col-sm-6 col-xs-12 testimonial-box">
 											<div class="testimonial-name">Ольга</h2>
@@ -312,7 +312,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="images/kim.jpg" alt="Member 1">
+									<img src="/images/kim.jpg" alt="Member 1">
 									<div class="member-name">KIM KARDASHIAN</div>
 								</div>
 
@@ -321,7 +321,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="images/khloe.jpg" alt="Member 2">
+									<img src="/images/khloe.jpg" alt="Member 2">
 									<div class="member-name">KHLOE KARDASHIAN</div>
 								</div>
 							</div>
@@ -329,7 +329,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="images/jlo.jpg" alt="Member 3">
+									<img src="/images/jlo.jpg" alt="Member 3">
 									<div class="member-name">JENNIFER LOPEZ</div>
 								</div>
 							</div>
@@ -339,7 +339,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="images/gwenth.jpg" alt="Member 4">
+									<img src="/images/gwenth.jpg" alt="Member 4">
 									<div class="member-name">GWYNETH PALTROW</div>
 								</div>
 
@@ -348,7 +348,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="images/theron.jpg" alt="Member 5">
+									<img src="/images/theron.jpg" alt="Member 5">
 									<div class="member-name">CHARLIZE THERON</div>
 								</div>
 							</div>
@@ -357,7 +357,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="images/blunt.jpg" alt="Member 6">
+									<img src="/images/blunt.jpg" alt="Member 6">
 									<div class="member-name">EMILY BLUNT</div>
 								</div>
 							</div>

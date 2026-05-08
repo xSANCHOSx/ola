@@ -11,7 +11,7 @@
 					<span class="icon-bar"></span>
 				</button>
 				<a class="navbar-brand" href="/">
-					<img id="logo" src="images/logo.png" alt="Olaplex Logo">
+					<img id="logo" src="/images/logo.png" alt="Olaplex Logo">
 				</a>
 			</div>
 			<!-- Collect the nav links, forms, and other content for toggling -->
@@ -27,10 +27,10 @@
 				<div class="header-right-area hidden-sm hidden-xs">
 					<div class="number navbar-brand">
 						<a href="tel:+74950322929">+7 (495) 032-29-29</a>
-						<a href="https://wa.me/79096962720"><img src="images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
+						<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
 					</div>
 					<div class="cart cart_full" onclick="cart.showWinow('bcontainer', 1);">
-						<img class="basket_logo" src="images/basket.png" alt="Корзина" />
+						<img class="basket_logo" src="/images/basket.png" alt="Корзина" />
 						<span id="basketwidjet" class="cart-widget-count">0</span>
 					</div>
 				</div>
@@ -38,10 +38,10 @@
 			<div class="header-right-area-mobile hidden-md hidden-lg">
 				<div class="number navbar-brand">
 					<a href="tel:+74950322929">+7 (495) 032-29-29</a>
-					<a href="https://wa.me/79096962720"><img src="images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
+					<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
 				</div>
 				<div class="cart cart_mobile" onclick="cart.showWinow('bcontainer', 1);">
-					<img class="basket_logo" src="images/basket.png" alt="Корзина" />
+					<img class="basket_logo" src="/images/basket.png" alt="Корзина" />
 					<span id="basketwidjet2" class="cart-widget-count">0</span>
 				</div>
 			</div>

@@ -1,6 +1,6 @@
 <!---Форма для магазина-------------------------------->
 <div id="order" class="popup"> <a href="javascript:void(0)" class="close_popup" onclick="cart.closeWindow('order', 0)"
-		style="position: absolute;margin: -25px 0px 0px 0px; right: 0;"><img src="images/close.png" /></a>
+		style="position: absolute;margin: -25px 0px 0px 0px; right: 0;"><img src="/images/close.png" /></a>
 	<div class="valid-text2"></div>
 	<h4 style="text-align: center;">Введите ваши контактные данные</h4>
 	<form id="formToSend" onSubmit="cart.sendOrder('formToSend,overflw,bsum'); return(false);">

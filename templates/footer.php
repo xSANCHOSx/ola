@@ -30,7 +30,7 @@ foreach ($products as $product) {
 					</ul>
 					<div class="number navbar-brand hidden-sm hidden-xs">
 						<a href="tel:+74950322929">+7 (495) 032-29-29</a>
-						<a href="https://wa.me/79096962720"><img src="images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
+						<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
 					</div>
 					<div class="number navbar-brand hidden-sm hidden-xs" style="padding-left:15px;"><a
 							href="mailto:admin@olaplex-shop.ru">admin@olaplex-shop.ru</a></br><a

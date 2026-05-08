@@ -26,7 +26,7 @@ require __DIR__ . '/templates/head.php';
 		<div class="page-404-container">
 
 			<div class="page-404-image">
-				<img src="images/404.png" alt="404 - Страница не найдена">
+				<img src="/images/404.png" alt="404 - Страница не найдена">
 			</div>
 
 			<div class="page-404-content">

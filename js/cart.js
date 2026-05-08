@@ -153,23 +153,24 @@
 								 onclick='cart.closeWindow("bcontainer",1)'>×</a>
 						</div>
 
-						<!-- DELIVERY BANNER -->
-						<div class="minicart-delivery-banner">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-									 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<rect x="1" y="3" width="15" height="13" rx="2"/>
-								<path d="M16 8h4l3 5v3h-7V8z"/>
-								<circle cx="5.5" cy="18.5" r="2.5"/>
-								<circle cx="18.5" cy="18.5" r="2.5"/>
-							</svg>
-							Бесплатная доставка от 500 ₽
-						</div>
-
 						<!-- ITEMS LIST -->
 						<div id="overflw">
 							<div class="minicart-items" id="minicart-items-list"></div>
 						</div>
+					<!-- ДОСТАВКА -->
+					<div class="minicart-delivery-banner" id="minicart-delivery-banner">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+								stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<rect x="1" y="3" width="15" height="13" rx="2"/>
+							<path d="M16 8h4l3 5v3h-7V8z"/>
+							<circle cx="5.5" cy="18.5" r="2.5"/>
+							<circle cx="18.5" cy="18.5" r="2.5"/>
+						</svg>
 
+						<span class="delivery-text">
+							Москва: +250 руб Регионы: Уточняйте у оператора
+						</span>
+					</div>
 						<!-- FOOTER -->
 						<div id="bfooter">
 							<!-- Скрытый #bsum для обратной совместимости -->
@@ -295,8 +296,19 @@
 				.attr('data-price', sum.toFixed(2))
 				.html('Сумма: <span class="price_value">' + sum.toFixed(2) + '</span> ₽.')
 
-			// НОВОЕ: обновляем видимую строку Total
+			// Обновляем итоговую сумму
 			$('#minicart-total-display').text(sum.toFixed(2) + ' ₽')
+
+			// Логика доставки
+			if (sum >= 5000) {
+				$('#minicart-delivery-banner .delivery-text').text(
+					'Москва: бесплатно Регионы: Уточняйте у оператора'
+				)
+			} else {
+				$('#minicart-delivery-banner .delivery-text').text(
+					'Москва: +250 руб Регионы: Уточняйте у оператора'
+				)
+			}
 		}
 		showCoupon(code) {
 			$('.coupon__toggle').hide()

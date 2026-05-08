@@ -1,0 +1,9 @@
+# Disable PHP execution in uploads folder
+php_flag engine off
+AddType text/plain .php .phtml .php3 .php4 .php5 .php6 .php7 .phps .pht .phar .shtml
+ 
+# Additional security
+Options -Indexes
+<FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
+    Allow from all
+</FilesMatch>

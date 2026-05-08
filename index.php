@@ -380,11 +380,11 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 		<?php
 		$_productsById = [];
 		foreach ($products as $p) {
-			// Зберігаємо за числовим ключем (010 → 10) і оригінальним рядком
+			// Сохраняем по числовому ключу (010 → 10) и оригинальной строке
 			$_numKey = (int)$p['id'];
 			$_productsById[$_numKey] = $p;
 			if ((string)$_numKey !== (string)$p['id']) {
-				$_productsById[(string)$p['id']] = $p; // '010' теж
+				$_productsById[(string)$p['id']] = $p; // '010' также
 			}
 		}
 		?>

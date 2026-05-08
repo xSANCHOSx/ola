@@ -6,7 +6,7 @@ admin_require_auth();
 
 header('Content-Type: application/json; charset=utf-8');
 
-// CKEditor 5 очікує поле 'uploaded' замість успішного статусу
+// CKEditor 5 ожидает поле 'uploaded' вместо успешного статуса
 if (!isset($_FILES['upload']) || empty($_FILES['upload']['tmp_name'])) {
 	http_response_code(400);
 	echo json_encode([
@@ -20,7 +20,7 @@ if (!isset($_FILES['upload']) || empty($_FILES['upload']['tmp_name'])) {
 
 $file = $_FILES['upload'];
 
-// Валідація розміру
+// Валидация размера
 if ((int)$file['size'] > 10 * 1024 * 1024) {
 	http_response_code(413);
 	echo json_encode([
@@ -32,7 +32,7 @@ if ((int)$file['size'] > 10 * 1024 * 1024) {
 	exit;
 }
 
-// Валідація розширення
+// Валидация расширения
 $ext = strtolower(pathinfo((string)$file['name'], PATHINFO_EXTENSION));
 $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 
@@ -48,7 +48,7 @@ if (!in_array($ext, $allowed, true)) {
 	exit;
 }
 
-// Валідація що це реально завантажений файл
+// Валидация что это действительно загруженный файл
 if (!is_uploaded_file($file['tmp_name'])) {
 	dev_log_security('BLOG_UPLOAD_SUSPICIOUS', ['filename' => $file['name']]);
 	http_response_code(400);
@@ -61,7 +61,7 @@ if (!is_uploaded_file($file['tmp_name'])) {
 	exit;
 }
 
-// Перевірка що це реально картинка
+// Проверка что это действительно картинка
 $imageInfo = @getimagesize($file['tmp_name']);
 if ($imageInfo === false) {
 	dev_log_security('BLOG_UPLOAD_NOT_IMAGE', ['filename' => $file['name']]);
@@ -75,7 +75,7 @@ if ($imageInfo === false) {
 	exit;
 }
 
-// MIME type валідація
+// MIME type валидация
 $finfo = @finfo_open(FILEINFO_MIME_TYPE);
 $mimeType = $finfo ? @finfo_file($finfo, $file['tmp_name']) : null;
 if ($finfo) @finfo_close($finfo);
@@ -121,7 +121,7 @@ if (!move_uploaded_file($file['tmp_name'], $target)) {
 
 dev_log_security('BLOG_UPLOAD_SUCCESS', ['filename' => $fileName]);
 
-// CKEditor 5 очікує 'url' поле замість 'location'
+// CKEditor 5 ожидает поле 'url' вместо 'location'
 echo json_encode([
 	'uploaded' => true,
 	'url' => '/data/uploads/blog/' . $fileName

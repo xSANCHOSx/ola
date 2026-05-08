@@ -170,7 +170,7 @@ if (empty($orderResult)) {
     echo json_encode(['error' => 'Корзина пуста']);
     exit(1);
 }
-// ═══ Верифікація цін з БД ═══════════════════════════════════════════════════
+// ═══ Проверка цен из БД ═══════════════════════════════════════════════════
 $totalSum = 0.0;
 $pdo = dev_db_connection();
 if ($pdo instanceof PDO && !empty($orderResult)) {
@@ -193,13 +193,13 @@ if ($pdo instanceof PDO && !empty($orderResult)) {
         $totalSum += (float)$dbPrices[$pid] * (int)($item['num'] ?? 0);
     }
 } else {
-    // Fallback якщо БД недоступна
+    // Fallback если БД недоступна
     foreach ($orderResult as $item) {
         $totalSum += ((float)($item['price'] ?? 0) * (int)($item['num'] ?? 0));
     }
 }
 
-// ═══ Верифікація купону на сервері ═══════════════════════════════════════════
+// ═══ Проверка купона на сервере ═══════════════════════════════════════════
 $cfg     = dev_app_config();
 $coupons = $cfg['coupons'] ?? [];
 $couponCode = $payload['coupon'] ?? '';

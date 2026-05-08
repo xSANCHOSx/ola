@@ -36,12 +36,12 @@ jobs:
               git reset --hard origin/main
             fi
 
-            # Видаляємо сміття перед копіюванням
+            # Удаляем мусор перед копированием
             find . -name ".DS_Store" -delete
             find . -name "Thumbs.db" -delete
 
-            # Синхронізація в корінь сайту (на рівень вище)
-            # --exclude='temp/' важливо, щоб не видалити саму папку temp
+            # Синхронизация в корень сайта (на уровень выше)
+            # --exclude='temp/' важно, чтобы не удалить саму папку temp
             rsync -avz --delete \
               --exclude='temp/' \
               --exclude='.git/' \

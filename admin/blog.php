@@ -252,23 +252,23 @@ $reason = '';
 if (isset($_GET['msg'])) {
 	$msgCode = (string)$_GET['msg'];
 	$messages = [
-		'saved' => 'Пост успішно збережено',
-		'deleted' => 'Пост видалено',
-		'error' => 'Помилка при збереженні'
+		'saved' => 'Пост успешно сохранён',
+		'deleted' => 'Пост удалён',
+		'error' => 'Ошибка при сохранении'
 	];
 	$msg = $messages[$msgCode] ?? '';
 
 	if (isset($_GET['reason'])) {
 		$reasons = [
-			'slug_exists' => ' (slug вже існує)',
-			'invalid_image' => ' (невірний тип зображення)',
-			'image_too_large' => ' (зображення занадто велике)',
+			'slug_exists' => ' (slug уже существует)',
+			'invalid_image' => ' (неверный тип изображения)',
+			'image_too_large' => ' (изображение слишком большое)',
 		];
 		$reason = $reasons[(string)$_GET['reason']] ?? '';
 	}
 }
 
-// Helper function для генерації slug
+// Helper function для генерации slug
 function generateSlug(string $text): string
 {
 	$text = strtolower($text);
@@ -278,12 +278,12 @@ function generateSlug(string $text): string
 }
 ?>
 <!doctype html>
-<html lang="uk">
+<html lang="ru">
 
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Адмінка - Блог</title>
+	<title>Админка - Блог</title>
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
 	<!-- CKEditor 5 -->
 	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
@@ -335,10 +335,10 @@ function generateSlug(string $text): string
 	<div class="container">
 		<?php require __DIR__ . '/_nav.php'; ?>
 
-		<h2>Управління блогом</h2>
+		<h2>Управление блогом</h2>
 
 		<?php if ($msg): ?>
-			<div class="alert alert-<?= strpos($msg, 'Помилка') !== false ? 'error' : 'success' ?>">
+			<div class="alert alert-<?= strpos($msg, 'Ошибка') !== false ? 'error' : 'success' ?>">
 				<?= admin_h($msg . $reason) ?>
 			</div>
 		<?php endif; ?>
@@ -359,31 +359,31 @@ function generateSlug(string $text): string
 				<div class="col-md-6">
 					<div class="form-group">
 						<label>URL Slug *</label>
-						<input class="form-control slug-input" name="slug" placeholder="url-slug (автогенерується)"
+						<input class="form-control slug-input" name="slug" placeholder="url-slug (автогенерируется)"
 							value="<?= admin_h((string)($edit['slug'] ?? '')) ?>">
-						<small style="color:#666;">Якщо пусто, автоматично генеруватиметься з заголовка</small>
+						<small style="color:#666;">Если пусто, автоматически генерируется из заголовка</small>
 					</div>
 				</div>
 				<div class="col-md-6">
 					<div class="form-group">
 						<label>Статус</label>
 						<select class="form-control" name="status">
-							<option value="draft" <?= ($edit['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Чернетка</option>
+							<option value="draft" <?= ($edit['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Черновик</option>
 							<option value="published" <?= ($edit['status'] ?? 'draft') === 'published' ? 'selected' : '' ?>>
-								Опубліковано</option>
+								Опубликовано</option>
 						</select>
 					</div>
 				</div>
 			</div>
 
 			<div class="form-group">
-				<label>Анонс (виписка для переліку)</label>
-				<textarea class="form-control" rows="3" name="excerpt" placeholder="Короткий опис для сторінки блога"
+				<label>Анонс (выписка для списка)</label>
+				<textarea class="form-control" rows="3" name="excerpt" placeholder="Короткое описание для страницы блога"
 					maxlength="500"><?= admin_h((string)($edit['excerpt'] ?? '')) ?></textarea>
 			</div>
 
 			<div class="form-group">
-				<label>Вміст *</label>
+				<label>Содержимое *</label>
 				<textarea id="content" name="content"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
 			</div>
 
@@ -477,7 +477,7 @@ function generateSlug(string $text): string
 			<div class="row">
 				<div class="col-md-8">
 					<div class="form-group">
-						<label>Зображення обкладинки</label>
+						<label>Изображение обложки</label>
 						<div style="margin-bottom:10px;">
 							<input class="form-control" name="featured_image" placeholder="Шлях до зображення"
 								value="<?= admin_h((string)($edit['featured_image'] ?? '')) ?>">
@@ -491,7 +491,7 @@ function generateSlug(string $text): string
 				</div>
 				<div class="col-md-4">
 					<div class="form-group">
-						<label>Теги (через кому)</label>
+						<label>Теги (через запятую)</label>
 						<input class="form-control" name="tags" placeholder="тег1, тег2, тег3"
 							value="<?= admin_h((string)($edit['tags'] ?? '')) ?>">
 					</div>
@@ -502,13 +502,13 @@ function generateSlug(string $text): string
 				<div class="col-md-6">
 					<div class="form-group">
 						<label>SEO Заголовок</label>
-						<input class="form-control" name="seo_title" placeholder="META title для пошуку"
+						<input class="form-control" name="seo_title" placeholder="META title для поиска"
 							value="<?= admin_h((string)($edit['seo_title'] ?? '')) ?>" maxlength="255">
 					</div>
 				</div>
 				<div class="col-md-6">
 					<div class="form-group">
-						<label>SEO Опис</label>
+						<label>SEO Описание</label>
 						<input class="form-control" name="seo_description" placeholder="META description"
 							value="<?= admin_h((string)($edit['seo_description'] ?? '')) ?>" maxlength="255">
 					</div>
@@ -517,15 +517,15 @@ function generateSlug(string $text): string
 
 			<div style="margin-top:20px;">
 				<button type="submit" class="btn btn-success" style="margin-right:10px;">
-					<?= $edit ? 'Зберегти' : 'Створити пост' ?>
+					<?= $edit ? 'Сохранить' : 'Создать пост' ?>
 				</button>
 				<?php if ($edit): ?>
-					<a href="/admin/blog.php" class="btn btn-secondary">Скасувати</a>
+					<a href="/admin/blog.php" class="btn btn-secondary">Отменить</a>
 				<?php endif; ?>
 			</div>
 		</form>
 
-		<h3>Всі пости (<?= count($posts) ?>)</h3>
+		<h3>Все посты (<?= count($posts) ?>)</h3>
 		<table class="table table-bordered table-striped table-sm">
 			<thead>
 				<tr>
@@ -534,8 +534,8 @@ function generateSlug(string $text): string
 					<th>Slug</th>
 					<th>Статус</th>
 					<th>Дата</th>
-					<th>Перегляди</th>
-					<th style="width:200px;">Дії</th>
+					<th>Просмотры</th>
+					<th style="width:200px;">Действия</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -553,13 +553,13 @@ function generateSlug(string $text): string
 						<td><?= admin_h(date('d.m.Y H:i', strtotime((string)$p['created_at']))) ?></td>
 						<td><?= admin_h((string)$p['views']) ?></td>
 						<td>
-							<a href="/admin/blog.php?edit=<?= (int)$p['id'] ?>" class="btn btn-sm btn-info">✎ Редакт</a>
+							<a href="/admin/blog.php?edit=<?= (int)$p['id'] ?>" class="btn btn-sm btn-info">✎ Редактировать</a>
 							<form method="post" style="display:inline;">
 								<input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
 								<input type="hidden" name="action" value="delete">
 								<input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
-								<button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Видалити?')">✕
-									Видалити</button>
+								<button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">✕
+									Удалить</button>
 							</form>
 						</td>
 					</tr>

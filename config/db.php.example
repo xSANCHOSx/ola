@@ -147,6 +147,14 @@ function log_security_event(string $event, array $context = []): void
 }
 
 /**
+ * Alias for log_security_event (legacy naming)
+ */
+function dev_log_security(string $event, array $context = []): void
+{
+    log_security_event($event, $context);
+}
+
+/**
  * Check rate limit for action
  */
 function check_rate_limit(string $key, int $limit = 5, int $window = 60): bool

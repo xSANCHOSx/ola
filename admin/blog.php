@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 		// Auto-generate slug if empty
 		if (empty($slug)) {
-			$slug = $this->generateSlug($title);
+			$slug = generateSlug($title);
 		} else {
 			// Очистить slug - только буквы, цифры, дефис
 			$slug = preg_replace('/[^a-z0-9\-]/i', '', $slug);
@@ -298,7 +298,7 @@ function generateSlug(string $text): string
 			display: block;
 		}
 
-		#content {
+		.ck-content {
 			min-height: 300px;
 		}
 

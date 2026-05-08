@@ -90,7 +90,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 	<!-- Feature Section Starts -->
 	<section id="max-featured-section" class="products_list">
 		<?php foreach ($products as $index => $product): ?>
-			<?php
+		<?php
 			//$template = ($index % 2 === 0) ? 'templates/product_template_even.php' : 'templates/product_template_odd.php';
 			$template = 'templates/product_template_even_mod.php';
 			include $template;
@@ -377,7 +377,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 	<script src="/js/bootstrap.min.js"></script>
 	<script src="/js/jquery.inputmask.bundle.js"></script>
 	<script>
-		<?php
+	<?php
 		$_productsById = [];
 		foreach ($products as $p) {
 			// Сохраняем по числовому ключу (010 → 10) и оригинальной строке
@@ -388,91 +388,91 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 			}
 		}
 		?>
-		window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
+	window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
 	</script>
 	<script src="/js/cart.js" type="text/javascript"></script>
 	<script src="/js/cart-init.js" type="text/javascript"></script>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script type="text/javascript">
-		$(window).on('load', function() {
-			$('.flexslider').flexslider({
-				animation: "slide"
-			})
-		});
+	$(window).on('load', function() {
+		$('.flexslider').flexslider({
+			animation: "slide"
+		})
+	});
 	</script>
 
 
 	<!-- Custom JavaScript -->
-	<script src="/js/main.js?v=<?php echo date('Ymd', filemtime('/js/main.js')); ?>"></script>
+	<script src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
 
 	<script>
-		$(document).ready(function() {
-			$('#order .close_popup').click(function() {
-				$('#formToSend input:checkbox').removeAttr("checked")
-				$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-			})
-			$(function() {
-				$('#formToSend input:checkbox').change(function() {
-					if ($(this).is(':checked')) {
-						$("#formToSend input[type=submit]").removeAttr('disabled')
-						$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
-					} else {
-						$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-						$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-					}
-				})
-			})
-			$('#send').click(function() {
-				if (($("#formToSend input[type=text]").val()) == !"") {
-					$('#formToSend input[type=hidden].valTrFal').remove()
-					$('#formToSend .font-geometria-light').remove()
-					$('#overflw .basket_num_buttons').remove()
-
+	$(document).ready(function() {
+		$('#order .close_popup').click(function() {
+			$('#formToSend input:checkbox').removeAttr("checked")
+			$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+			$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+		})
+		$(function() {
+			$('#formToSend input:checkbox').change(function() {
+				if ($(this).is(':checked')) {
+					$("#formToSend input[type=submit]").removeAttr('disabled')
+					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
+				} else {
+					$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
 				}
 			})
-		});
+		})
+		$('#send').click(function() {
+			if (($("#formToSend input[type=text]").val()) == !"") {
+				$('#formToSend input[type=hidden].valTrFal').remove()
+				$('#formToSend .font-geometria-light').remove()
+				$('#overflw .basket_num_buttons').remove()
 
-		//});
+			}
+		})
+	});
+
+	//});
 	</script>
 
 	<script>
-		$('#phoneNumber').inputmask("+7(999)999-99-99")
-		slide2
-		$(function() {
-			var videos = $("#slide1")
+	$('#phoneNumber').inputmask("+7(999)999-99-99")
+	slide2
+	$(function() {
+		var videos = $("#slide1")
 
-			videos.on("click", function() {
-				var elm = $(this),
-					conts = elm.contents(),
-					le = conts.length,
-					ifr = null
+		videos.on("click", function() {
+			var elm = $(this),
+				conts = elm.contents(),
+				le = conts.length,
+				ifr = null
 
-				for (var i = 0; i < le; i++) {
-					if (conts[i].nodeType == 8) ifr = conts[i].textContent
-				}
+			for (var i = 0; i < le; i++) {
+				if (conts[i].nodeType == 8) ifr = conts[i].textContent
+			}
 
-				elm.addClass("player").html(ifr)
-				elm.off("click")
-			})
+			elm.addClass("player").html(ifr)
+			elm.off("click")
 		})
-		$(function() {
-			var video2 = $("#slide2")
+	})
+	$(function() {
+		var video2 = $("#slide2")
 
-			video2.on("click", function() {
-				var elm2 = $(this),
-					conts2 = elm2.contents(),
-					le2 = conts2.length,
-					ifr2 = null
+		video2.on("click", function() {
+			var elm2 = $(this),
+				conts2 = elm2.contents(),
+				le2 = conts2.length,
+				ifr2 = null
 
-				for (var i = 0; i < le2; i++) {
-					if (conts2[i].nodeType == 8) ifr2 = conts2[i].textContent
-				}
+			for (var i = 0; i < le2; i++) {
+				if (conts2[i].nodeType == 8) ifr2 = conts2[i].textContent
+			}
 
-				elm2.addClass("player").html(ifr2)
-				elm2.off("click")
-			})
-		});
+			elm2.addClass("player").html(ifr2)
+			elm2.off("click")
+		})
+	});
 	</script>
 	<!-- <script src="/js/coupon.js"></script> -->
 

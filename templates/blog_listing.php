@@ -37,70 +37,70 @@ $pageDescription = 'Читайте полезные статьи о восста
 				<h1 style="margin-bottom: 30px; color: #333; border-bottom: 2px solid #3e7ab6; padding-bottom: 15px;">Блог</h1>
 
 				<?php if (empty($posts)): ?>
-					<div style="padding: 30px; text-align: center; background: #f9f9f9; border-radius: 5px;">
-						<p style="color: #666; font-size: 16px;">Пока постов нет. Следите за обновлениями!</p>
-					</div>
+				<div style="padding: 30px; text-align: center; background: #f9f9f9; border-radius: 5px;">
+					<p style="color: #666; font-size: 16px;">Пока постов нет. Следите за обновлениями!</p>
+				</div>
 				<?php else: ?>
-					<?php foreach ($posts as $post): ?>
+				<?php foreach ($posts as $post): ?>
 
-						<article style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid #eee;">
-							<?php if (!empty($post['featured_image'])): ?>
-								<img src="/<?= htmlspecialchars((string)$post['featured_image']) ?>"
-									alt="<?= htmlspecialchars((string)$post['title']) ?>"
-									style="width: 100%; max-height: 350px; object-fit: cover; border-radius: 5px; margin-bottom: 20px;">
-							<?php endif; ?>
+				<article style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid #eee;">
+					<?php if (!empty($post['featured_image'])): ?>
+					<img src="/<?= htmlspecialchars((string)$post['featured_image']) ?>"
+						alt="<?= htmlspecialchars((string)$post['title']) ?>"
+						style="width: 100%; max-height: 350px; object-fit: cover; border-radius: 5px; margin-bottom: 20px;">
+					<?php endif; ?>
 
-							<h2 style="margin-bottom: 10px; color: #333;">
-								<a href="/blog/<?= htmlspecialchars((string)$post['slug']) ?>"
-									style="color: #3e7ab6; text-decoration: none;">
-									<?= htmlspecialchars((string)$post['title']) ?>
-								</a>
-							</h2>
+					<h2 style="margin-bottom: 10px; color: #333;">
+						<a href="/blog/<?= htmlspecialchars((string)$post['slug']) ?>"
+							style="color: #3e7ab6; text-decoration: none;">
+							<?= htmlspecialchars((string)$post['title']) ?>
+						</a>
+					</h2>
 
-							<div style="margin-bottom: 15px; color: #999; font-size: 14px;">
-								<span>📅 <?php
+					<div style="margin-bottom: 15px; color: #999; font-size: 14px;">
+						<span>📅 <?php
 								$dateField = !empty($post['published_at']) ? $post['published_at'] : $post['created_at'];
-								$ts = strtotime((string)$dateField);
-								<span style="margin-left: 20px;">👁 <?= (int)$post['views'] ?> переглядів</span>
-							</div>
+								$ts = strtotime((string)$dateField);?>
+							<span style="margin-left: 20px;">👁 <?= (int)$post['views'] ?> переглядів</span>
+					</div>
 
-							<?php
+					<?php
 							$excerpt = trim((string)($post['excerpt'] ?? ''));
 							if (!empty($excerpt)):
 							?>
-								<p style="color: #666; line-height: 1.6; font-size: 15px; margin-bottom: 15px;">
-									<?= htmlspecialchars($excerpt) ?>
-								</p>
-							<?php endif; ?>
-
-							<a href="/blog/<?= htmlspecialchars((string)$post['slug']) ?>"
-								style="color: #3e7ab6; font-weight: bold; text-decoration: none;">
-								Подробнее →
-							</a>
-						</article>
-					<?php endforeach; ?>
-
-					<!-- Пагинация -->
-					<?php if ($totalPages > 1): ?>
-						<nav style="margin-top: 40px; text-align: center;">
-							<ul style="list-style: none; padding: 0; display: inline-block;">
-								<?php for ($i = 1; $i <= $totalPages; $i++): ?>
-									<li style="display: inline-block; margin: 0 5px;">
-										<?php if ($i === $page): ?>
-											<span style="padding: 8px 12px; background: #3e7ab6; color: white; border-radius: 3px;">
-												<?= $i ?>
-											</span>
-										<?php else: ?>
-											<a href="/blog?page=<?= $i ?>"
-												style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 3px; text-decoration: none; color: #3e7ab6;">
-												<?= $i ?>
-											</a>
-										<?php endif; ?>
-									</li>
-								<?php endfor; ?>
-							</ul>
-						</nav>
+					<p style="color: #666; line-height: 1.6; font-size: 15px; margin-bottom: 15px;">
+						<?= htmlspecialchars($excerpt) ?>
+					</p>
 					<?php endif; ?>
+
+					<a href="/blog/<?= htmlspecialchars((string)$post['slug']) ?>"
+						style="color: #3e7ab6; font-weight: bold; text-decoration: none;">
+						Подробнее →
+					</a>
+				</article>
+				<?php endforeach; ?>
+
+				<!-- Пагинация -->
+				<?php if ($totalPages > 1): ?>
+				<nav style="margin-top: 40px; text-align: center;">
+					<ul style="list-style: none; padding: 0; display: inline-block;">
+						<?php for ($i = 1; $i <= $totalPages; $i++): ?>
+						<li style="display: inline-block; margin: 0 5px;">
+							<?php if ($i === $page): ?>
+							<span style="padding: 8px 12px; background: #3e7ab6; color: white; border-radius: 3px;">
+								<?= $i ?>
+							</span>
+							<?php else: ?>
+							<a href="/blog?page=<?= $i ?>"
+								style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 3px; text-decoration: none; color: #3e7ab6;">
+								<?= $i ?>
+							</a>
+							<?php endif; ?>
+						</li>
+						<?php endfor; ?>
+					</ul>
+				</nav>
+				<?php endif; ?>
 				<?php endif; ?>
 			</div>
 
@@ -129,18 +129,18 @@ $pageDescription = 'Читайте полезные статьи о восста
 
 					if (!empty($tags)):
 				?>
-						<div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px;">
-							<h3 style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3e7ab6;">Теги</h3>
-							<div style="display: flex; flex-wrap: wrap; gap: 8px;">
-								<?php foreach ($tags as $tag): ?>
-									<a href="/blog?tag=<?= htmlspecialchars((string)$tag['slug']) ?>"
-										style="background: white; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; font-size: 13px; text-decoration: none; color: #3e7ab6;">
-										#<?= htmlspecialchars((string)$tag['name']) ?>
-										<span style="color: #999;">(<?= (int)$tag['count'] ?>)</span>
-									</a>
-								<?php endforeach; ?>
-							</div>
-						</div>
+				<div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px;">
+					<h3 style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3e7ab6;">Теги</h3>
+					<div style="display: flex; flex-wrap: wrap; gap: 8px;">
+						<?php foreach ($tags as $tag): ?>
+						<a href="/blog?tag=<?= htmlspecialchars((string)$tag['slug']) ?>"
+							style="background: white; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; font-size: 13px; text-decoration: none; color: #3e7ab6;">
+							#<?= htmlspecialchars((string)$tag['name']) ?>
+							<span style="color: #999;">(<?= (int)$tag['count'] ?>)</span>
+						</a>
+						<?php endforeach; ?>
+					</div>
+				</div>
 				<?php
 					endif;
 				}

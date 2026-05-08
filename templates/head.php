@@ -22,16 +22,16 @@ $cssBust = function (string $f) {
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap&subset=cyrillic-ext"
         rel="stylesheet">
     <!-- Libs -->
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/font-awesome.min.css">
-    <link rel="stylesheet" href="css/animate.css">
-    <link rel="stylesheet" href="css/icon.css">
-    <link rel="stylesheet" href="css/flexslider.css">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/animate.css">
+    <link rel="stylesheet" href="/css/icon.css">
+    <link rel="stylesheet" href="/css/flexslider.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
     <!-- App CSS -->
-    <link rel="stylesheet" href="css/styles.css?v=<?= $cssBust('css/styles.css') ?>">
-    <link rel="stylesheet" href="css/wicart.css?v=<?= $cssBust('css/wicart.css') ?>">
+    <link rel="stylesheet" href="/css/styles.css?v=<?= $cssBust('css/styles.css') ?>">
+    <link rel="stylesheet" href="/css/wicart.css?v=<?= $cssBust('css/wicart.css') ?>">
 
     <?php if (!empty($extraCss)) echo $extraCss; ?>
 

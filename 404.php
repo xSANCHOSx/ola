@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 
-<?php 
+<?php
 $pageTitle = '404 - Страница не найдена';
 $extraCss = '<style>
     .page-404-wrapper { min-height: 60vh; display: flex; align-items: center; justify-content: center; padding: 40px 15px; background-color: #fafafa; }
@@ -16,7 +16,7 @@ $extraCss = '<style>
     @media (max-width: 991px) { .page-404-content h1 { font-size: 32px; } .page-404-content { padding: 30px 40px; } }
     @media (max-width: 768px) { .page-404-container { flex-direction: column; text-align: center; } .page-404-image, .page-404-content { flex: 0 0 100%; max-width: 100%; } .page-404-content { padding: 20px 20px 40px 20px; } }
 </style>';
-require __DIR__ . '/templates/head.php'; 
+require __DIR__ . '/templates/head.php';
 ?>
 
 <body>
@@ -40,13 +40,13 @@ require __DIR__ . '/templates/head.php';
 
 	<?php include 'templates/footer.php'; ?>
 
-	<script src="js/jquery-3.7.1.min.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<script src="js/jquery.inputmask.bundle.js"></script>
-		<script src="js/cart.js" type="text/javascript"></script>
-		<script src="js/cart-init.js" type="text/javascript"></script>
+	<script src="/js/jquery-3.7.1.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/jquery.inputmask.bundle.js"></script>
+	<script src="/js/cart.js" type="text/javascript"></script>
+	<script src="/js/cart-init.js" type="text/javascript"></script>
 
-	<script src="js/main.js"></script>
+	<script src="/js/main.js"></script>
 
 	<script>
 		$('#phoneNumber').inputmask("+7(999)999-99-99")

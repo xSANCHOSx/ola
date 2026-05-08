@@ -32,7 +32,7 @@ ola/
 ├── admin/               ← мінімальна адмінка (замовлення, клієнти, продукти)
 ├── amo/                 ← AmoCRM інтеграція
 ├── templates/           ← PHP-темплейти (header, footer, product, order_form)
-├── js/
+├── /js/
 │   ├── cart.js          ← CartStore + CartUI + CheckoutService + ModernCart
 │   ├── main.js          ← sticky nav, analytics, timer, cookies
 │   └── main_legacy.js   ← 727 рядків старого коду ❌
@@ -106,7 +106,7 @@ if ($dbPass === false || $dbPass === '') {
 
 ### 3.2 Купон валідується лише на клієнті(Купон отрібно переробити під задавання через адмінку, як окрема сторінка)
 
-**Файл:** `js/cart.js`, рядки 6–7
+**Файл:** `/js/cart.js`, рядки 6–7
 
 ```javascript
 // ВЕСЬ КУПОН — У ВІДКРИТОМУ JS:
@@ -388,7 +388,7 @@ clearBasket() {
 
 ### 5.1 Змішування мов у одному файлі треба тільки Російська
 
-`js/cart.js` містить одночасно:
+`/js/cart.js` містить одночасно:
 ```javascript
 // Українська:
 'Введіть код купону'
@@ -439,7 +439,7 @@ function getDiscountTimer($uniqueId) {
 
 | Файл | Статус |
 |------|--------|
-| `js/main_legacy.js` | 727 рядків, не підключається ніде |
+| `/js/main_legacy.js` | 727 рядків, не підключається ніде |
 | `templates/product_template_even.php2` | `.php2` — свідомо вимкнено |
 | `templates/product_template_odd.php2` | `.php2` — свідомо вимкнено |
 | `images/ID010_old.png` | Стара версія картинки |
@@ -647,7 +647,7 @@ CSS → `wicart.css`, JS → `cart.js` або `main.js`.
 **Задача 12: Видалити мертві файли**
 
 ```bash
-rm js/main_legacy.js
+rm /js/main_legacy.js
 rm templates/product_template_even.php2
 rm templates/product_template_odd.php2
 rm images/ID010_old.png
@@ -775,7 +775,7 @@ if ($couponCode !== '' && isset($coupons[$couponCode])) {
 
 ---
 
-### 8.4 `js/cart.js` — виправлений `updateWidgets` + `clearBasket`
+### 8.4 `/js/cart.js` — виправлений `updateWidgets` + `clearBasket`
 
 ```javascript
 // CartUI:
@@ -1032,7 +1032,7 @@ $utmSource = $_COOKIE['utm_source'] ?? '';
 
 ### 9.5 `coupon.js` — мертвий файл з активним посиланням( треба реалізувати робот через адмінку як окрема сторінка)
 
-**Файл:** `js/coupon.js`
+**Файл:** `/js/coupon.js`
 
 ```javascript
 window.coupon = "";  // купон порожній
@@ -1057,8 +1057,8 @@ window.coupon = "";  // купон порожній
 
 ```html
 <link rel="stylesheet" href="css/wicart.css">         ← кешується 7 днів
-<script src="js/cart.js"></script>                    ← кешується 7 днів
-<script src="js/coupon.js"></script>                  ← кешується 7 днів
+<script src="/js/cart.js"></script>                    ← кешується 7 днів
+<script src="/js/coupon.js"></script>                  ← кешується 7 днів
 ```
 
 Єдиний виняток — `styles.css` з `?v=Ymd`. Після деплою виправлень у `cart.js` користувач може бачити стару версію до 7 днів.
@@ -1074,7 +1074,7 @@ function asset_url(string $path): string {
 }
 ?>
 <link rel="stylesheet" href="<?= asset_url('css/wicart.css') ?>">
-<script src="<?= asset_url('js/cart.js') ?>"></script>
+<script src="<?= asset_url('/js/cart.js') ?>"></script>
 ```
 
 ---
@@ -1111,7 +1111,7 @@ include_once 'classes/AmoAuth.php';
 🔴 SECURITY (виправити до наступного деплою)
 │
 ├── [S1] Пароль БД у git-репозиторії          config/db.php:7
-├── [S2] Купон не верифікується на сервері    js/cart.js:6-7 + sendmail.php
+├── [S2] Купон не верифікується на сервері    /js/cart.js:6-7 + sendmail.php
 ├── [S3] Ціни не верифікуються на сервері     sendmail.php:155
 ├── [S4] setup.php доступний через HTTP        setup.php:1
 ├── [S5] Rate limit має race condition         config/db.php:139
@@ -1142,9 +1142,9 @@ include_once 'classes/AmoAuth.php';
 
 🟢 CLEANUP (прибрати)
 │
-├── [C1] js/main_legacy.js (727 рядків)
+├── [C1] /js/main_legacy.js (727 рядків)
 ├── [C2] templates/product_template_*.php2
-├── [C3] js/coupon.js (повністю закоментований)
+├── [C3] /js/coupon.js (повністю закоментований)
 ├── [C4] images/ID010_old.png, *.DS_Store, *.png2
 ├── [C5] Планові *.md у корені проєкту
 ├── [C6] Закоментований тестовий $_POST у amo/order.php
@@ -1307,8 +1307,8 @@ if (!check_rate_limit($loginKey, 10, 300)) {
 
 ЗАМІНИТИ у templates/head.php:
   href="css/wicart.css"  →  href="<?= asset_url('css/wicart.css') ?>"
-  src="js/cart.js"       →  src="<?= asset_url('js/cart.js') ?>"
-  src="js/main.js"       →  src="<?= asset_url('js/main.js') ?>"
+  src="/js/cart.js"       →  src="<?= asset_url('/js/cart.js') ?>"
+  src="/js/main.js"       →  src="<?= asset_url('/js/main.js') ?>"
 ```
 
 #### Задача Q5 — Єдиний клас для лічильника кошика
@@ -1326,7 +1326,7 @@ if (!check_rate_limit($loginKey, 10, 300)) {
   <span class="cart-widget-count"></span>    (мобайл)
 ```
 
-**Файл:** `js/cart.js`
+**Файл:** `/js/cart.js`
 
 ```
 ЗНАЙТИ метод updateWidgets(widgetSelector):
@@ -1436,7 +1436,7 @@ if (!check_rate_limit($loginKey, 10, 300)) {
 ```
 ВИЗНАЧИТИ цільову мову (ua або ru).
 
-У js/cart.js:
+У /js/cart.js:
   Замінити 'руб.' на 'грн'
   Видалити блок $('#moscow').html(...)
   Видалити '#region' блок
@@ -1457,7 +1457,7 @@ CSS блок з templates/order_form.php:
   ПЕРЕНЕСТИ у css/wicart.css (секція "Order form")
 
 Script блок з templates/order_form.php:
-  ПЕРЕНЕСТИ у js/cart.js (або окремий js/order-form.js)
+  ПЕРЕНЕСТИ у /js/cart.js (або окремий /js/order-form.js)
   Обгорнути у document.addEventListener('DOMContentLoaded', ...)
   якщо ще не обгорнуто.
 ```
@@ -1492,13 +1492,13 @@ data/products.php — функція getDiscountTimer():
 
 ```bash
 # Видалити мертві файли:
-git rm js/main_legacy.js
+git rm /js/main_legacy.js
 git rm templates/product_template_even.php2
 git rm templates/product_template_odd.php2
 git rm images/ID010_old.png
 git rm "images/ID008_min2.png2"
 git rm "images/.DS_Store"
-git rm js/coupon.js
+git rm /js/coupon.js
 git rm db_admin_auth_plan_*.md
 git rm dev_cart_replacement_plan_*.md
 
@@ -1773,7 +1773,7 @@ if (!$success) {
 
 #### 🟢 Спринт 4 — Cleanup
 - ✅ **4.1** Видалено мертві файли: `main_legacy.js`, `product_template_*.php2`, старі зображення
-- ✅ **5.2** Перенесено `<style>` та `<script>` з `order_form.php` до `css/wicart.css` та `js/main.js`
+- ✅ **5.2** Перенесено `<style>` та `<script>` з `order_form.php` до `css/wicart.css` та `/js/main.js`
 - ✅ **5.3** Оновлено дату таймера акції на `2026-06-01`
 
 ### Залишилось (низькопріоритетно)
@@ -1791,9 +1791,9 @@ if (!$success) {
 ✅ setup.php              — захищено від HTTP
 ✅ .gitignore             — додано config/db.php
 ✅ data/products.php      — додано get_products() з кешуванням
-✅ js/cart.js             — уніфіковано селектори, рефакторинг clearBasket()
+✅ /js/cart.js             — уніфіковано селектори, рефакторинг clearBasket()
 ✅ css/wicart.css         — додано стилі для .contact-method
-✅ js/main.js             — додано скрипт для toggle contact method
+✅ /js/main.js             — додано скрипт для toggle contact method
 ✅ templates/order_form.php — видалено inline <style> та <script>
 ✅ architecture-review.md — оновлено пріоритизацію
 ```

@@ -179,12 +179,12 @@ if ($productIndex !== false) {
 	<?php include 'order_form.php'; ?>
 
 	<!-- All JavaScript libraries -->
-	<script src="js/jquery-3.7.1.min.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<script src="js/jquery.inputmask.bundle.js"></script>
-	<script src="js/cart.js" type="text/javascript"></script>
-	<script src="js/cart-init.js" type="text/javascript"></script>
-	<script defer src="js/jquery.flexslider-min.js"></script>
+	<script src="/js/jquery-3.7.1.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/jquery.inputmask.bundle.js"></script>
+	<script src="/js/cart.js" type="text/javascript"></script>
+	<script src="/js/cart-init.js" type="text/javascript"></script>
+	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script type="text/javascript">
 		/*	$(window).load(function(){
 				$('.flexslider').flexslider({
@@ -237,7 +237,7 @@ if ($productIndex !== false) {
 	</script>
 
 	<!-- Custom JavaScript -->
-	<script src="js/main.js"></script>
+	<script src="/js/main.js"></script>
 
 	<script>
 		$(document).ready(function() {

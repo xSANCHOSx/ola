@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 
-<?php 
+<?php
 $pageTitle = 'Доставка и оплата - Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине';
-require __DIR__ . '/templates/head.php'; 
+require __DIR__ . '/templates/head.php';
 ?>
 
 <body>
@@ -96,13 +96,13 @@ require __DIR__ . '/templates/head.php';
 	<?php include 'templates/order_form.php'; ?>
 
 	<!-- All JavaScript libraries -->
-	<script src="js/jquery-3.7.1.min.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<script src="js/jquery.inputmask.bundle.js"></script>
-	<script src="js/cart.js" type="text/javascript"></script>
-	<script src="js/cart-init.js" type="text/javascript"></script>
+	<script src="/js/jquery-3.7.1.min.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/jquery.inputmask.bundle.js"></script>
+	<script src="/js/cart.js" type="text/javascript"></script>
+	<script src="/js/cart-init.js" type="text/javascript"></script>
 	<!-- Custom JavaScript -->
-	<script src="js/main.js"></script>
+	<script src="/js/main.js"></script>
 </body>
 
 </html>

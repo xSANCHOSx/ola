@@ -19,7 +19,7 @@ jobs:
           port: 22
           script: |
             # Шлях до папок
-            BASE_DIR="/var/www/www-root/data/www/sanchos-dev.website"
+            BASE_DIR="/var/www/www-root/data/www/sanchos-dev.site"
             TEMP_DIR="$BASE_DIR/temp"
             REPO="git@github.com:REAL_USER/REAL_REPO.git"
 

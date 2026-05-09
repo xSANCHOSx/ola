@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-/**
- * Зберегти UTM-параметри в cookies на 7 днів
- */
-function save_utm_cookies(): void
-{
-    if (!isset($_GET['utm_source'])) {
-        return;
+require_once __DIR__ . '/../config/db.php';
+
+// save_utm_cookies() визначена в config/db.php
+// Якщо з якихось причин її там немає — визначаємо тут як fallback
+if (!function_exists('save_utm_cookies')) {
+    function save_utm_cookies(): void
+    {
+        if (!isset($_GET['utm_source'])) {
+            return;
+        }
+        $cookieTime = time() + 60 * 60 * 24 * 7;
+        setcookie('utm_source',   (string)($_GET['utm_source']   ?? ''), $cookieTime, '/');
+        setcookie('utm_medium',   (string)($_GET['utm_medium']   ?? ''), $cookieTime, '/');
+        setcookie('utm_campaign', (string)($_GET['utm_campaign'] ?? ''), $cookieTime, '/');
+        setcookie('utm_content',  (string)($_GET['utm_content']  ?? ''), $cookieTime, '/');
     }
-    $cookieTime = time() + 60 * 60 * 24 * 7;
-    setcookie('utm_source',   (string)($_GET['utm_source']   ?? ''), $cookieTime, '/');
-    setcookie('utm_medium',   (string)($_GET['utm_medium']   ?? ''), $cookieTime, '/');
-    setcookie('utm_campaign', (string)($_GET['utm_campaign'] ?? ''), $cookieTime, '/');
-    setcookie('utm_content',  (string)($_GET['utm_content']  ?? ''), $cookieTime, '/');
 }
 
 save_utm_cookies();
 
-require_once __DIR__ . '/../config/db.php';
-
 /**
  * Получить список активных продуктов с кешированием
- * Результат кешируется на все время выполнения скрипта (static)
  */
 function get_products(): array
 {
@@ -64,7 +64,6 @@ function get_products(): array
     return $cache;
 }
 
-// Для зворотної сумісності з існуючим кодом, який використовує $products глобально
 $products = get_products();
 
 /**
@@ -96,19 +95,15 @@ function getDiscountTimer($uniqueId)
             function updateTimer$uniqueId() {
                 let now = new Date().getTime() / 1000;
                 let timeLeft = end$uniqueId - now;
-
                 if (timeLeft <= 0) {
                     end$uniqueId = now + (15 * 24 * 60 * 60);
                     timeLeft = end$uniqueId - now;
                 }
-
                 let days = Math.floor(timeLeft / (24 * 60 * 60));
                 let dayWord = (days == 1) ? 'День' : ((days >= 2 && days <= 4) ? 'Дня' : 'Дней');
-
                 document.querySelector('#timer-$uniqueId .days').innerText = days;
                 document.querySelector('#timer-$uniqueId .flip-label').innerText = dayWord;
             }
-
             setInterval(updateTimer$uniqueId, 3600000);
         </script>
     ";

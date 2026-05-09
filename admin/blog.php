@@ -8,7 +8,17 @@ $user = admin_current_user();
 
 if (!$pdo instanceof PDO) {
 	die('Database connection failed');
-<?php $adminPageTitle = "Блог"; require __DIR__ . "/_layout.php"; ?>
+}
+
+// POST handler
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+	if (!validate_csrf_token()) {
+		dev_log_security('CSRF_VALIDATION_FAILED', ['page' => 'admin/blog']);
+		http_response_code(403);
+		exit('CSRF check failed');
+	}
+
+	$id = (int)($_POST['id'] ?? 0);
 	$action = trim((string)($_POST['action'] ?? 'save'));
 
 	// Delete post

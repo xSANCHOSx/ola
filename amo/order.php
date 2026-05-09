@@ -90,10 +90,12 @@ if (!empty($_POST)) {
         $orderBasketString .= $basketItem['name'] . ', ' . $basketItem['id'] . ', ' . $price . ' руб. - ' . $quantity . ' шт' . "\n";
     }
 
-    $utmSource = ($_COOKIE['utm_source'] ? $_COOKIE['utm_source'] : '');
-    $utmMedium = ($_COOKIE['utm_medium'] ? $_COOKIE['utm_medium'] : '');
-    $utmCampaign = ($_COOKIE['utm_campaign'] ? $_COOKIE['utm_campaign'] : '');
-    $utmContent = ($_COOKIE['utm_content'] ? $_COOKIE['utm_content'] : '');
+    $utmSource = ($_COOKIE['utm_source'] ?? '');
+    $utmMedium = ($_COOKIE['utm_medium'] ?? '');
+    $utmCampaign = ($_COOKIE['utm_campaign'] ?? '');
+    $utmContent = ($_COOKIE['utm_content'] ?? '');
+
+    $counter = $_POST['ORDER_ID'] ?? 0;
 
     $amo = new \Itactis\AmoHelper\Amo();
     $toSendInfo = [

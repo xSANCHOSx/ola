@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/config/db.php';
 
 function dev_send_bitrix_lead(string $subject, array $payload): bool
 {
@@ -22,7 +23,7 @@ function dev_send_bitrix_lead(string $subject, array $payload): bool
         'PASSWORD' => (string)($crm['password'] ?? ''),
     ];
 
-    $fp = @fsockopen('ssl://' . $crm['host'], 443, $errno, $errstr, 5);
+    $fp = @fsockopen('ssl://' . $crm['host'], (int)($crm['port'] ?? 443), $errno, $errstr, 30);
     if (!$fp) {
         dev_log_runtime('CRM connection failed: ' . $errstr . ' (' . $errno . ')');
         return false;

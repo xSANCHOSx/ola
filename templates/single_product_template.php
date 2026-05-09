@@ -141,7 +141,6 @@ if ($productIndex !== false) {
 								</div>
 							</div>
 						<?php } elseif (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
-							<?php echo  product_button_label($currentProduct) ?>
 							<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
 							<p><strong>Срок доставки: 7-14 дней</strong></p>
 						<?php } else { ?>

@@ -1,8 +1,9 @@
-<?
+<?php
 
 namespace Itactis\AmoHelper;
 
-class AmoSend {
+class AmoSend
+{
     protected $accessToken;
     protected $domain;
     protected $pipelineId;
@@ -28,7 +29,8 @@ class AmoSend {
         'Email'
     ];
 
-    public function __construct($accessToken, $domain, $pipelineId) {
+    public function __construct($accessToken, $domain, $pipelineId)
+    {
         $this->accessToken = $accessToken;
         $this->domain = $domain;
         $this->pipelineId = $pipelineId;
@@ -112,15 +114,15 @@ class AmoSend {
         // die('123');
 
         $curl = curl_init();
-            curl_setopt($curl,CURLOPT_RETURNTRANSFER,true);
-            curl_setopt($curl,CURLOPT_USERAGENT,'amoCRM-oAuth-client/1.0');
-            curl_setopt($curl,CURLOPT_HTTPHEADER,['Accept: application/json', 'Authorization: Bearer ' . $this->accessToken]);
-            curl_setopt($curl,CURLOPT_URL,'https://' . $this->domain . '.amocrm.ru/api/v4/leads/unsorted/forms');
-            curl_setopt($curl,CURLOPT_HEADER,false);
-            curl_setopt($curl,CURLOPT_POSTFIELDS, json_encode($allOrderData));
-            curl_setopt($curl,CURLOPT_SSL_VERIFYPEER,1);
-            curl_setopt($curl,CURLOPT_SSL_VERIFYHOST,2);
-            $out = curl_exec($curl);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_USERAGENT, 'amoCRM-oAuth-client/1.0');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Authorization: Bearer ' . $this->accessToken]);
+        curl_setopt($curl, CURLOPT_URL, 'https://' . $this->domain . '.amocrm.ru/api/v4/leads/unsorted/forms');
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($allOrderData));
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
+        $out = curl_exec($curl);
         curl_close($curl);
 
         $arAmoResult = json_decode($out, true);
@@ -132,13 +134,13 @@ class AmoSend {
     {
         $link = 'https://' . $this->domain . '.amocrm.ru/api/v4/leads/custom_fields';
         $curl = curl_init();
-        curl_setopt($curl,CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl,CURLOPT_USERAGENT,'amoCRM-oAuth-client/1.0');
-        curl_setopt($curl,CURLOPT_URL, $link);
-        curl_setopt($curl,CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->accessToken));
-        curl_setopt($curl,CURLOPT_HEADER, false);
-        curl_setopt($curl,CURLOPT_SSL_VERIFYPEER, 1);
-        curl_setopt($curl,CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_USERAGENT, 'amoCRM-oAuth-client/1.0');
+        curl_setopt($curl, CURLOPT_URL, $link);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->accessToken));
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
         $out = curl_exec($curl);
         curl_close($curl);
         $result = json_decode($out, true);
@@ -157,13 +159,13 @@ class AmoSend {
     {
         $link = 'https://' . $this->domain . '.amocrm.ru/api/v4/contacts/custom_fields';
         $curl = curl_init();
-        curl_setopt($curl,CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl,CURLOPT_USERAGENT,'amoCRM-oAuth-client/1.0');
-        curl_setopt($curl,CURLOPT_URL, $link);
-        curl_setopt($curl,CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->accessToken));
-        curl_setopt($curl,CURLOPT_HEADER, false);
-        curl_setopt($curl,CURLOPT_SSL_VERIFYPEER, 1);
-        curl_setopt($curl,CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_USERAGENT, 'amoCRM-oAuth-client/1.0');
+        curl_setopt($curl, CURLOPT_URL, $link);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . $this->accessToken));
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
         $out = curl_exec($curl);
         curl_close($curl);
         $result = json_decode($out, true);
@@ -181,18 +183,17 @@ class AmoSend {
     protected function getUserByData($phone)
     {
         $curl = curl_init();
-        curl_setopt($curl,CURLOPT_RETURNTRANSFER,true);
-        curl_setopt($curl,CURLOPT_USERAGENT,'amoCRM-oAuth-client/1.0');
-        curl_setopt($curl,CURLOPT_HTTPHEADER,['Accept: application/json', 'Authorization: Bearer ' . $this->accessToken]);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_USERAGENT, 'amoCRM-oAuth-client/1.0');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Authorization: Bearer ' . $this->accessToken]);
         curl_setopt($curl, CURLOPT_POST, false);
-        curl_setopt($curl,CURLOPT_URL,'https://' . $this->domain . '.amocrm.ru/api/v4/contacts?query=' . $phone);
-        curl_setopt($curl,CURLOPT_HEADER,false);
-        curl_setopt($curl,CURLOPT_SSL_VERIFYPEER,1);
-        curl_setopt($curl,CURLOPT_SSL_VERIFYHOST,2);
+        curl_setopt($curl, CURLOPT_URL, 'https://' . $this->domain . '.amocrm.ru/api/v4/contacts?query=' . $phone);
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
         $out = curl_exec($curl);
         curl_close($curl);
         $res = json_decode($out, true);
         return $res['_embedded']['contacts'][0]['id'] ? $res['_embedded']['contacts'][0]['id'] : 0;
     }
-
 }

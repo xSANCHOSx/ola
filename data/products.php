@@ -2,6 +2,23 @@
 
 declare(strict_types=1);
 
+/**
+ * Зберегти UTM-параметри в cookies на 7 днів
+ */
+function save_utm_cookies(): void
+{
+    if (!isset($_GET['utm_source'])) {
+        return;
+    }
+    $cookieTime = time() + 60 * 60 * 24 * 7;
+    setcookie('utm_source',   (string)($_GET['utm_source']   ?? ''), $cookieTime, '/');
+    setcookie('utm_medium',   (string)($_GET['utm_medium']   ?? ''), $cookieTime, '/');
+    setcookie('utm_campaign', (string)($_GET['utm_campaign'] ?? ''), $cookieTime, '/');
+    setcookie('utm_content',  (string)($_GET['utm_content']  ?? ''), $cookieTime, '/');
+}
+
+save_utm_cookies();
+
 require_once __DIR__ . '/../config/db.php';
 
 /**
@@ -22,25 +39,24 @@ function get_products(): array
             $stmt = $pdo->query('SELECT external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description FROM products WHERE status = "active" ORDER BY id ASC');
             foreach ($stmt->fetchAll() as $row) {
                 $cache[] = [
-                    'id' => (string)$row['external_id'],
-                    'cat_number' => (string)($row['cat_number'] ?? ''),
-                    'name' => (string)$row['name'],
-                    'old_price' => (float)($row['old_price'] ?? 0),
-                    'price' => (float)$row['price'],
-                    'image' => (string)($row['image'] ?? ''),
-                    'link' => (string)$row['link'],
-                    'short_desc' => (string)($row['short_desc'] ?? ''),
-                    'desc' => (string)($row['desc'] ?? ''),
-                    'full_desc' => (string)($row['full_desc'] ?? ''),
-                    'in_stock' => (bool)$row['in_stock'],
-                    'status' => $row['status'] !== null ? (string)$row['status'] : null,
-                    'seo_title' => $row['seo_title'] !== null ? (string)$row['seo_title'] : '',
+                    'id'              => (string)$row['external_id'],
+                    'cat_number'      => (string)($row['cat_number'] ?? ''),
+                    'name'            => (string)$row['name'],
+                    'old_price'       => (float)($row['old_price'] ?? 0),
+                    'price'           => (float)$row['price'],
+                    'image'           => (string)($row['image'] ?? ''),
+                    'link'            => (string)$row['link'],
+                    'short_desc'      => (string)($row['short_desc'] ?? ''),
+                    'desc'            => (string)($row['desc'] ?? ''),
+                    'full_desc'       => (string)($row['full_desc'] ?? ''),
+                    'in_stock'        => (bool)$row['in_stock'],
+                    'status'          => $row['status'] !== null ? (string)$row['status'] : null,
+                    'seo_title'       => $row['seo_title'] !== null ? (string)$row['seo_title'] : '',
                     'seo_description' => $row['seo_description'] !== null ? (string)$row['seo_description'] : '',
                 ];
             }
         } catch (Throwable $e) {
             dev_log_runtime('Products load from DB failed: ' . $e->getMessage());
-            // Если БД недоступна - пустой массив (сайт будет работать без продуктов)
             $cache = [];
         }
     }
@@ -52,20 +68,48 @@ function get_products(): array
 $products = get_products();
 
 /**
- * Чи можна купити товар (в наявності або передзамовлення)
+ * Функція для отримання таймера акції
  */
-function product_is_buyable(array $p): bool
+function getDiscountTimer($uniqueId)
 {
-    return !empty($p['in_stock'])
-        || (!empty($p['status']) && $p['status'] === 'preorder');
-}
+    $targetDate = strtotime('2025-05-01 00:00:00');
+    $currentTime = time();
+    $timeLeft = $targetDate - $currentTime;
 
-/**
- * Текст кнопки "Купити" або "Передзамовлення"
- */
-function product_button_label(array $p): string
-{
-    return (!empty($p['status']) && $p['status'] === 'preorder')
-        ? 'Предзаказ'
-        : 'Купить';
+    if ($timeLeft <= 0) {
+        $targetDate = strtotime('+15 days', time());
+        $timeLeft   = $targetDate - $currentTime;
+    }
+
+    $days    = floor($timeLeft / (60 * 60 * 24));
+    $dayWord = ($days == 1) ? 'День' : (($days >= 2 && $days <= 4) ? 'Дня' : 'Дней');
+
+    return "
+        <div class='expire_date' id='timer-$uniqueId'>
+            До конца акции:
+            <div class='flip-clock'>
+                <div class='flip-unit'><span class='days'>$days</span><div class='flip-label'>$dayWord</div></div>
+            </div>
+        </div>
+        <script>
+            let end$uniqueId = $targetDate;
+            function updateTimer$uniqueId() {
+                let now = new Date().getTime() / 1000;
+                let timeLeft = end$uniqueId - now;
+
+                if (timeLeft <= 0) {
+                    end$uniqueId = now + (15 * 24 * 60 * 60);
+                    timeLeft = end$uniqueId - now;
+                }
+
+                let days = Math.floor(timeLeft / (24 * 60 * 60));
+                let dayWord = (days == 1) ? 'День' : ((days >= 2 && days <= 4) ? 'Дня' : 'Дней');
+
+                document.querySelector('#timer-$uniqueId .days').innerText = days;
+                document.querySelector('#timer-$uniqueId .flip-label').innerText = dayWord;
+            }
+
+            setInterval(updateTimer$uniqueId, 3600000);
+        </script>
+    ";
 }

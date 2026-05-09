@@ -335,9 +335,8 @@
 				id_product: orderItems[0] ? orderItems[0].id : '',
 				order: '',
 				coupon: coupon || '',
-				client_order_uuid:
-csrf_token: $('#formToSend input[name="csrf_token"]').val() || '',
-					Date.now().toString(36) + Math.random().toString(36).slice(2),
+				client_order_uuid: Date.now().toString(36) + Math.random().toString(36).slice(2),
+				csrf_token: $('#formToSend input[name="csrf_token"]').val() || '',
 			})
 				.done(onDone)
 .fail(function(xhr) {

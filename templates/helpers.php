@@ -1,5 +1,26 @@
 <?php
+
 declare(strict_types=1);
+
+/**
+ * Перевіряє, чи можна купити продукт
+ * Можна купити, якщо товар в наявності або це передзамовлення
+ */
+function product_is_buyable(array $product): bool
+{
+    return !empty($product['in_stock']) || (!empty($product['status']) && $product['status'] === 'preorder');
+}
+
+/**
+ * Повертає текст для кнопки купівлі
+ */
+function product_button_label(array $product): string
+{
+    if (!empty($product['status']) && $product['status'] === 'preorder') {
+        return 'Предзаказ';
+    }
+    return 'Купить';
+}
 
 /**
  * Генерує HTML-блок таймера акції.

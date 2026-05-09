@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/../data/products.php';
 save_utm_cookies();
 

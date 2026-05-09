@@ -7,6 +7,10 @@ session_start();
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/rest.php';
 
+function normalize_phone(string $phone): string
+{
+    return preg_replace('/\D+/', '', $phone) ?? '';
+}
 
 function next_order_number_fallback(string $counterFile): int
 {
@@ -50,7 +54,7 @@ function next_order_number_db(PDO $pdo, string $counterFile): int
 
 function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $total): ?int
 {
-    $phoneNorm = validate_phone((string)$payload['phone']) ?? '';
+    $phoneNorm = normalize_phone((string)$payload['phone']);
     $emailNorm = mb_strtolower(trim((string)$payload['email']));
     $customer = null;
     if ($phoneNorm !== '') {
@@ -96,23 +100,6 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
     return (int)$customer['id'];
 }
 
-/**
- * Нормалізує ID товару з формату кошика у формат БД.
- * Кошик: 'ID10', 'ID28', 'ID010'
- * БД:    '010',  '028',  '010'   (тризначний рядок з ведучим нулем)
- */
-function normalize_product_id(string $cartId): string
-{
-    // Прибираємо префікс ID (з будь-якою кількістю нулів після нього)
-    $num = preg_replace('/^ID0*/i', '', $cartId);
-    // Якщо після видалення префіксу залишилась цифра — форматуємо до 3 знаків
-    if (ctype_digit($num) && $num !== '') {
-        return str_pad($num, 3, '0', STR_PAD_LEFT);
-    }
-    // Якщо префіксу не було (наприклад вже '010') — повертаємо як є
-    return $cartId;
-}
-
 $cfg = dev_app_config();
 $counterFile = $cfg['fallback_counter_file'] ?? (__DIR__ . '/counter.txt');
 
@@ -136,10 +123,7 @@ $rate_limit_key = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 if (!check_rate_limit($rate_limit_key, $cfg['rate_limit_max_requests'] ?? 5, $cfg['rate_limit_window'] ?? 60)) {
     log_security_event('RATE_LIMIT_EXCEEDED', ['ip' => $rate_limit_key]);
     http_response_code(429);
-    echo json_encode([
-        'error' => 'Too many requests',
-        'retry_after' => 60,
-    ]);
+    echo json_encode(['error' => 'Too many requests']);
     exit;
 }
 
@@ -186,47 +170,9 @@ if (empty($orderResult)) {
     echo json_encode(['error' => 'Корзина пуста']);
     exit(1);
 }
-
-// ═══ Перевірка цін з БД ═══════════════════════════════════════════════════
 $totalSum = 0.0;
-$pdo = dev_db_connection();
-if ($pdo instanceof PDO && !empty($orderResult)) {
-    // Нормалізуємо ID з формату кошика ('ID10') у формат БД ('010')
-    $productIds = array_unique(array_column($orderResult, 'id'));
-    $normalizedIds = array_map('normalize_product_id', $productIds);
-
-    $placeholders = implode(',', array_fill(0, count($normalizedIds), '?'));
-    $stmt = $pdo->prepare(
-        "SELECT external_id, price FROM products WHERE external_id IN ($placeholders)"
-    );
-    $stmt->execute(array_values($normalizedIds));
-    $dbPrices = array_column($stmt->fetchAll(), 'price', 'external_id');
-
-    foreach ($orderResult as $item) {
-        $cartId = (string)($item['id'] ?? '');
-        $dbId = normalize_product_id($cartId);
-        if (!isset($dbPrices[$dbId])) {
-            log_security_event('UNKNOWN_PRODUCT', ['cart_id' => $cartId, 'db_id' => $dbId]);
-            http_response_code(400);
-            echo json_encode(['error' => 'Unknown product: ' . $cartId]);
-            exit;
-        }
-        $totalSum += (float)$dbPrices[$dbId] * (int)($item['num'] ?? 0);
-    }
-} else {
-    // Fallback якщо БД недоступна
-    foreach ($orderResult as $item) {
-        $totalSum += ((float)($item['price'] ?? 0) * (int)($item['num'] ?? 0));
-    }
-}
-
-// ═══ Перевірка купона на сервері ══════════════════════════════════════════
-$cfg     = dev_app_config();
-$coupons = $cfg['coupons'] ?? [];
-$couponCode = $payload['coupon'] ?? '';
-if ($couponCode !== '' && isset($coupons[$couponCode])) {
-    $discount = $coupons[$couponCode]['discount'];
-    $totalSum = max(0, $totalSum - $discount);
+foreach ($orderResult as $item) {
+    $totalSum += ((float)($item['price'] ?? 0) * (int)($item['num'] ?? 0));
 }
 
 $orderNumber = null;
@@ -244,6 +190,7 @@ if ($orderNumber === null) {
     $orderNumber = next_order_number_fallback($counterFile);
 }
 
+$_POST['ORDER_ID'] = $orderNumber;
 $_SESSION['order_id'] = $orderNumber;
 $subject = 'Заказ с сайта Olaplex #OLA-' . $orderNumber . ' (' . date('d.m.Y H:i') . ')';
 
@@ -340,12 +287,21 @@ $success = mail('client@macadamia-shop.ru, client@olaplex-shop.ru', $subject, $t
 $success2 = mail($payload['email'], $subject, $template, $headers);
 $crmSent = dev_send_bitrix_lead($subject, $payload);
 
+$_POST['MAIL_OUR'] = 'Result = ' . ($success ? '1' : '0');
 $_POST['MAIL_USER'] = 'Result = ' . ($success2 ? '1' : '0');
 $_POST['CRM_SENT'] = $crmSent ? '1' : '0';
 
 if (!function_exists('p2log')) {
+    function p2log($arr, $key = ''): void
+    {
+        $key = $key ?: 'main';
+        $dump = (is_array($arr) || is_object($arr)) ? print_r($arr, true) : $arr;
+        $dump .= "\r\n";
+        $files = $_SERVER['DOCUMENT_ROOT'] . '/log/' . $key . '.log';
+        @file_put_contents($files, $dump, FILE_APPEND);
+    }
 }
-p2log($_POST, 'order');
+p2log($_POST);
 
 require_once __DIR__ . '/amo/order.php';
 

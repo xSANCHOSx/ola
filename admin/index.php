@@ -8,7 +8,17 @@ if ($pdo instanceof PDO) {
     $orders = $pdo->query('SELECT o.id, o.order_number, o.customer_name_snapshot, o.customer_phone_snapshot, o.customer_email_snapshot, o.total, o.created_at, (SELECT COALESCE(SUM(quantity),0) FROM order_items oi WHERE oi.order_id = o.id) AS items_count FROM orders o ORDER BY o.id DESC LIMIT 100')->fetchAll();
 }
 ?>
-<?php $adminPageTitle = "Заказы"; require __DIR__ . "/_layout.php"; ?>
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админка - Заказы</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <?php require __DIR__ . '/_nav.php'; ?>
     <h3>Заказы</h3>
     <table class="table table-bordered table-striped">
         <thead>

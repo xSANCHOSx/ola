@@ -5,25 +5,20 @@ declare(strict_types=1);
 // admin/coupon_stats.php — Дашбоард статистики купонів
 // Показує: топ-10 купонів, загальна сума знижок, тренди по днях
 
-session_start();
-require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../admin/_bootstrap.php';
-
-// Перевірка авторизації
-if (empty($_SESSION[dev_app_config()['admin_session_key']])) {
-    header('Location: /admin/login.php');
-    exit;
-}
+require __DIR__ . '/_bootstrap.php';
+admin_require_auth();
 
 $pdo = dev_db_connection();
 
 // ═══ Статистика ════════════════════════════════════════════════════════════
 
 // 1. Загальні метрики
+// ВИПРАВЛЕНО: FILTER (WHERE ...) не підтримується в MariaDB,
+//             використовуємо SUM(CASE WHEN ... THEN 1 ELSE 0 END)
 $stmt = $pdo->query('
-    SELECT 
+    SELECT
         COUNT(DISTINCT c.id) as total_coupons,
-        COUNT(DISTINCT c.id) FILTER (WHERE c.is_active = 1) as active_coupons,
+        SUM(CASE WHEN c.is_active = 1 THEN 1 ELSE 0 END) as active_coupons,
         COUNT(cu.id) as total_usage,
         SUM(cu.discount_amount) as total_discount_given,
         MAX(cu.used_at) as last_usage
@@ -34,7 +29,7 @@ $metrics = $stmt->fetch() ?: [];
 
 // 2. Топ-10 купонів по використанню
 $stmt = $pdo->query('
-    SELECT 
+    SELECT
         c.id, c.code, c.name, c.discount_type, c.discount_value,
         COUNT(cu.id) as usage_count,
         SUM(cu.discount_amount) as discount_given,
@@ -42,7 +37,7 @@ $stmt = $pdo->query('
         c.is_active
     FROM coupons c
     LEFT JOIN coupon_usage cu ON c.id = cu.coupon_id
-    GROUP BY c.id
+    GROUP BY c.id, c.code, c.name, c.discount_type, c.discount_value, c.is_active
     ORDER BY usage_count DESC
     LIMIT 10
 ');
@@ -53,7 +48,7 @@ $stmt = $pdo->query('
     SELECT id, code, name, valid_to, used_count, max_usage_count
     FROM coupons
     WHERE valid_to BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)
-    AND is_active = 1
+      AND is_active = 1
     ORDER BY valid_to ASC
     LIMIT 5
 ');
@@ -64,8 +59,8 @@ $stmt = $pdo->query('
     SELECT id, code, name, used_count, max_usage_count
     FROM coupons
     WHERE max_usage_count IS NOT NULL
-    AND used_count >= max_usage_count
-    AND is_active = 1
+      AND used_count >= max_usage_count
+      AND is_active = 1
     ORDER BY used_count DESC
     LIMIT 5
 ');
@@ -73,7 +68,7 @@ $exhaustedCoupons = $stmt->fetchAll() ?: [];
 
 // 5. Статистика по днях (останніх 7 днів)
 $stmt = $pdo->query('
-    SELECT 
+    SELECT
         DATE(used_at) as date,
         COUNT(*) as usage_count,
         SUM(discount_amount) as discount_sum,
@@ -86,80 +81,82 @@ $stmt = $pdo->query('
 $dailyStats = $stmt->fetchAll() ?: [];
 
 ?>
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Статистика купонів - Адмін</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <style>
-        body { background: #f5f5f5; font-family: Arial, sans-serif; }
-        .container { max-width: 1400px; margin: 20px auto; }
-        .dashboard-header { margin-bottom: 30px; }
         .metric-card {
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: .375rem;
+            padding: 1.25rem;
+            text-align: center;
         }
-        .metric-value { font-size: 32px; font-weight: bold; color: #007bff; }
-        .metric-label { color: #666; font-size: 14px; margin-top: 5px; }
-        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #007bff; color: white; padding: 12px; text-align: left; }
-        td { padding: 12px; border-bottom: 1px solid #ddd; }
-        tr:hover { background: #f9f9f9; }
-        .status-active { color: green; font-weight: bold; }
-        .status-expires { color: orange; font-weight: bold; }
-        .status-exhausted { color: red; font-weight: bold; }
-        .badge { padding: 3px 8px; border-radius: 3px; font-size: 0.85em; }
-        .badge-fixed { background: #28a745; color: white; }
-        .badge-percent { background: #ffc107; color: black; }
-        h2 { color: #333; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-        .back-link { margin-bottom: 20px; }
-        .back-link a { color: #007bff; text-decoration: none; }
-        .back-link a:hover { text-decoration: underline; }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0d6efd;
+        }
+
+        .metric-label {
+            color: #6c757d;
+            font-size: .875rem;
+            margin-top: .25rem;
+        }
+
+        .section-title {
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: .5rem;
+            margin: 1.75rem 0 1rem;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <div class="back-link">
-            <a href="/admin/">← Повернутися в адмін</a>
-        </div>
-        
-        <div class="dashboard-header">
-            <h1>📊 Статистика купонів</h1>
-            <p style="color: #666;">Огляд активності та효кування купонів</p>
-        </div>
-        
+        <?php require __DIR__ . '/_nav.php'; ?>
+
+        <h3>📊 Статистика купонів</h3>
+
         <!-- Метрики -->
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-value"><?= $metrics['total_coupons'] ?? 0 ?></div>
-                <div class="metric-label">Всього купонів</div>
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-lg-3">
+                <div class="metric-card">
+                    <div class="metric-value"><?= (int)($metrics['total_coupons'] ?? 0) ?></div>
+                    <div class="metric-label">Всього купонів</div>
+                </div>
             </div>
-            <div class="metric-card">
-                <div class="metric-value"><?= $metrics['active_coupons'] ?? 0 ?></div>
-                <div class="metric-label">Активних</div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="metric-card">
+                    <div class="metric-value"><?= (int)($metrics['active_coupons'] ?? 0) ?></div>
+                    <div class="metric-label">Активних</div>
+                </div>
             </div>
-            <div class="metric-card">
-                <div class="metric-value"><?= $metrics['total_usage'] ?? 0 ?></div>
-                <div class="metric-label">Використано разів</div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="metric-card">
+                    <div class="metric-value"><?= (int)($metrics['total_usage'] ?? 0) ?></div>
+                    <div class="metric-label">Використано разів</div>
+                </div>
             </div>
-            <div class="metric-card">
-                <div class="metric-value"><?= number_format((float)($metrics['total_discount_given'] ?? 0), 0) ?> р.</div>
-                <div class="metric-label">Всього знижок видано</div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="metric-card">
+                    <div class="metric-value"><?= number_format((float)($metrics['total_discount_given'] ?? 0), 0) ?> р.</div>
+                    <div class="metric-label">Знижок видано</div>
+                </div>
             </div>
         </div>
-        
+
         <!-- Топ купони -->
-        <h2>🏆 Топ-10 купонів по використанню</h2>
+        <h5 class="section-title">🏆 Топ-10 купонів по використанню</h5>
         <?php if (!empty($topCoupons)): ?>
-        <div class="metric-card">
-            <table>
-                <thead>
+            <table class="table table-bordered table-striped">
+                <thead class="table-primary">
                     <tr>
                         <th>Код</th>
                         <th>Назва</th>
@@ -173,34 +170,40 @@ $dailyStats = $stmt->fetchAll() ?: [];
                 </thead>
                 <tbody>
                     <?php foreach ($topCoupons as $coupon): ?>
-                    <tr>
-                        <td><strong><?= htmlspecialchars($coupon['code']) ?></strong></td>
-                        <td><?= htmlspecialchars($coupon['name']) ?></td>
-                        <td>
-                            <span class="badge <?= $coupon['discount_type'] === 'percent' ? 'badge-percent' : 'badge-fixed' ?>">
-                                <?= $coupon['discount_type'] === 'percent' ? '%' : 'р.' ?>
-                            </span>
-                        </td>
-                        <td><?= $coupon['discount_value'] ?></td>
-                        <td><?= $coupon['usage_count'] ?? 0 ?></td>
-                        <td><?= number_format((float)($coupon['discount_given'] ?? 0), 2) ?> р.</td>
-                        <td><?= $coupon['last_used'] ? date('d.m.Y H:i', strtotime($coupon['last_used'])) : '—' ?></td>
-                        <td><span class="status-active">✓ Активний</span></td>
-                    </tr>
+                        <tr>
+                            <td><strong><?= admin_h((string)$coupon['code']) ?></strong></td>
+                            <td><?= admin_h((string)$coupon['name']) ?></td>
+                            <td>
+                                <?php if ($coupon['discount_type'] === 'percent'): ?>
+                                    <span class="badge bg-warning text-dark">%</span>
+                                <?php else: ?>
+                                    <span class="badge bg-success">р.</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= admin_h((string)$coupon['discount_value']) ?></td>
+                            <td><?= (int)($coupon['usage_count'] ?? 0) ?></td>
+                            <td><?= number_format((float)($coupon['discount_given'] ?? 0), 2) ?> р.</td>
+                            <td><?= $coupon['last_used'] ? date('d.m.Y H:i', strtotime($coupon['last_used'])) : '—' ?></td>
+                            <td>
+                                <?php if ($coupon['is_active']): ?>
+                                    <span class="badge bg-success">Активний</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Вимкнений</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        </div>
         <?php else: ?>
-            <div class="metric-card" style="text-align: center; color: #999;">Купони не використовуються</div>
+            <p class="text-muted">Купони не використовуються.</p>
         <?php endif; ?>
-        
+
         <!-- Купони що скоро закінчуються -->
-        <h2>⏰ Купони що скоро закінчуються (7 днів)</h2>
+        <h5 class="section-title">⏰ Купони що скоро закінчуються (7 днів)</h5>
         <?php if (!empty($expiringSoon)): ?>
-        <div class="metric-card">
-            <table>
-                <thead>
+            <table class="table table-bordered table-striped">
+                <thead class="table-warning">
                     <tr>
                         <th>Код</th>
                         <th>Назва</th>
@@ -211,27 +214,28 @@ $dailyStats = $stmt->fetchAll() ?: [];
                 </thead>
                 <tbody>
                     <?php foreach ($expiringSoon as $coupon): ?>
-                    <tr>
-                        <td><strong><?= htmlspecialchars($coupon['code']) ?></strong></td>
-                        <td><?= htmlspecialchars($coupon['name']) ?></td>
-                        <td><?= date('d.m.Y', strtotime($coupon['valid_to'])) ?></td>
-                        <td><span class="status-expires"><?= ceil((strtotime($coupon['valid_to']) - time()) / 86400) ?> днів</span></td>
-                        <td><?= $coupon['used_count'] ?><?= $coupon['max_usage_count'] ? '/' . $coupon['max_usage_count'] : '' ?></td>
-                    </tr>
+                        <tr>
+                            <td><strong><?= admin_h((string)$coupon['code']) ?></strong></td>
+                            <td><?= admin_h((string)$coupon['name']) ?></td>
+                            <td><?= date('d.m.Y', strtotime($coupon['valid_to'])) ?></td>
+                            <td><span class="text-warning fw-bold"><?= (int)ceil((strtotime($coupon['valid_to']) - time()) / 86400) ?>
+                                    днів</span></td>
+                            <td>
+                                <?= (int)$coupon['used_count'] ?><?= $coupon['max_usage_count'] ? '/' . (int)$coupon['max_usage_count'] : '' ?>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        </div>
         <?php else: ?>
-            <div class="metric-card" style="text-align: center; color: #999;">Немає купонів що скоро закінчуються</div>
+            <p class="text-muted">Немає купонів що скоро закінчуються.</p>
         <?php endif; ?>
-        
+
         <!-- Вичерпані купони -->
-        <h2>🔴 Вичерпані купони (максимум досягнуто)</h2>
+        <h5 class="section-title">🔴 Вичерпані купони (максимум досягнуто)</h5>
         <?php if (!empty($exhaustedCoupons)): ?>
-        <div class="metric-card">
-            <table>
-                <thead>
+            <table class="table table-bordered table-striped">
+                <thead class="table-danger">
                     <tr>
                         <th>Код</th>
                         <th>Назва</th>
@@ -241,48 +245,47 @@ $dailyStats = $stmt->fetchAll() ?: [];
                 </thead>
                 <tbody>
                     <?php foreach ($exhaustedCoupons as $coupon): ?>
-                    <tr>
-                        <td><strong><?= htmlspecialchars($coupon['code']) ?></strong></td>
-                        <td><?= htmlspecialchars($coupon['name']) ?></td>
-                        <td><span class="status-exhausted"><?= $coupon['used_count'] ?></span></td>
-                        <td><?= $coupon['max_usage_count'] ?></td>
-                    </tr>
+                        <tr>
+                            <td><strong><?= admin_h((string)$coupon['code']) ?></strong></td>
+                            <td><?= admin_h((string)$coupon['name']) ?></td>
+                            <td><span class="text-danger fw-bold"><?= (int)$coupon['used_count'] ?></span></td>
+                            <td><?= (int)$coupon['max_usage_count'] ?></td>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        </div>
         <?php else: ?>
-            <div class="metric-card" style="text-align: center; color: #999;">Немає вичерпаних купонів</div>
+            <p class="text-muted">Немає вичерпаних купонів.</p>
         <?php endif; ?>
-        
+
         <!-- Статистика по днях -->
-        <h2>📈 Використання купонів по днях (останніх 7 днів)</h2>
+        <h5 class="section-title">📈 Використання по днях (останніх 7 днів)</h5>
         <?php if (!empty($dailyStats)): ?>
-        <div class="metric-card">
-            <table>
-                <thead>
+            <table class="table table-bordered table-striped">
+                <thead class="table-primary">
                     <tr>
                         <th>Дата</th>
-                        <th>Кількість використань</th>
+                        <th>Використань</th>
                         <th>Сума знижок</th>
                         <th>Унікальних купонів</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($dailyStats as $stat): ?>
-                    <tr>
-                        <td><?= date('d.m.Y (D)', strtotime($stat['date'])) ?></td>
-                        <td><?= $stat['usage_count'] ?></td>
-                        <td><?= number_format((float)$stat['discount_sum'], 2) ?> р.</td>
-                        <td><?= $stat['unique_coupons'] ?></td>
-                    </tr>
+                        <tr>
+                            <td><?= date('d.m.Y (D)', strtotime($stat['date'])) ?></td>
+                            <td><?= (int)$stat['usage_count'] ?></td>
+                            <td><?= number_format((float)$stat['discount_sum'], 2) ?> р.</td>
+                            <td><?= (int)$stat['unique_coupons'] ?></td>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        </div>
         <?php else: ?>
-            <div class="metric-card" style="text-align: center; color: #999;">Нема статистики за останні 7 днів</div>
+            <p class="text-muted">Нема статистики за останні 7 днів.</p>
         <?php endif; ?>
+
     </div>
 </body>
+
 </html>

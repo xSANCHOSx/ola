@@ -7,8 +7,7 @@
 		<input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 		<input name="name" id="fio" type="text" placeholder="Ваши фамилия и имя" required />
 		<input name="phone" id="phoneNumber" type="text" placeholder="Контактный телефон*" required class="text-input" />
-		<input name="mail" id="email" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$" type="text" name="email"
-			placeholder="Электронная почта" required />
+		<input name="email" id="email" type="email" placeholder="Электронная почта" required />
 		<div class="contact-method">
 			<p>Желаемый способ коммуникации:</p>
 			<label><input type="radio" name="contact_method" value="whatsapp"> WhatsApp</label>

@@ -338,14 +338,13 @@
 				client_order_uuid: Date.now().toString(36) + Math.random().toString(36).slice(2),
 				csrf_token: $('#formToSend input[name="csrf_token"]').val() || '',
 			})
-				.done(onDone)
-.fail(function(xhr) {
-if (xhr.status === 429) {
-const data = xhr.responseJSON || {}
-const seconds = data.retry_after || 60
-alert('Забагато спроб. Будь ласка, зачекайте ' + seconds + ' секунд і спробуйте знову.')
-}
-})
+			.done(onDone)
+			.fail(function(xhr) {
+					if (xhr.status === 429) {
+							var seconds = (xhr.responseJSON || {}).retry_after || 60;
+							alert('Забагато спроб. Зачекайте ' + seconds + ' сек. і спробуйте знову.');
+					}
+			})
 				.always(function () {
 					$('#send').prop('disabled', false).val('Отправить')
 				})

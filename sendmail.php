@@ -96,6 +96,23 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
     return (int)$customer['id'];
 }
 
+/**
+ * Нормалізує ID товару з формату кошика у формат БД.
+ * Кошик: 'ID10', 'ID28', 'ID010'
+ * БД:    '010',  '028',  '010'   (тризначний рядок з ведучим нулем)
+ */
+function normalize_product_id(string $cartId): string
+{
+    // Прибираємо префікс ID (з будь-якою кількістю нулів після нього)
+    $num = preg_replace('/^ID0*/i', '', $cartId);
+    // Якщо після видалення префіксу залишилась цифра — форматуємо до 3 знаків
+    if (ctype_digit($num) && $num !== '') {
+        return str_pad($num, 3, '0', STR_PAD_LEFT);
+    }
+    // Якщо префіксу не було (наприклад вже '010') — повертаємо як є
+    return $cartId;
+}
+
 $cfg = dev_app_config();
 $counterFile = $cfg['fallback_counter_file'] ?? (__DIR__ . '/counter.txt');
 
@@ -125,7 +142,6 @@ if (!check_rate_limit($rate_limit_key, $cfg['rate_limit_max_requests'] ?? 5, $cf
     ]);
     exit;
 }
-
 
 // === VALIDATE INPUT ===
 $payload = [
@@ -170,36 +186,41 @@ if (empty($orderResult)) {
     echo json_encode(['error' => 'Корзина пуста']);
     exit(1);
 }
-// ═══ Проверка цен из БД ═══════════════════════════════════════════════════
+
+// ═══ Перевірка цін з БД ═══════════════════════════════════════════════════
 $totalSum = 0.0;
 $pdo = dev_db_connection();
 if ($pdo instanceof PDO && !empty($orderResult)) {
-    $productIds  = array_unique(array_column($orderResult, 'id'));
-    $placeholders = implode(',', array_fill(0, count($productIds), '?'));
+    // Нормалізуємо ID з формату кошика ('ID10') у формат БД ('010')
+    $productIds = array_unique(array_column($orderResult, 'id'));
+    $normalizedIds = array_map('normalize_product_id', $productIds);
+
+    $placeholders = implode(',', array_fill(0, count($normalizedIds), '?'));
     $stmt = $pdo->prepare(
         "SELECT external_id, price FROM products WHERE external_id IN ($placeholders)"
     );
-    $stmt->execute(array_values($productIds));
+    $stmt->execute(array_values($normalizedIds));
     $dbPrices = array_column($stmt->fetchAll(), 'price', 'external_id');
 
     foreach ($orderResult as $item) {
-        $pid = (string)($item['id'] ?? '');
-        if (!isset($dbPrices[$pid])) {
-            log_security_event('UNKNOWN_PRODUCT', ['id' => $pid]);
+        $cartId = (string)($item['id'] ?? '');
+        $dbId = normalize_product_id($cartId);
+        if (!isset($dbPrices[$dbId])) {
+            log_security_event('UNKNOWN_PRODUCT', ['cart_id' => $cartId, 'db_id' => $dbId]);
             http_response_code(400);
-            echo json_encode(['error' => 'Unknown product: ' . $pid]);
+            echo json_encode(['error' => 'Unknown product: ' . $cartId]);
             exit;
         }
-        $totalSum += (float)$dbPrices[$pid] * (int)($item['num'] ?? 0);
+        $totalSum += (float)$dbPrices[$dbId] * (int)($item['num'] ?? 0);
     }
 } else {
-    // Fallback если БД недоступна
+    // Fallback якщо БД недоступна
     foreach ($orderResult as $item) {
         $totalSum += ((float)($item['price'] ?? 0) * (int)($item['num'] ?? 0));
     }
 }
 
-// ═══ Проверка купона на сервере ═══════════════════════════════════════════
+// ═══ Перевірка купона на сервері ══════════════════════════════════════════
 $cfg     = dev_app_config();
 $coupons = $cfg['coupons'] ?? [];
 $couponCode = $payload['coupon'] ?? '';

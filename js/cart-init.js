@@ -8,11 +8,14 @@ var config = {
 };
 
 (function() {
+    var actualCart = null;
+    
     // Функция инициализации
     function initCart() {
         if (typeof WICard === 'function') {
-            cart = new WICard('cart');
-            cart.init("basketwidjet", config);
+            actualCart = new WICard('cart');
+            actualCart.init("basketwidjet", config);
+            cart = actualCart;
             //console.log('Cart initialized successfully');
         } else {
             // Если WICard еще не загружен, попробуем еще раз через короткий промежуток времени
@@ -34,8 +37,8 @@ var config = {
     if (typeof window.cart === 'undefined') {
         window.cart = new Proxy({}, {
             get: function(target, prop) {
-                if (cart && cart[prop]) {
-                    return cart[prop];
+                if (actualCart && typeof actualCart[prop] !== 'undefined') {
+                    return actualCart[prop];
                 }
                 // Возвращаем пустую функцию, чтобы избежать "is not a function"
                 return function() {

@@ -200,3 +200,37 @@ function esc_html(string $text): string
 {
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
+
+/**
+ * Зберегти UTM-параметри з GET у куки (7 днів)
+ * Викликати на кожній публічній сторінці, де може бути перший візит
+ */
+function save_utm_cookies(): void
+{
+    if (!isset($_GET['utm_source'])) return;
+    $cookieTime = time() + 60 * 60 * 24 * 7;
+    setcookie('utm_source',   (string)($_GET['utm_source']   ?? ''), $cookieTime, '/');
+    setcookie('utm_medium',   (string)($_GET['utm_medium']   ?? ''), $cookieTime, '/');
+    setcookie('utm_campaign', (string)($_GET['utm_campaign'] ?? ''), $cookieTime, '/');
+    setcookie('utm_content',  (string)($_GET['utm_content']  ?? ''), $cookieTime, '/');
+}
+
+/**
+ * Запис у лог-файл (тижневі файли: main_28.04-04.05.25.log)
+ * Єдина реалізація замість двох різних версій у sendmail.php та amo/order.php
+ */
+if (!function_exists('p2log')) {
+    function p2log(array $data, string $key = 'main'): void
+    {
+        $cfg = function_exists('dev_app_config') ? dev_app_config() : [];
+        $logDir = dirname($cfg['runtime_log'] ?? (__DIR__ . '/../log/runtime.log'));
+
+        $start = (new DateTime())->modify('monday this week');
+        $end   = (new DateTime())->modify('sunday this week');
+        $week  = $start->format('d.m') . '-' . $end->format('d.m.y');
+
+        $file  = $logDir . '/' . $key . '_' . $week . '.log';
+        $dump  = '[' . date('Y-m-d H:i:s') . "]\n" . print_r($data, true) . "\n\n";
+        @file_put_contents($file, $dump, FILE_APPEND);
+    }
+}

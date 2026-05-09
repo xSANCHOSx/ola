@@ -8,17 +8,7 @@ $orders = [];
 $customerId = (int)($_GET['id'] ?? 0);
 if ($pdo instanceof PDO) {
     $customers = $pdo->query('SELECT * FROM customers ORDER BY last_order_at DESC, id DESC LIMIT 500')->fetchAll();
-    if ($customerId > 0) {
-        $stmt = $pdo->prepare('SELECT order_number, total, created_at FROM orders WHERE customer_id = :id ORDER BY id DESC');
-        $stmt->execute(['id' => $customerId]);
-        $orders = $stmt->fetchAll();
-    }
-}
-?>
-<!doctype html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
+<?php $adminPageTitle = "Клиенты"; require __DIR__ . "/_layout.php"; ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админка - Клиенты</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">

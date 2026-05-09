@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/config/db.php';
 
 function dev_send_bitrix_lead(string $subject, array $payload): bool
 {

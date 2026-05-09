@@ -8,17 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
     if (!validate_csrf_token()) {
         http_response_code(403);
         exit('CSRF check failed');
-    }
-    $id = (int)($_POST['id'] ?? 0);
-    $data = [
-        'external_id' => trim((string)($_POST['external_id'] ?? '')),
-        'cat_number' => trim((string)($_POST['cat_number'] ?? '')),
-        'name' => trim((string)($_POST['name'] ?? '')),
-        'old_price' => (float)($_POST['old_price'] ?? 0),
-        'price' => (float)($_POST['price'] ?? 0),
-        'image' => trim((string)($_POST['image'] ?? '')),
-        'link' => trim((string)($_POST['link'] ?? '')),
-        'short_desc' => (string)($_POST['short_desc'] ?? ''),
+<?php $adminPageTitle = "Товары"; require __DIR__ . "/_layout.php"; ?>
         'desc' => (string)($_POST['desc'] ?? ''),
         'full_desc' => (string)($_POST['full_desc'] ?? ''),
         'in_stock' => !empty($_POST['in_stock']) ? 1 : 0,

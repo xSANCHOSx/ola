@@ -13,7 +13,7 @@
 			</h2>
 			<span></span>
 			<div class="col-xs-12 buy">
-				<?php if ($product['in_stock']) { ?>
+				<?php if (product_is_buyable($product)) { ?>
 					<?php include 'product_special.php'; ?>
 					<p>Цена:
 						<?php if (!empty($product['old_price'])): ?>
@@ -33,15 +33,10 @@
 					<p><a class="name_link" href="<?= $product['link'] ?>"><?= $product['short_desc2'] ?></a></p>
 				<?php endif; ?>
 				<button class="b1c"
-					<?php if (!empty($product['in_stock']) || (!empty($product['status']) && $product['status'] === 'preorder')) { ?>
-					onclick="cart.addToCart(this, <?= (int)$product['id'] ?>)" <?php } else { ?> disabled <?php } ?>>
+<?php if (product_is_buyable($product)): ?> onclick="cart.addToCart(this, <?= (int)$product['id'] ?>)" <?php else: ?> disabled <?php endif; ?>>
 					<?php
 					if (!empty($product['status']) && $product['status'] === 'preorder') {
-						echo 'Предзаказ';
-					} else {
-						echo 'Купить';
-					}
-					?>
+<?= product_button_label($product) ?>
 				</button>
 			</div>
 			<p style="text-align: justify;"><?= $product['desc'] ?></p>

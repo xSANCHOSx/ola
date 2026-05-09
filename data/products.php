@@ -2,15 +2,6 @@
 
 declare(strict_types=1);
 
-// Обробка UTM параметрів для аналітики
-if (isset($_GET['utm_source'])) {
-    $cookieTime = time() + 60 * 60 * 24 * 7;
-    setcookie('utm_source', (string)$_GET['utm_source'], $cookieTime, '/');
-    setcookie('utm_medium', (string)($_GET['utm_medium'] ?? ''), $cookieTime, '/');
-    setcookie('utm_campaign', (string)($_GET['utm_campaign'] ?? ''), $cookieTime, '/');
-    setcookie('utm_content', (string)($_GET['utm_content'] ?? ''), $cookieTime, '/');
-}
-
 require_once __DIR__ . '/../config/db.php';
 
 /**
@@ -61,48 +52,20 @@ function get_products(): array
 $products = get_products();
 
 /**
- * Функція для отримання таймера акції
+ * Чи можна купити товар (в наявності або передзамовлення)
  */
-function getDiscountTimer($uniqueId)
+function product_is_buyable(array $p): bool
 {
-    $targetDate = strtotime('2025-05-01 00:00:00');
-    $currentTime = time();
-    $timeLeft = $targetDate - $currentTime;
+    return !empty($p['in_stock'])
+        || (!empty($p['status']) && $p['status'] === 'preorder');
+}
 
-    if ($timeLeft <= 0) {
-        $targetDate = strtotime('+15 days', time());
-        $timeLeft = $targetDate - $currentTime;
-    }
-
-    $days = floor($timeLeft / (60 * 60 * 24));
-    $dayWord = ($days == 1) ? 'День' : (($days >= 2 && $days <= 4) ? 'Дня' : 'Дней');
-
-    return "
-        <div class='expire_date' id='timer-$uniqueId'>
-            До конца акции:
-            <div class='flip-clock'>
-                <div class='flip-unit'><span class='days'>$days</span><div class='flip-label'>$dayWord</div></div>
-            </div>
-        </div>
-        <script>
-            let end$uniqueId = $targetDate;
-            function updateTimer$uniqueId() {
-                let now = new Date().getTime() / 1000;
-                let timeLeft = end$uniqueId - now;
-
-                if (timeLeft <= 0) {
-                    end$uniqueId = now + (15 * 24 * 60 * 60);
-                    timeLeft = end$uniqueId - now;
-                }
-
-                let days = Math.floor(timeLeft / (24 * 60 * 60));
-                let dayWord = (days == 1) ? 'День' : ((days >= 2 && days <= 4) ? 'Дня' : 'Дней');
-
-                document.querySelector('#timer-$uniqueId .days').innerText = days;
-                document.querySelector('#timer-$uniqueId .flip-label').innerText = dayWord;
-            }
-
-            setInterval(updateTimer$uniqueId, 3600000); // Обновление раз в час
-        </script>
-    ";
+/**
+ * Текст кнопки "Купити" або "Передзамовлення"
+ */
+function product_button_label(array $p): string
+{
+    return (!empty($p['status']) && $p['status'] === 'preorder')
+        ? 'Предзаказ'
+        : 'Купить';
 }

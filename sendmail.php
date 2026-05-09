@@ -7,10 +7,6 @@ session_start();
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/rest.php';
 
-function normalize_phone(string $phone): string
-{
-    return preg_replace('/\D+/', '', $phone) ?? '';
-}
 
 function next_order_number_fallback(string $counterFile): int
 {
@@ -54,7 +50,7 @@ function next_order_number_db(PDO $pdo, string $counterFile): int
 
 function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $total): ?int
 {
-    $phoneNorm = normalize_phone((string)$payload['phone']);
+    $phoneNorm = validate_phone((string)$payload['phone']) ?? '';
     $emailNorm = mb_strtolower(trim((string)$payload['email']));
     $customer = null;
     if ($phoneNorm !== '') {
@@ -223,7 +219,6 @@ if ($orderNumber === null) {
     $orderNumber = next_order_number_fallback($counterFile);
 }
 
-$_POST['ORDER_ID'] = $orderNumber;
 $_SESSION['order_id'] = $orderNumber;
 $subject = 'Заказ с сайта Olaplex #OLA-' . $orderNumber . ' (' . date('d.m.Y H:i') . ')';
 
@@ -320,20 +315,12 @@ $success = mail('client@macadamia-shop.ru, client@olaplex-shop.ru', $subject, $t
 $success2 = mail($payload['email'], $subject, $template, $headers);
 $crmSent = dev_send_bitrix_lead($subject, $payload);
 
-$_POST['MAIL_OUR'] = 'Result = ' . ($success ? '1' : '0');
 $_POST['MAIL_USER'] = 'Result = ' . ($success2 ? '1' : '0');
 $_POST['CRM_SENT'] = $crmSent ? '1' : '0';
 
 if (!function_exists('p2log')) {
-    function p2log($arr, $key = ''): void
-    {
-        $key = $key ?: 'main';
-        $dump = print_r($arr, true) . "\r\n";
-        $files = $_SERVER['DOCUMENT_ROOT'] . '/log/' . $key . '.log';
-        @file_put_contents($files, $dump, FILE_APPEND);
-    }
 }
-p2log($_POST);
+p2log($_POST, 'order');
 
 require_once __DIR__ . '/amo/order.php';
 

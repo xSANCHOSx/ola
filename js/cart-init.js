@@ -28,10 +28,6 @@ var config = {
     }
 
     // Безопасное обновление при изменении видимости
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden && cart && typeof cart.init === 'function') {
-            cart.init("basketwidjet", config);
-        }
     }, false);
 
     // Создаем прокси-объект для cart, если он еще не инициализирован, 

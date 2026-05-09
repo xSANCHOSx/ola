@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../data/products.php';
+save_utm_cookies();
 
 $currentUrl = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $links = array_column($products, 'link');
@@ -112,7 +113,7 @@ if ($productIndex !== false) {
 				<div class="col-sm-12 col-md-5 tovar-name animate--one" data-animate="fadeInDown" data-duration="3">
 					<span></span>
 					<div class="col-xs-12 buy">
-						<?php if ($currentProduct['in_stock']) { ?>
+						<?php if (product_is_buyable($currentProduct)) { ?>
 							<?php include 'single_special.php'; ?>
 							<div class="price_inner">
 								<p>Цена: <span
@@ -139,7 +140,7 @@ if ($productIndex !== false) {
 								</div>
 							</div>
 						<?php } else { ?>
-							<?php if (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
+							<?php <?= product_button_label($currentProduct) ?> ?>
 								<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
 								<p><strong>Срок доставки: 7-14 дней</strong></p>
 							<?php } else { ?>
@@ -149,12 +150,10 @@ if ($productIndex !== false) {
 						<p><?php echo nl2br($currentProduct['short_desc']); ?></p>
 						<button class="b1c"
 							<?php if (!empty($currentProduct['in_stock']) || (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder')) { ?>
-							onclick="cart.addToCart(this, '<?= htmlspecialchars($currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>', priceList.p<?= htmlspecialchars($currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>)"
+							onclick="cart.addToCart(this, <?= (int)$currentProduct['id'] ?>)"
 							<?php } else { ?> disabled <?php } ?>>
 							<?php
-							if (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') {
-								echo 'Предзаказ';
-							} else {
+							<?= product_button_label($currentProduct) ?>
 								echo 'Купить';
 							}
 							?>
@@ -290,8 +289,6 @@ if ($productIndex !== false) {
 			})
 		});
 	</script>
-	<link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css">
-	<script type="text/javascript" src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4d8a7b33dcf97067342ac246b5aecaa"
 		charset="UTF-8" async></script>
 
 </body>

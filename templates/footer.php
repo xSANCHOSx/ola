@@ -107,3 +107,6 @@ foreach ($products as $product) {
 	<button onclick="acceptCookies()"
 		style="margin-left: 10px; background: #0073aa; color: #fff; border: none; padding: 5px 10px;">Принять</button>
 </div>
+<!-- Envybox callback widget -->
+<link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css">
+<script src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4d8a7b33dcf97067342ac246b5aecaa" charset="UTF-8" async></script>

@@ -47,27 +47,27 @@ if ($productIndex !== false) {
 	<link rel="stylesheet" href="css/wicart.css">
 	<!-- Yandex.Metrika counter -->
 	<script type="text/javascript">
-	(function(m, e, t, r, i, k, a) {
-		m[i] = m[i] || function() {
-			(m[i].a = m[i].a || []).push(arguments)
-		}
-		m[i].l = 1 * new Date()
-		for (var j = 0; j < document.scripts.length; j++) {
-			if (document.scripts[j].src === r) {
-				return
+		(function(m, e, t, r, i, k, a) {
+			m[i] = m[i] || function() {
+				(m[i].a = m[i].a || []).push(arguments)
 			}
-		}
-		k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-	})
-	(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym")
+			m[i].l = 1 * new Date()
+			for (var j = 0; j < document.scripts.length; j++) {
+				if (document.scripts[j].src === r) {
+					return
+				}
+			}
+			k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+		})
+		(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym")
 
-	ym(48443993, "init", {
-		clickmap: true,
-		trackLinks: true,
-		accurateTrackBounce: true,
-		webvisor: true,
-		ecommerce: "dataLayer"
-	});
+		ym(48443993, "init", {
+			clickmap: true,
+			trackLinks: true,
+			accurateTrackBounce: true,
+			webvisor: true,
+			ecommerce: "dataLayer"
+		});
 	</script>
 	<noscript>
 		<div><img src="https://mc.yandex.ru/watch/48443993" style="position:absolute; left:-9999px;" alt="" /></div>
@@ -77,14 +77,14 @@ if ($productIndex !== false) {
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-120050968-1"></script>
 	<script>
-	window.dataLayer = window.dataLayer || []
+		window.dataLayer = window.dataLayer || []
 
-	function gtag() {
-		dataLayer.push(arguments)
-	}
-	gtag('js', new Date())
+		function gtag() {
+			dataLayer.push(arguments)
+		}
+		gtag('js', new Date())
 
-	gtag('config', 'UA-120050968-1');
+		gtag('config', 'UA-120050968-1');
 	</script>
 
 </head>
@@ -114,48 +114,44 @@ if ($productIndex !== false) {
 					<span></span>
 					<div class="col-xs-12 buy">
 						<?php if (product_is_buyable($currentProduct)) { ?>
-						<?php include 'single_special.php'; ?>
-						<div class="price_inner">
-							<p>Цена: <span
-									class="price_old"><?= htmlspecialchars($currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?></span>
-								<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
-							</p>
-							<div class="stars">
-								<img style="width: 18px;" src="/images/star.png">
-								<img style="width: 18px;" src="/images/star.png">
-								<img style="width: 18px;" src="/images/star.png">
-								<img style="width: 18px;" src="/images/star.png">
-								<img style="width: 18px;" src="/images/star.png">
-								<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
-									itemtype="http://schema.org/AggregateRating">
-									<meta itemprop="bestRating" content="5">
-									<meta itemprop="ratingValue" content="5">
-									<span class="ratingCount" itemprop="ratingCount">30</span>
-								</div>
-								<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-									<meta itemprop="priceCurrency" content="RUB" />
-									<meta itemprop="price"
-										content="<?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?>" />
+							<?php include 'single_special.php'; ?>
+							<div class="price_inner">
+								<p>Цена: <span
+										class="price_old"><?= htmlspecialchars($currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?></span>
+									<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
+								</p>
+								<div class="stars">
+									<img style="width: 18px;" src="/images/star.png">
+									<img style="width: 18px;" src="/images/star.png">
+									<img style="width: 18px;" src="/images/star.png">
+									<img style="width: 18px;" src="/images/star.png">
+									<img style="width: 18px;" src="/images/star.png">
+									<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
+										itemtype="http://schema.org/AggregateRating">
+										<meta itemprop="bestRating" content="5">
+										<meta itemprop="ratingValue" content="5">
+										<span class="ratingCount" itemprop="ratingCount">30</span>
+									</div>
+									<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+										<meta itemprop="priceCurrency" content="RUB" />
+										<meta itemprop="price"
+											content="<?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?>" />
+									</div>
 								</div>
 							</div>
-						</div>
 						<?php } elseif (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
-						<?php echo  product_button_label($currentProduct) ?>
-						<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
-						<p><strong>Срок доставки: 7-14 дней</strong></p>
+							<?php echo  product_button_label($currentProduct) ?>
+							<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
+							<p><strong>Срок доставки: 7-14 дней</strong></p>
 						<?php } else { ?>
-						<p><span class="regular_price"><strong>Нет в наличии</strong></span></p>
+							<p><span class="regular_price"><strong>Нет в наличии</strong></span></p>
 
 						<?php } ?>
 						<p><?php echo nl2br($currentProduct['short_desc']); ?></p>
 						<button class="b1c"
 							<?php if (!empty($currentProduct['in_stock']) || (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder')) { ?>
 							onclick="cart.addToCart(this, <?= (int)$currentProduct['id'] ?>)" <?php } else { ?> disabled <?php } ?>>
-							<?php
-							<?= product_button_label($currentProduct) ?>
-							echo 'Купить';
-							}
-							?>
+							<?php echo product_button_label($currentProduct); ?>
 						</button>
 					</div>
 					<noindex>
@@ -184,109 +180,109 @@ if ($productIndex !== false) {
 	<script src="/js/cart-init.js" type="text/javascript"></script>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script type="text/javascript">
-	/*	$(window).load(function(){
+		/*	$(window).load(function(){
 				$('.flexslider').flexslider({
 				animation: "slide"
 				});
 			});*/
-	(function() {
+		(function() {
 
-		// store the slider in a local variable
-		var $window = $(window),
-			flexslider = {
-				vars: {}
+			// store the slider in a local variable
+			var $window = $(window),
+				flexslider = {
+					vars: {}
+				}
+
+			// tiny helper function to add breakpoints
+			function getGridSize() {
+				return (window.innerWidth < 600) ? 2 :
+					(window.innerWidth < 900) ? 3 : 4
 			}
 
-		// tiny helper function to add breakpoints
-		function getGridSize() {
-			return (window.innerWidth < 600) ? 2 :
-				(window.innerWidth < 900) ? 3 : 4
-		}
+			/* $(function() {
+				 SyntaxHighlighter.all();
+			 });
+			*/
 
-		/* $(function() {
-			 SyntaxHighlighter.all();
-		 });
-		*/
-
-		$window.load(function() {
-			$('.flexslider').flexslider({
-				animation: "slide",
-				itemWidth: 240,
-				itemMargin: 5,
-				animationLoop: true,
-				minItems: getGridSize(), // use function to pull in initial value
-				maxItems: getGridSize(), // use function to pull in initial value
-				startAt: 0,
-				slideshow: true, //Boolean: Animate slider automatically
-				slideshowSpeed: 7000, //Integer: Set the speed of the slideshow cycling, in milliseconds
-				animationSpeed: 600, //Integer: Set the speed of animations, in milliseconds
-				initDelay: 0,
+			$window.load(function() {
+				$('.flexslider').flexslider({
+					animation: "slide",
+					itemWidth: 240,
+					itemMargin: 5,
+					animationLoop: true,
+					minItems: getGridSize(), // use function to pull in initial value
+					maxItems: getGridSize(), // use function to pull in initial value
+					startAt: 0,
+					slideshow: true, //Boolean: Animate slider automatically
+					slideshowSpeed: 7000, //Integer: Set the speed of the slideshow cycling, in milliseconds
+					animationSpeed: 600, //Integer: Set the speed of animations, in milliseconds
+					initDelay: 0,
+				})
 			})
-		})
 
-		// check grid size on resize event
-		$window.resize(function() {
-			var gridSize = getGridSize()
+			// check grid size on resize event
+			$window.resize(function() {
+				var gridSize = getGridSize()
 
-			flexslider.vars.minItems = gridSize
-			flexslider.vars.maxItems = gridSize
-		})
-	}());
+				flexslider.vars.minItems = gridSize
+				flexslider.vars.maxItems = gridSize
+			})
+		}());
 	</script>
 
 	<!-- Custom JavaScript -->
 	<script src="/js/main.js"></script>
 
 	<script>
-	$(document).ready(function() {
-		$('#order .close_popup').click(function() {
-			$('#formToSend input:checkbox').removeAttr("checked")
-			$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-			$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-		})
-		$(function() {
-			$('#formToSend input:checkbox').change(function() {
-				if ($(this).is(':checked')) {
-					$("#formToSend input[type=submit]").removeAttr('disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
-				} else {
-					$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+		$(document).ready(function() {
+			$('#order .close_popup').click(function() {
+				$('#formToSend input:checkbox').removeAttr("checked")
+				$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+			})
+			$(function() {
+				$('#formToSend input:checkbox').change(function() {
+					if ($(this).is(':checked')) {
+						$("#formToSend input[type=submit]").removeAttr('disabled')
+						$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
+					} else {
+						$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+						$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+					}
+				})
+			})
+			$('#send').click(function() {
+				if (($("#formToSend input[type=text]").val()) == !"") {
+					$('#formToSend input[type=hidden].valTrFal').remove()
+					$('#formToSend .font-geometria-light').remove()
+					$('#overflw .basket_num_buttons').remove()
+
 				}
 			})
-		})
-		$('#send').click(function() {
-			if (($("#formToSend input[type=text]").val()) == !"") {
-				$('#formToSend input[type=hidden].valTrFal').remove()
-				$('#formToSend .font-geometria-light').remove()
-				$('#overflw .basket_num_buttons').remove()
+		});
 
-			}
-		})
-	});
-
-	//});
+		//});
 	</script>
 
 	<script>
-	$('#phoneNumber').inputmask("+7(999)999-99-99")
-	$(function() {
-		var videos = $(".youtube")
+		$('#phoneNumber').inputmask("+7(999)999-99-99")
+		$(function() {
+			var videos = $(".youtube")
 
-		videos.on("click", function() {
-			var elm = $(this),
-				conts = elm.contents(),
-				le = conts.length,
-				ifr = null
+			videos.on("click", function() {
+				var elm = $(this),
+					conts = elm.contents(),
+					le = conts.length,
+					ifr = null
 
-			for (var i = 0; i < le; i++) {
-				if (conts[i].nodeType == 8) ifr = conts[i].textContent
-			}
+				for (var i = 0; i < le; i++) {
+					if (conts[i].nodeType == 8) ifr = conts[i].textContent
+				}
 
-			elm.addClass("player").html(ifr)
-			elm.off("click")
-		})
-	});
+				elm.addClass("player").html(ifr)
+				elm.off("click")
+			})
+		});
 	</script>
 	charset="UTF-8" async></script>
 

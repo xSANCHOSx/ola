@@ -1,4 +1,5 @@
-<?php include 'templates/helpers.php';
+<?php session_start();
+include 'templates/helpers.php';
 include 'data/products.php';
 save_utm_cookies();
 $currentUrl = $_SERVER['REQUEST_URI'];

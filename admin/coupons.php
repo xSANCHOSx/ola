@@ -146,7 +146,7 @@ function create_coupon(PDO $pdo, array $data): array
             isset($data['is_active']) ? 1 : 0,
         ]);
 
-        dev_log_security_event('COUPON_CREATED', [
+        dev_log_security('COUPON_CREATED', [
             'coupon_code' => $data['code'],
             'admin_id'    => $_SESSION[dev_app_config()['admin_session_key']] ?? null,
         ]);
@@ -198,7 +198,7 @@ function update_coupon(PDO $pdo, int $coupon_id, array $data): array
             $coupon_id,
         ]);
 
-        dev_log_security_event('COUPON_UPDATED', [
+        dev_log_security('COUPON_UPDATED', [
             'coupon_id'   => $coupon_id,
             'coupon_code' => $data['code'],
             'admin_id'    => $_SESSION[dev_app_config()['admin_session_key']] ?? null,
@@ -225,7 +225,7 @@ function delete_coupon(PDO $pdo, int $coupon_id): array
         $stmt = $pdo->prepare('DELETE FROM coupons WHERE id = ?');
         $stmt->execute([$coupon_id]);
 
-        dev_log_security_event('COUPON_DELETED', [
+        dev_log_security('COUPON_DELETED', [
             'coupon_id'   => $coupon_id,
             'coupon_code' => $coupon['code'],
             'admin_id'    => $_SESSION[dev_app_config()['admin_session_key']] ?? null,
@@ -253,7 +253,7 @@ function toggle_coupon_status(PDO $pdo, int $coupon_id): array
         $stmt = $pdo->prepare('UPDATE coupons SET is_active = ? WHERE id = ?');
         $stmt->execute([$new_status, $coupon_id]);
 
-        dev_log_security_event('COUPON_STATUS_CHANGED', [
+        dev_log_security('COUPON_STATUS_CHANGED', [
             'coupon_id'   => $coupon_id,
             'coupon_code' => $coupon['code'],
             'new_status'  => $new_status,
@@ -471,10 +471,13 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
     </div>
 
     <script src="/js/jquery-3.7.1.min.js"></script>
-    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
     <script>
         const CSRF = '<?= $csrf ?>';
-        const bsModal = new bootstrap.Modal(document.getElementById('couponModal'));
+        let bsModal;
+        document.addEventListener('DOMContentLoaded', function() {
+            bsModal = new bootstrap.Modal(document.getElementById('couponModal'));
+        });
 
         function updateDiscountLabel() {
             const type = document.getElementById('discountType').value;

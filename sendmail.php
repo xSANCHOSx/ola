@@ -119,8 +119,12 @@ $rate_limit_key = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 if (!check_rate_limit($rate_limit_key, $cfg['rate_limit_max_requests'] ?? 5, $cfg['rate_limit_window'] ?? 60)) {
     log_security_event('RATE_LIMIT_EXCEEDED', ['ip' => $rate_limit_key]);
     http_response_code(429);
-    echo json_encode(['error' => 'Too many requests']);
+    echo json_encode([
+        'error' => 'Too many requests',
+        'retry_after' => 60,
+    ]);
     exit;
+}
 }
 
 // === VALIDATE INPUT ===

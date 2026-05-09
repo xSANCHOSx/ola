@@ -53,7 +53,7 @@ require __DIR__ . '/templates/head.php';
 			<a href="https://wa.me/79096962720" target="_blank" class="btn-msg whatsapp">
 				<i class="fa fa-whatsapp"></i> WhatsApp
 			</a>
-			<a href="https://t.me/@kosmoprof" target="_blank" class="btn-msg telegram">
+			<a href="https://t.me/kosmoprof" target="_blank" class="btn-msg telegram">
 				<i class="fa fa-paper-plane"></i> Telegram
 			</a>
 			<a href="https://max.ru/id7733272706_bot" target="_blank" class="btn-msg max">

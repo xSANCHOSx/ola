@@ -336,9 +336,17 @@
 				order: '',
 				coupon: coupon || '',
 				client_order_uuid:
+csrf_token: $('#formToSend input[name="csrf_token"]').val() || '',
 					Date.now().toString(36) + Math.random().toString(36).slice(2),
 			})
 				.done(onDone)
+.fail(function(xhr) {
+if (xhr.status === 429) {
+const data = xhr.responseJSON || {}
+const seconds = data.retry_after || 60
+alert('Забагато спроб. Будь ласка, зачекайте ' + seconds + ' секунд і спробуйте знову.')
+}
+})
 				.always(function () {
 					$('#send').prop('disabled', false).val('Отправить')
 				})

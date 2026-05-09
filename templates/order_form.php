@@ -3,7 +3,7 @@
 		style="position: absolute;margin: -25px 0px 0px 0px; right: 0;"><img src="/images/close.png" /></a>
 	<div class="valid-text2"></div>
 	<h4 style="text-align: center;">Введите ваши контактные данные</h4>
-	<form id="formToSend" onSubmit="cart.sendOrder('formToSend,overflw,bsum'); return(false);">
+	<form id="formToSend" onSubmit="cart.sendOrder(); return false;">
 		<input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 		<input name="name" id="fio" type="text" placeholder="Ваши фамилия и имя" required />
 		<input name="phone" id="phoneNumber" type="text" placeholder="Контактный телефон*" required class="text-input" />

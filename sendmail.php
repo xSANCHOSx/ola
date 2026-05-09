@@ -125,7 +125,7 @@ if (!check_rate_limit($rate_limit_key, $cfg['rate_limit_max_requests'] ?? 5, $cf
     ]);
     exit;
 }
-}
+
 
 // === VALIDATE INPUT ===
 $payload = [

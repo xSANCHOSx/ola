@@ -1,7 +1,11 @@
 <?php
 declare(strict_types=1);
 
-session_start();
+// Запустити сесію тільки якщо вона не активна
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../config/db.php';
 
 function admin_is_auth(): bool

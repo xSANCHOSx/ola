@@ -2,21 +2,11 @@
 
 declare(strict_types=1);
 
-// admin/coupon_stats.php — REST endpoint для валідації купонів
+// api/validate_coupon.php — REST endpoint для валідації купонів
 // GET: /api/validate_coupon.php?code=OLA5600&sum=1000
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/coupons.php';
-
-// Перевірити таблиці
-try {
-    $pdo = dev_db_connection();
-    ensure_coupons_table($pdo);
-} catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database error']);
-    exit;
-}
 
 header('Content-Type: application/json; charset=utf-8');
 

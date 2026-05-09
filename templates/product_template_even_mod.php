@@ -35,8 +35,10 @@
 				<button class="b1c" <?php if (product_is_buyable($product)): ?>
 					onclick="cart.addToCart(this, <?= (int)$product['id'] ?>)" <?php else: ?> disabled <?php endif; ?>>
 					<?php echo product_button_label($product); ?>
-					<p style="text-align: justify;"><?= $product['desc'] ?></p>
-
+				</button>
 			</div>
+			<p style="text-align: justify;"><?= $product['desc'] ?></p>
+
 		</div>
 	</div>
+</div>

@@ -23,9 +23,9 @@ if ($pdo instanceof PDO) {
 
 function get_order_items_with_links(PDO $pdo, int $orderId): array {
     $stmt = $pdo->prepare('
-        SELECT oi.name, oi.quantity, p.id as product_id 
+        SELECT oi.name, oi.quantity, oi.product_external_id, p.id as product_id 
         FROM order_items oi 
-        LEFT JOIN products p ON oi.product_external_id = p.external_id 
+        LEFT JOIN products p ON (oi.product_external_id = p.external_id AND oi.product_external_id != "")
         WHERE oi.order_id = :order_id
     ');
     $stmt->execute(['order_id' => $orderId]);
@@ -42,6 +42,8 @@ function get_order_items_with_links(PDO $pdo, int $orderId): array {
     <style>
         .items-list { font-size: 0.85rem; color: #555; line-height: 1.4; }
         .item-row { margin-bottom: 2px; display: block; }
+        .item-link { color: #007bff; text-decoration: none; }
+        .item-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -76,14 +78,15 @@ function get_order_items_with_links(PDO $pdo, int $orderId): array {
                         foreach ($items as $item): 
                         ?>
                             <span class="item-row">
-                                <?php if ($item['product_id']): ?>
-                                    <a href="/admin/products.php?edit=<?= (int)$item['product_id'] ?>" target="_blank">
+                                <?php if (!empty($item['product_id'])): ?>
+                                    <a href="/admin/products.php?edit=<?= (int)$item['product_id'] ?>" target="_blank" class="item-link">
                                         <?= admin_h((string)$item['name']) ?>
                                     </a>
                                 <?php else: ?>
                                     <?= admin_h((string)$item['name']) ?>
+                                    <small class="text-muted">(ID: <?= admin_h((string)$item['product_external_id']) ?>)</small>
                                 <?php endif; ?>
-                                (<?= (int)$item['quantity'] ?>)
+                                <strong>x <?= (int)$item['quantity'] ?></strong>
                             </span>
                         <?php endforeach; ?>
                     </div>

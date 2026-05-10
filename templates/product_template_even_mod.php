@@ -33,7 +33,7 @@
 					<p><a class="name_link" href="<?= $product['link'] ?>"><?= $product['short_desc2'] ?></a></p>
 				<?php endif; ?>
 				<button class="b1c" <?php if (product_is_buyable($product)): ?>
-					onclick="cart.addToCart(this, <?= (int)$product['id'] ?>)" <?php else: ?> disabled <?php endif; ?>>
+					onclick="cart.addToCart(this, '<?= admin_h((string)$product['id']) ?>')" <?php else: ?> disabled <?php endif; ?>>
 					<?php echo product_button_label($product); ?>
 				</button>
 			</div>

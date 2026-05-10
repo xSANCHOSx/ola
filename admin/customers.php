@@ -36,6 +36,7 @@ function get_order_items_with_links(PDO $pdo, int $orderId): array {
         LEFT JOIN products p1 ON (oi.product_external_id = p1.external_id AND oi.product_external_id != "")
         LEFT JOIN products p2 ON (oi.name = p2.name AND p1.id IS NULL)
         WHERE oi.order_id = :order_id
+        GROUP BY oi.id
     ');
     $stmt->execute(['order_id' => $orderId]);
     return $stmt->fetchAll();

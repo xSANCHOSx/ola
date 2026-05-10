@@ -151,7 +151,7 @@ if ($productIndex !== false) {
 						<p><?php echo nl2br($currentProduct['short_desc']); ?></p>
 						<button class="b1c"
 							<?php if (!empty($currentProduct['in_stock']) || (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder')) { ?>
-							onclick="cart.addToCart(this, <?= (int)$currentProduct['id'] ?>)" <?php } else { ?> disabled <?php } ?>>
+							onclick="cart.addToCart(this, '<?= admin_h((string)$currentProduct['id']) ?>')" <?php } else { ?> disabled <?php } ?>>
 							<?php echo product_button_label($currentProduct); ?>
 						</button>
 					</div>

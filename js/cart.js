@@ -30,8 +30,8 @@
 			localStorage.setItem(this.idsKey, JSON.stringify(this.ids))
 		}
 		add(params) {
-			const rawId = params.id
-			const id = $.isNumeric(rawId) ? 'ID' + rawId.toString() : rawId
+				const rawId = params.id
+				const id = rawId.toString()
 			const key = params.subid ? id + '_' + params.subid : id
 			const qty = Math.max(1, params.qty || 1)
 			if (!this.items[key]) {

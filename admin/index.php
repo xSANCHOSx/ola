@@ -14,16 +14,22 @@ if ($pdo instanceof PDO) {
             o.customer_email_snapshot, 
             o.total, 
             o.created_at, 
-            (SELECT COALESCE(SUM(quantity),0) FROM order_items oi WHERE oi.order_id = o.id) AS items_count,
-            (
-                SELECT GROUP_CONCAT(CONCAT(name, " (", quantity, ")") SEPARATOR ", ") 
-                FROM order_items oi 
-                WHERE oi.order_id = o.id
-            ) AS items_list
+            (SELECT COALESCE(SUM(quantity),0) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
         FROM orders o 
         ORDER BY o.id DESC 
         LIMIT 100
     ')->fetchAll();
+}
+
+function get_order_items_with_links(PDO $pdo, int $orderId): array {
+    $stmt = $pdo->prepare('
+        SELECT oi.name, oi.quantity, p.id as product_id 
+        FROM order_items oi 
+        LEFT JOIN products p ON oi.product_external_id = p.external_id 
+        WHERE oi.order_id = :order_id
+    ');
+    $stmt->execute(['order_id' => $orderId]);
+    return $stmt->fetchAll();
 }
 ?>
 <!doctype html>
@@ -34,7 +40,8 @@ if ($pdo instanceof PDO) {
     <title>Админка - Заказы</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <style>
-        .items-list { font-size: 0.85rem; color: #555; }
+        .items-list { font-size: 0.85rem; color: #555; line-height: 1.4; }
+        .item-row { margin-bottom: 2px; display: block; }
     </style>
 </head>
 <body>
@@ -64,7 +71,21 @@ if ($pdo instanceof PDO) {
                 <td><?= admin_h((string)$o['customer_phone_snapshot']) ?></td>
                 <td>
                     <div class="items-list">
-                        <?= admin_h((string)$o['items_list']) ?>
+                        <?php 
+                        $items = get_order_items_with_links($pdo, (int)$o['id']);
+                        foreach ($items as $item): 
+                        ?>
+                            <span class="item-row">
+                                <?php if ($item['product_id']): ?>
+                                    <a href="/admin/products.php?edit=<?= (int)$item['product_id'] ?>" target="_blank">
+                                        <?= admin_h((string)$item['name']) ?>
+                                    </a>
+                                <?php else: ?>
+                                    <?= admin_h((string)$item['name']) ?>
+                                <?php endif; ?>
+                                (<?= (int)$item['quantity'] ?>)
+                            </span>
+                        <?php endforeach; ?>
                     </div>
                     <small class="text-muted">Всего: <?= admin_h((string)$o['items_count']) ?></small>
                 </td>

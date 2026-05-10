@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 /**
- * Перевіряє, чи можна купити продукт
- * Можна купити, якщо товар в наявності або це передзамовлення
+ * Проверяет, можно ли купить продукт
+ * Можно купить, если товар в наличии или это предзаказ
  */
 function product_is_buyable(array $product): bool
 {
@@ -12,7 +12,7 @@ function product_is_buyable(array $product): bool
 }
 
 /**
- * Повертає текст для кнопки купівлі
+ * Возвращает текст для кнопки покупки
  */
 function product_button_label(array $product): string
 {
@@ -23,9 +23,9 @@ function product_button_label(array $product): string
 }
 
 /**
- * Генерує HTML-блок таймера акції.
- * JS-логіка оновлення — в js/main.js (функція updateTimer)
- * Тут лише розмітка з data-end атрибутом.
+ * Генерирует HTML-блок таймера акции.
+ * JS-логика обновления — в js/main.js (функция updateTimer)
+ * Только разметка с data-end атрибутом.
  */
 function getDiscountTimer(string $uniqueId): string
 {

@@ -1,20 +1,21 @@
 <?php
+
 /**
  * DB Setup / Schema Initializer
  *
  * CLI:  php setup.php
  * Web:  /setup.php?token=YOUR_SETUP_TOKEN  (токен в config/app.php → 'setup_token')
  *
- * Після першого запуску рекомендується видалити або заблокувати цей файл.
+ * После первого запуска рекомендуется удалить или заблокировать этот файл.
  */
 
 declare(strict_types=1);
 
-// ── Авторизація ──────────────────────────────────────────────────────────────
+// ── Авторизация ──────────────────────────────────────────────────────────────
 $isCli = php_sapi_name() === 'cli';
 
 if (!$isCli) {
-    // Підключаємо конфіг щоб дістати токен
+    // Подключаем конфиг чтобы получить токен
     require_once __DIR__ . '/config/db.php';
     $cfg         = dev_app_config();
     $setupToken  = $cfg['setup_token'] ?? '';
@@ -37,16 +38,17 @@ try {
 
 echo "✅ DB connected.\n";
 
-// ── Застосовуємо схему ────────────────────────────────────────────────────────
+// ── Применяем схему ────────────────────────────────────────────────────────
 $schemaFile = __DIR__ . '/database/schema.sql';
 if (!file_exists($schemaFile)) {
     exit('❌ schema.sql not found at ' . $schemaFile . "\n");
 }
 
-// Розбиваємо по ";" і виконуємо кожен statement окремо
+// Разбиваем по ";" и выполняем каждый statement отдельно
 $schema     = file_get_contents($schemaFile);
 $statements = array_filter(array_map('trim', explode(';', $schema)));
-$ok = 0; $fail = 0;
+$ok = 0;
+$fail = 0;
 foreach ($statements as $sql) {
     if ($sql === '') continue;
     try {
@@ -59,12 +61,13 @@ foreach ($statements as $sql) {
 }
 echo "Schema: {$ok} statements OK, {$fail} warnings.\n";
 
-// Застосовуємо міграцію купонів якщо є
+// Применяем миграцию купонов если есть
 $migFile = __DIR__ . '/database/migration_coupons.sql';
 if (file_exists($migFile)) {
     $migration  = file_get_contents($migFile);
     $statements = array_filter(array_map('trim', explode(';', $migration)));
-    $mOk = 0; $mFail = 0;
+    $mOk = 0;
+    $mFail = 0;
     foreach ($statements as $sql) {
         if ($sql === '') continue;
         try {

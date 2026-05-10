@@ -49,7 +49,7 @@ function get_coupon_by_id(PDO $pdo, int $coupon_id): ?array
 }
 
 /**
- * Отримати купон за кодом
+ * Получить купон по коду
  */
 function get_coupon_by_code(PDO $pdo, string $code): ?array
 {
@@ -67,47 +67,47 @@ function validate_coupon_data(array $data): array
     $errors = [];
 
     if (empty($data['code'])) {
-        $errors['code'] = 'Код купона обов\'язковий';
+        $errors['code'] = 'Код купона обязателен';
     } elseif (strlen($data['code']) < 3 || strlen($data['code']) > 50) {
-        $errors['code'] = 'Код мусить бути від 3 до 50 символів';
+        $errors['code'] = 'Код должен быть от 3 до 50 символов';
     } elseif (!preg_match('/^[A-Z0-9]+$/i', $data['code'])) {
-        $errors['code'] = 'Код мусить містити лише латиницю та цифри';
+        $errors['code'] = 'Код должен содержать только латиницу и цифры';
     }
 
     if (empty($data['name'])) {
-        $errors['name'] = 'Назва купона обов\'язкова';
+        $errors['name'] = 'Название купона обязательно';
     } elseif (strlen($data['name']) > 255) {
-        $errors['name'] = 'Назва не повинна перевищувати 255 символів';
+        $errors['name'] = 'Название не должно превышать 255 символов';
     }
 
     if (empty($data['discount_type']) || !in_array($data['discount_type'], ['fixed', 'percent'])) {
-        $errors['discount_type'] = 'Тип знижки повинен бути fixed або percent';
+        $errors['discount_type'] = 'Тип скидки должен быть fixed или percent';
     }
 
     $discount_value = (float)($data['discount_value'] ?? 0);
     if ($discount_value <= 0) {
-        $errors['discount_value'] = 'Значення знижки повинно бути більше 0';
+        $errors['discount_value'] = 'Значение скидки должно быть больше 0';
     }
     if (($data['discount_type'] ?? '') === 'percent' && $discount_value > 100) {
-        $errors['discount_value'] = 'Відсоток не може перевищувати 100%';
+        $errors['discount_value'] = 'Процент не может превышать 100%';
     }
 
     $min_sum = (float)($data['min_order_sum'] ?? 0);
     if ($min_sum < 0) {
-        $errors['min_order_sum'] = 'Мінімальна сума не може бути негативною';
+        $errors['min_order_sum'] = 'Минимальная сумма не может быть отрицательной';
     }
 
     $valid_from = $data['valid_from'] ?? null;
     $valid_to   = $data['valid_to']   ?? null;
 
     if (!empty($valid_from) && !strtotime($valid_from)) {
-        $errors['valid_from'] = 'Неправильний формат дати початку';
+        $errors['valid_from'] = 'Неправильный формат даты начала';
     }
     if (!empty($valid_to) && !strtotime($valid_to)) {
-        $errors['valid_to'] = 'Неправильний формат дати закінчення';
+        $errors['valid_to'] = 'Неправильный формат даты окончания';
     }
     if (!empty($valid_from) && !empty($valid_to) && strtotime($valid_from) > strtotime($valid_to)) {
-        $errors['valid_from'] = 'Дата початку повинна бути раніше дати закінчення';
+        $errors['valid_from'] = 'Дата начала должна быть раньше даты окончания';
     }
 
     return $errors;
@@ -124,7 +124,7 @@ function create_coupon(PDO $pdo, array $data): array
     }
 
     if (get_coupon_by_code($pdo, $data['code'])) {
-        return ['success' => false, 'errors' => ['code' => 'Купон з таким кодом вже існує']];
+        return ['success' => false, 'errors' => ['code' => 'Купон с таким кодом уже существует']];
     }
 
     try {
@@ -207,7 +207,7 @@ function update_coupon(PDO $pdo, int $coupon_id, array $data): array
         return ['success' => true];
     } catch (Throwable $e) {
         dev_log_runtime('Coupon update failed: ' . $e->getMessage());
-        return ['success' => false, 'errors' => ['general' => 'Помилка при оновленні купона']];
+        return ['success' => false, 'errors' => ['general' => 'Ошибка при обновлении купона']];
     }
 }
 
@@ -324,7 +324,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
 
         <div class="d-flex align-items-center justify-content-between mb-3">
             <h3 class="mb-0">💰 Управління купонами</h3>
-            <button class="btn btn-success" onclick="openCreateModal()">➕ Новий купон</button>
+            <button class="btn btn-success" onclick="openCreateModal()">➕ Новый купон</button>
         </div>
 
         <div id="successMsg" class="alert alert-success d-none"></div>
@@ -337,7 +337,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                 <thead class="table-primary">
                     <tr>
                         <th>Код</th>
-                        <th>Назва</th>
+                        <th>Название</th>
                         <th>Знижка</th>
                         <th>Мін. сума</th>
                         <th>Дійсно до</th>
@@ -365,9 +365,9 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                             </td>
                             <td>
                                 <?php if ($coupon['is_active']): ?>
-                                    <span class="badge bg-success">Активний</span>
+                                    <span class="badge bg-success">Активный</span>
                                 <?php else: ?>
-                                    <span class="badge bg-secondary">Неактивний</span>
+                                    <span class="badge bg-secondary">Неактивный</span>
                                 <?php endif; ?>
                             </td>
                             <td style="white-space: nowrap;">
@@ -397,7 +397,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Новий купон</h5>
+                    <h5 class="modal-title" id="modalTitle">Новый купон</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -406,13 +406,13 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                         <input type="hidden" id="couponId" name="coupon_id">
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Код купона (латиниця, цифри)</label>
+                            <label class="form-label fw-bold">Код купона (латиница, цифры)</label>
                             <input type="text" id="code" name="code" class="form-control" required maxlength="50">
                             <div class="text-danger small" id="code-error"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Назва купона</label>
+                            <label class="form-label fw-bold">Название купона</label>
                             <input type="text" id="name" name="name" class="form-control" required maxlength="255">
                             <div class="text-danger small" id="name-error"></div>
                         </div>
@@ -433,37 +433,37 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Мінімальна сума замовлення (р.)</label>
+                            <label class="form-label fw-bold">Минимальная сумма заказа (р.)</label>
                             <input type="number" id="minOrderSum" name="min_order_sum" class="form-control" step="0.01" value="0">
                             <div class="text-danger small" id="min_order_sum-error"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Дійсний з (опціонально)</label>
+                            <label class="form-label fw-bold">Действителен с (опционально)</label>
                             <input type="datetime-local" id="validFrom" name="valid_from" class="form-control">
                             <div class="text-danger small" id="valid_from-error"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Дійсний до (опціонально)</label>
+                            <label class="form-label fw-bold">Действителен до (опционально)</label>
                             <input type="datetime-local" id="validTo" name="valid_to" class="form-control">
                             <div class="text-danger small" id="valid_to-error"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Максимум використань (порожньо = без обмежень)</label>
+                            <label class="form-label fw-bold">Максимум использований (пусто = без ограничений)</label>
                             <input type="number" id="maxUsageCount" name="max_usage_count" class="form-control" min="1">
                             <div class="text-danger small" id="max_usage_count-error"></div>
                         </div>
 
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="isActive" name="is_active" checked>
-                            <label class="form-check-label" for="isActive">Активний купон</label>
+                            <label class="form-check-label" for="isActive">Активный купон</label>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                     <button type="button" class="btn btn-primary" onclick="submitCouponForm()">Зберегти купон</button>
                 </div>
             </div>

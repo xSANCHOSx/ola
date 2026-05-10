@@ -1,7 +1,7 @@
 /**
- * CouponManager — JavaScript модуль для роботи з купонами
+ * CouponManager — JavaScript модуль для работы с купонами
  * 
- * Використання:
+ * Использование:
  * const coupon = new CouponManager({
  *     couponInput: '#coupon-code',
  *     sumDisplay: '#order-sum',
@@ -35,7 +35,7 @@ class CouponManager {
     }
     
     /**
-     * Ініціалізація модуля
+     * Инициализация модуля
      */
     init() {
         const applyBtn = document.querySelector(this.config.applyBtn);
@@ -55,19 +55,19 @@ class CouponManager {
     }
     
     /**
-     * Обробник натискання кнопки
+     * Обработчик нажатия кнопки
      */
     async applyButtonClick() {
         const code = this.getCouponCode();
         const sum = this.getOrderSum();
         
         if (!code) {
-            this.showError('Введіть код купона');
+            this.showError('Введите код купона');
             return;
         }
         
         if (!sum || sum <= 0) {
-            this.showError('Невідома сума замовлення');
+            this.showError('Неизвестная сумма заказа');
             return;
         }
         
@@ -75,10 +75,10 @@ class CouponManager {
     }
     
     /**
-     * Валідувати купон через API
+     * Валидировать купон через API
      * 
      * @param {string} code Код купона
-     * @param {number} sum Сума замовлення
+     * @param {number} sum Сумма заказа
      */
     async validateCoupon(code, sum) {
         if (this.isLoading) return;
@@ -96,14 +96,14 @@ class CouponManager {
             
             if (response.ok && data.valid) {
                 this.applyCoupon(data);
-                this.showSuccess(`Купон ${code} застосовано! Економія: ${data.calculation.discount_percent}%`);
+                this.showSuccess(`Купон ${code} применен! Экономия: ${data.calculation.discount_percent}%`);
             } else {
                 this.clearCoupon();
-                this.showError(data.error || 'Купон невалідний');
+                this.showError(data.error || 'Купон невалиден');
             }
         } catch (error) {
             this.clearCoupon();
-            this.showError('Помилка при валідації купона');
+            this.showError('Ошибка при валидации купона');
             console.error('Coupon validation error:', error);
         } finally {
             this.isLoading = false;
@@ -111,13 +111,13 @@ class CouponManager {
     }
     
     /**
-     * Застосувати купон до замовлення
+     * Применить купон к заказу
      */
     applyCoupon(data) {
         this.currentCoupon = data.coupon;
         this.currentDiscount = data.calculation.discount_amount;
         
-        // Оновити дисплеї
+        // Обновить дисплеи
         const discountDisplay = document.querySelector(this.config.discountDisplay);
         const finalSumDisplay = document.querySelector(this.config.finalSumDisplay);
         
@@ -130,7 +130,7 @@ class CouponManager {
             finalSumDisplay.textContent = this.formatSum(data.calculation.final_sum);
         }
         
-        // Додати інформацію до form
+        // Добавить информацию в форму
         const form = document.querySelector('form[data-order-form]');
         if (form) {
             let couponInput = form.querySelector('input[name="coupon"]');
@@ -143,14 +143,14 @@ class CouponManager {
             couponInput.value = this.currentCoupon.code;
         }
         
-        // Відправити подію
+        // Отправить событие
         window.dispatchEvent(new CustomEvent('couponApplied', {
             detail: { coupon: this.currentCoupon, discount: this.currentDiscount }
         }));
     }
     
     /**
-     * Видалити купон
+     * Удалить купон
      */
     clearCoupon() {
         this.currentCoupon = null;
@@ -169,7 +169,7 @@ class CouponManager {
             finalSumDisplay.textContent = this.formatSum(this.getOrderSum());
         }
         
-        // Очистити form
+        // Очистить форму
         const form = document.querySelector('form[data-order-form]');
         if (form) {
             const couponField = form.querySelector('input[name="coupon"]');
@@ -180,7 +180,7 @@ class CouponManager {
     }
     
     /**
-     * Отримати код купона з input
+     * Получить код купона из input
      */
     getCouponCode() {
         const input = document.querySelector(this.config.couponInput);
@@ -188,7 +188,7 @@ class CouponManager {
     }
     
     /**
-     * Отримати суму замовлення
+     * Получить сумму заказа
      */
     getOrderSum() {
         const display = document.querySelector(this.config.sumDisplay);
@@ -199,17 +199,17 @@ class CouponManager {
     }
     
     /**
-     * Форматування суми
+     * Форматирование суммы
      */
     formatSum(sum) {
-        return new Intl.NumberFormat('uk-UA', {
+        return new Intl.NumberFormat('ru-RU', {
             style: 'currency',
             currency: 'RUB'
         }).format(sum);
     }
     
     /**
-     * Показати повідомлення про помилку
+     * Показать сообщение об ошибке
      */
     showError(message) {
         const errorDisplay = document.querySelector(this.config.errorDisplay);
@@ -220,7 +220,7 @@ class CouponManager {
     }
     
     /**
-     * Показати успішне повідомлення
+     * Показать успешное сообщение
      */
     showSuccess(message) {
         const successDisplay = document.querySelector(this.config.successDisplay);
@@ -231,7 +231,7 @@ class CouponManager {
     }
     
     /**
-     * Приховати повідомлення
+     * Скрыть сообщения
      */
     hideMessages() {
         const errorDisplay = document.querySelector(this.config.errorDisplay);
@@ -242,7 +242,7 @@ class CouponManager {
     }
 }
 
-// Експорт для використання в тегу <script>
+// Экспорт для использования в теге <script>
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = CouponManager;
 }

@@ -12,7 +12,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $loginKey = 'admin_login_' . md5($_SERVER['REMOTE_ADDR'] ?? '');
     if (!check_rate_limit($loginKey, 10, 300)) {
-        $error = 'Забагато спроб входу. Спробуйте через 5 хвилин.';
+        $error = 'Слишком много попыток входа. Попробуйте через 5 минут.';
     } else {
         $username = trim((string)($_POST['username'] ?? ''));
         $password = (string)($_POST['password'] ?? '');
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo = dev_db_connection();
         } catch (Throwable $e) {
-            $error = 'Помилка підключення до БД. Зверніться до адміністратора.';
+            $error = 'Ошибка подключения к БД. Обратитесь к администратору.';
         }
         if ($pdo instanceof PDO) {
             $stmt = $pdo->prepare('SELECT id, username, password_hash FROM admin_users WHERE username = :username LIMIT 1');

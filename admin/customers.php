@@ -27,9 +27,14 @@ if ($pdo instanceof PDO) {
 
 function get_order_items_with_links(PDO $pdo, int $orderId): array {
     $stmt = $pdo->prepare('
-        SELECT oi.name, oi.quantity, oi.product_external_id, p.id as product_id 
+        SELECT 
+            oi.name, 
+            oi.quantity, 
+            oi.product_external_id,
+            COALESCE(p1.id, p2.id) as product_id
         FROM order_items oi 
-        LEFT JOIN products p ON (oi.product_external_id = p.external_id AND oi.product_external_id != "")
+        LEFT JOIN products p1 ON (oi.product_external_id = p1.external_id AND oi.product_external_id != "")
+        LEFT JOIN products p2 ON (oi.name = p2.name AND p1.id IS NULL)
         WHERE oi.order_id = :order_id
     ');
     $stmt->execute(['order_id' => $orderId]);
@@ -46,9 +51,8 @@ function get_order_items_with_links(PDO $pdo, int $orderId): array {
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <style>
         .items-list { font-size: 0.85rem; color: #555; line-height: 1.4; }
-        .item-row { margin-bottom: 2px; display: block; }
-        .item-link { color: #007bff; text-decoration: none; }
-        .item-link:hover { text-decoration: underline; }
+        .item-row { margin-bottom: 4px; display: block; }
+        .item-link { color: #007bff; text-decoration: underline; font-weight: 500; }
     </style>
 </head>
 
@@ -111,7 +115,7 @@ function get_order_items_with_links(PDO $pdo, int $orderId): array {
                                                     <?= admin_h((string)$item['name']) ?>
                                                 </a>
                                             <?php else: ?>
-                                                <?= admin_h((string)$item['name']) ?>
+                                                <span class="text-danger"><?= admin_h((string)$item['name']) ?></span>
                                                 <small class="text-muted">(ID: <?= admin_h((string)$item['product_external_id']) ?>)</small>
                                             <?php endif; ?>
                                             <strong>x <?= (int)$item['quantity'] ?></strong>

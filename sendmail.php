@@ -36,15 +36,15 @@ function next_order_number_db(PDO $pdo, string $counterFile): int
                 $seedRaw = trim((string)@file_get_contents($counterFile));
                 $seed = ctype_digit($seedRaw) ? (int)$seedRaw : 0;
             }
-            $stmt = $pdo->prepare('INSERT INTO order_sequence (id, current_value) VALUES (1, :seed)');
-            $stmt->execute(['seed' => $seed]);
+            $stmt = $pdo->prepare('INSERT INTO order_sequence (id, current_value) VALUES (?, ?)');
+            $stmt->execute([$seed, $seed]);
             $current = $seed;
         } else {
             $current = (int)$row['current_value'];
         }
         $next = $current + 1;
-        $stmt = $pdo->prepare('UPDATE order_sequence SET current_value = :next WHERE id = 1');
-        $stmt->execute(['next' => $next]);
+        $stmt = $pdo->prepare('UPDATE order_sequence SET current_value = ? WHERE id = 1');
+        $stmt->execute([$next]);
         $pdo->commit();
         return $next;
     } catch (Throwable $e) {
@@ -59,44 +59,45 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
     $emailNorm = mb_strtolower(trim((string)$payload['email']));
     $customer = null;
     if ($phoneNorm !== '') {
-        $stmt = $pdo->prepare('SELECT * FROM customers WHERE phone_normalized = :phone LIMIT 1');
-        $stmt->execute(['phone' => $phoneNorm]);
+        $stmt = $pdo->prepare('SELECT * FROM customers WHERE phone_normalized = ? LIMIT 1');
+        $stmt->execute([$phoneNorm]);
         $customer = $stmt->fetch();
     }
     if (!$customer && $emailNorm !== '') {
-        $stmt = $pdo->prepare('SELECT * FROM customers WHERE email_normalized = :email LIMIT 1');
-        $stmt->execute(['email' => $emailNorm]);
+        $stmt = $pdo->prepare('SELECT * FROM customers WHERE email_normalized = ? LIMIT 1');
+        $stmt->execute([$emailNorm]);
         $customer = $stmt->fetch();
     }
 
     if (!$customer) {
-        $stmt = $pdo->prepare('INSERT INTO customers (full_name, email, phone, contact_method, contact_username, phone_normalized, email_normalized, first_order_number, last_order_number, orders_count, total_spent, last_order_at) VALUES (:full_name, :email, :phone, :contact_method, :contact_username, :phone_norm, :email_norm, :order_no, :order_no, 1, :total_spent, NOW())');
+        $stmt = $pdo->prepare('INSERT INTO customers (full_name, email, phone, contact_method, contact_username, phone_normalized, email_normalized, first_order_number, last_order_number, orders_count, total_spent, last_order_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, NOW())');
         $stmt->execute([
-            'full_name' => $payload['name'],
-            'email' => $payload['email'],
-            'phone' => $payload['phone'],
-            'contact_method' => $payload['contact_method'],
-            'contact_username' => $payload['contact_username'],
-            'phone_norm' => $phoneNorm,
-            'email_norm' => $emailNorm,
-            'order_no' => $orderNumber,
-            'total_spent' => $total,
+            $payload['name'],
+            $payload['email'],
+            $payload['phone'],
+            $payload['contact_method'],
+            $payload['contact_username'],
+            $phoneNorm,
+            $emailNorm,
+            $orderNumber,
+            $orderNumber,
+            $total,
         ]);
         return (int)$pdo->lastInsertId();
     }
 
-    $stmt = $pdo->prepare('UPDATE customers SET full_name = :full_name, email = :email, phone = :phone, contact_method = :contact_method, contact_username = :contact_username, phone_normalized = :phone_norm, email_normalized = :email_norm, last_order_number = :order_no, orders_count = orders_count + 1, total_spent = total_spent + :total_spent, last_order_at = NOW() WHERE id = :id');
+    $stmt = $pdo->prepare('UPDATE customers SET full_name = ?, email = ?, phone = ?, contact_method = ?, contact_username = ?, phone_normalized = ?, email_normalized = ?, last_order_number = ?, orders_count = orders_count + 1, total_spent = total_spent + ?, last_order_at = NOW() WHERE id = ?');
     $stmt->execute([
-        'full_name' => $payload['name'],
-        'email' => $payload['email'],
-        'phone' => $payload['phone'],
-        'contact_method' => $payload['contact_method'],
-        'contact_username' => $payload['contact_username'],
-        'phone_norm' => $phoneNorm,
-        'email_norm' => $emailNorm,
-        'order_no' => $orderNumber,
-        'total_spent' => $total,
-        'id' => $customer['id'],
+        $payload['name'],
+        $payload['email'],
+        $payload['phone'],
+        $payload['contact_method'],
+        $payload['contact_username'],
+        $phoneNorm,
+        $emailNorm,
+        $orderNumber,
+        $total,
+        $customer['id'],
     ]);
     return (int)$customer['id'];
 }
@@ -202,8 +203,7 @@ $subject = 'Заказ с сайта Olaplex #OLA-' . $orderNumber . ' (' . date
 
 if ($pdo instanceof PDO) {
     try {
-        // КРИТИЧНО: Встанови кодування для MariaDB 10.5 (latin1 сервер → utf8mb4 таблиці)
-        // Це запобігає SQLSTATE[HY093] та проблем з кодуванням
+        // КРИТИЧНО: Встанови кодування для MariaDB
         $pdo->exec("SET NAMES utf8mb4");
         $pdo->exec("SET CHARACTER SET utf8mb4");
         $pdo->exec("SET SESSION collation_connection = 'utf8mb4_unicode_ci'");
@@ -211,8 +211,8 @@ if ($pdo instanceof PDO) {
         $pdo->beginTransaction();
         $idempotency = $payload['client_order_uuid'] !== '' ? $payload['client_order_uuid'] : null;
         if ($idempotency) {
-            $stmt = $pdo->prepare('SELECT id, order_number FROM orders WHERE idempotency_key = :key LIMIT 1');
-            $stmt->execute(['key' => $idempotency]);
+            $stmt = $pdo->prepare('SELECT id, order_number FROM orders WHERE idempotency_key = ? LIMIT 1');
+            $stmt->execute([$idempotency]);
             $existing = $stmt->fetch();
             if ($existing) {
                 $pdo->rollBack();
@@ -222,43 +222,40 @@ if ($pdo instanceof PDO) {
         }
         $customerId = upsert_customer($pdo, $payload, $orderNumber, $totalSum);
         
-        // ВИПРАВЛЕНО: Видалено created_at і NOW() з VALUES
-        // created_at заповниться автоматично через DEFAULT CURRENT_TIMESTAMP
-        // Це запобігає SQLSTATE[HY093] на деяких MySQL/MariaDB версіях
+        // ВИПРАВЛЕНО: Використовуємо позиційні параметри (?) замість іменованих (:name)
+        // Це уникає SQLSTATE[HY093] на MariaDB 10.5
         $stmt = $pdo->prepare('INSERT INTO orders 
             (order_number, customer_id, customer_name_snapshot, customer_email_snapshot, 
              customer_phone_snapshot, contact_method_snapshot, contact_username_snapshot, 
              delivery_address_snapshot, coupon, total, idempotency_key, raw_payload) 
-            VALUES 
-            (:order_number, :customer_id, :name, :email, :phone, :contact_method, 
-             :contact_username, :delivery_address, :coupon, :total, :idempotency_key, :raw_payload)');
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
         
         $stmt->execute([
-            'order_number' => $orderNumber,
-            'customer_id' => $customerId,
-            'name' => $payload['name'],
-            'email' => $payload['email'],
-            'phone' => $payload['phone'],
-            'contact_method' => $payload['contact_method'],
-            'contact_username' => $payload['contact_username'],
-            'delivery_address' => $payload['comments'],
-            'coupon' => $payload['coupon'],
-            'total' => $totalSum,
-            'idempotency_key' => $idempotency,
-            'raw_payload' => json_encode($_POST, JSON_UNESCAPED_UNICODE),
+            $orderNumber,
+            $customerId,
+            $payload['name'],
+            $payload['email'],
+            $payload['phone'],
+            $payload['contact_method'],
+            $payload['contact_username'],
+            $payload['comments'],
+            $payload['coupon'],
+            $totalSum,
+            $idempotency,
+            json_encode($_POST, JSON_UNESCAPED_UNICODE),
         ]);
         $dbOrderId = (int)$pdo->lastInsertId();
 
         if ($orderResult) {
-            $itemStmt = $pdo->prepare('INSERT INTO order_items (order_id, product_external_id, catalog_number, name, price, quantity) VALUES (:order_id, :product_external_id, :catalog_number, :name, :price, :quantity)');
+            $itemStmt = $pdo->prepare('INSERT INTO order_items (order_id, product_external_id, catalog_number, name, price, quantity) VALUES (?, ?, ?, ?, ?, ?)');
             foreach ($orderResult as $item) {
                 $itemStmt->execute([
-                    'order_id' => $dbOrderId,
-                    'product_external_id' => (string)($item['id'] ?? ''),
-                    'catalog_number' => (string)($item['catalogNumber'] ?? '-'),
-                    'name' => (string)($item['name'] ?? ''),
-                    'price' => (float)($item['price'] ?? 0),
-                    'quantity' => (int)($item['num'] ?? 0),
+                    $dbOrderId,
+                    (string)($item['id'] ?? ''),
+                    (string)($item['catalogNumber'] ?? '-'),
+                    (string)($item['name'] ?? ''),
+                    (float)($item['price'] ?? 0),
+                    (int)($item['num'] ?? 0),
                 ]);
             }
         }
@@ -270,7 +267,7 @@ if ($pdo instanceof PDO) {
         }
         $errorMsg = 'DB order save failed: ' . $e->getMessage();
         dev_log_runtime($errorMsg);
-        $dbErrorMsg = $errorMsg;  // ← зберегти помилку для логування
+        $dbErrorMsg = $errorMsg;
     }
 }
 
@@ -341,7 +338,6 @@ if (!function_exists('p2log')) {
 // Debug-поля про статус збереження замовлення.
 $_POST['DB_SAVED']    = $dbSaved ? '1' : '0';
 $_POST['DB_ORDER_ID'] = $dbOrderId ? (string)$dbOrderId : 'null';
-// Виправлена логіка: логір faktичну помилку БД, не тільки при відсутності підключення
 if (!$dbSaved) {
     $_POST['DB_ERROR'] = $dbErrorMsg ?: 'unknown_error_not_logged';
 } else {
@@ -350,8 +346,6 @@ if (!$dbSaved) {
 p2log($_POST);
 
 // === AMO CRM ===
-// Повністю ізольований виклик: помилки AMO не впливають на відповідь клієнту.
-// Пошта і БД вже відпрацювали вище — замовлення гарантовано збережено.
 require_once __DIR__ . '/amo/order.php';
 $amoSent = false;
 try {
@@ -362,18 +356,16 @@ try {
 
 if ($pdo instanceof PDO && $dbSaved && $dbOrderId) {
     try {
-        $stmt = $pdo->prepare('UPDATE orders SET outbound_email_sent = :email_sent, outbound_crm_sent = :crm_sent, outbound_amo_sent = :amo_sent WHERE id = :id');
+        $stmt = $pdo->prepare('UPDATE orders SET outbound_email_sent = ?, outbound_crm_sent = ?, outbound_amo_sent = ? WHERE id = ?');
         $stmt->execute([
-            'email_sent' => ($success && $success2) ? 1 : 0,
-            'crm_sent'   => $crmSent  ? 1 : 0,
-            'amo_sent'   => $amoSent  ? 1 : 0,
-            'id'         => $dbOrderId,
+            ($success && $success2) ? 1 : 0,
+            $crmSent  ? 1 : 0,
+            $amoSent  ? 1 : 0,
+            $dbOrderId,
         ]);
     } catch (Throwable $e) {
         dev_log_runtime('Order outbound status update failed: ' . $e->getMessage());
     }
 }
 
-// Відповідь клієнту залежить лише від пошти.
-// Навіть якщо AMO недоступне — замовлення прийнято.
 echo ($success ? 'ok' : 'error');

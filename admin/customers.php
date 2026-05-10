@@ -10,7 +10,21 @@ $customerId = (int)($_GET['id'] ?? 0);
 if ($pdo instanceof PDO) {
     $customers = $pdo->query('SELECT * FROM customers ORDER BY last_order_at DESC, id DESC LIMIT 500')->fetchAll();
     if ($customerId > 0) {
-        $stmt = $pdo->prepare('SELECT order_number, total, created_at FROM orders WHERE customer_id = :id ORDER BY id DESC');
+        $stmt = $pdo->prepare('
+            SELECT 
+                o.id,
+                o.order_number, 
+                o.total, 
+                o.created_at,
+                (
+                    SELECT GROUP_CONCAT(CONCAT(name, " (", quantity, ")") SEPARATOR ", ") 
+                    FROM order_items oi 
+                    WHERE oi.order_id = o.id
+                ) AS items_list
+            FROM orders o 
+            WHERE o.customer_id = :id 
+            ORDER BY o.id DESC
+        ');
         $stmt->execute(['id' => $customerId]);
         $orders = $stmt->fetchAll();
     }
@@ -57,12 +71,14 @@ if ($pdo instanceof PDO) {
             </tbody>
         </table>
         <?php if ($orders): ?>
+            <hr>
             <h4>История заказов клиента</h4>
             <table class="table table-bordered">
                 <thead>
                     <tr>
                         <th>Номер</th>
                         <th>Дата</th>
+                        <th>Товары (кол-во)</th>
                         <th>Сумма</th>
                     </tr>
                 </thead>
@@ -71,6 +87,7 @@ if ($pdo instanceof PDO) {
                         <tr>
                             <td><?= admin_h((string)$o['order_number']) ?></td>
                             <td><?= admin_h((string)$o['created_at']) ?></td>
+                            <td><?= admin_h((string)$o['items_list']) ?></td>
                             <td><?= admin_h((string)$o['total']) ?></td>
                         </tr>
                     <?php endforeach; ?>

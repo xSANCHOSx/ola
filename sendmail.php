@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 session_start();
+$dbErrorMsg = '';  // ← для логування помилок БД
 
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/rest.php';
@@ -250,7 +251,9 @@ if ($pdo instanceof PDO) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        dev_log_runtime('DB order save failed: ' . $e->getMessage());
+        $errorMsg = 'DB order save failed: ' . $e->getMessage();
+        dev_log_runtime($errorMsg);
+        $dbErrorMsg = $errorMsg;  // ← зберегти помилку для логування
     }
 }
 
@@ -321,7 +324,12 @@ if (!function_exists('p2log')) {
 // Debug-поля про статус збереження замовлення.
 $_POST['DB_SAVED']    = $dbSaved ? '1' : '0';
 $_POST['DB_ORDER_ID'] = $dbOrderId ? (string)$dbOrderId : 'null';
-$_POST['DB_ERROR']    = (!$dbSaved && !($pdo instanceof PDO)) ? 'no_pdo_connection' : '';
+// Виправлена логіка: логір faktичну помилку БД, не тільки при відсутності підключення
+if (!$dbSaved) {
+    $_POST['DB_ERROR'] = $dbErrorMsg ?: 'unknown_error_not_logged';
+} else {
+    $_POST['DB_ERROR'] = '';
+}
 p2log($_POST);
 
 // === AMO CRM ===

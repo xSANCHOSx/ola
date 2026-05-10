@@ -303,19 +303,31 @@ if (!function_exists('p2log')) {
 }
 p2log($_POST);
 
+// === AMO CRM ===
+// Повністю ізольований виклик: помилки AMO не впливають на відповідь клієнту.
+// Пошта і БД вже відпрацювали вище — замовлення гарантовано збережено.
 require_once __DIR__ . '/amo/order.php';
+$amoSent = false;
+try {
+    $amoSent = amo_send_order($_POST);
+} catch (Throwable $e) {
+    dev_log_runtime('AMO unexpected error: ' . $e->getMessage());
+}
 
 if ($pdo instanceof PDO && $dbSaved && $dbOrderId) {
     try {
-        $stmt = $pdo->prepare('UPDATE orders SET outbound_email_sent = :email_sent, outbound_crm_sent = :crm_sent, outbound_amo_sent = 1 WHERE id = :id');
+        $stmt = $pdo->prepare('UPDATE orders SET outbound_email_sent = :email_sent, outbound_crm_sent = :crm_sent, outbound_amo_sent = :amo_sent WHERE id = :id');
         $stmt->execute([
             'email_sent' => ($success && $success2) ? 1 : 0,
-            'crm_sent' => $crmSent ? 1 : 0,
-            'id' => $dbOrderId,
+            'crm_sent'   => $crmSent  ? 1 : 0,
+            'amo_sent'   => $amoSent  ? 1 : 0,
+            'id'         => $dbOrderId,
         ]);
     } catch (Throwable $e) {
         dev_log_runtime('Order outbound status update failed: ' . $e->getMessage());
     }
 }
 
+// Відповідь клієнту залежить лише від пошти.
+// Навіть якщо AMO недоступне — замовлення прийнято.
 echo ($success ? 'ok' : 'error');

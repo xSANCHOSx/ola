@@ -310,8 +310,8 @@ if (!function_exists('p2log')) {
         $week  = $start->format('d.m') . '-' . $end->format('d.m.y');
         $file  = $logDir . '/' . $key . '_' . $week . '.log';
         $dump  = '[' . date('Y-m-d H:i:s') . "]\n"
-               . (is_array($data) || is_object($data) ? print_r($data, true) : (string)$data)
-               . "\n\n";
+            . (is_array($data) || is_object($data) ? print_r($data, true) : (string)$data)
+            . "\n\n";
         if (file_put_contents($file, $dump, FILE_APPEND | LOCK_EX) === false) {
             error_log('[p2log] Cannot write: ' . $file);
         }

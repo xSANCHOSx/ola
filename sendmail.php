@@ -173,11 +173,11 @@ if (empty($orderResult)) {
 }
 $totalSum = 0.0;
 foreach ($orderResult as $item) {
-    $totalSum += ((float)($item['price'] ?? 0) * (int)($item['num'] ?? 0));
+    $totalSum += (float)($item['price'] ?? 0) * (int)($item['num'] ?? 0);
 }
 
-$orderNumber = null;
 $pdo = null;
+$orderNumber = null;
 try {
     $pdo = dev_db_connection();
 } catch (Throwable $e) {
@@ -202,6 +202,12 @@ $subject = 'Заказ с сайта Olaplex #OLA-' . $orderNumber . ' (' . date
 
 if ($pdo instanceof PDO) {
     try {
+        // КРИТИЧНО: Встанови кодування для MariaDB 10.5 (latin1 сервер → utf8mb4 таблиці)
+        // Це запобігає SQLSTATE[HY093] та проблем з кодуванням
+        $pdo->exec("SET NAMES utf8mb4");
+        $pdo->exec("SET CHARACTER SET utf8mb4");
+        $pdo->exec("SET SESSION collation_connection = 'utf8mb4_unicode_ci'");
+        
         $pdo->beginTransaction();
         $idempotency = $payload['client_order_uuid'] !== '' ? $payload['client_order_uuid'] : null;
         if ($idempotency) {
@@ -215,7 +221,18 @@ if ($pdo instanceof PDO) {
             }
         }
         $customerId = upsert_customer($pdo, $payload, $orderNumber, $totalSum);
-        $stmt = $pdo->prepare('INSERT INTO orders (order_number, customer_id, customer_name_snapshot, customer_email_snapshot, customer_phone_snapshot, contact_method_snapshot, contact_username_snapshot, delivery_address_snapshot, coupon, total, idempotency_key, raw_payload, created_at) VALUES (:order_number, :customer_id, :name, :email, :phone, :contact_method, :contact_username, :delivery_address, :coupon, :total, :idempotency_key, :raw_payload, NOW())');
+        
+        // ВИПРАВЛЕНО: Видалено created_at і NOW() з VALUES
+        // created_at заповниться автоматично через DEFAULT CURRENT_TIMESTAMP
+        // Це запобігає SQLSTATE[HY093] на деяких MySQL/MariaDB версіях
+        $stmt = $pdo->prepare('INSERT INTO orders 
+            (order_number, customer_id, customer_name_snapshot, customer_email_snapshot, 
+             customer_phone_snapshot, contact_method_snapshot, contact_username_snapshot, 
+             delivery_address_snapshot, coupon, total, idempotency_key, raw_payload) 
+            VALUES 
+            (:order_number, :customer_id, :name, :email, :phone, :contact_method, 
+             :contact_username, :delivery_address, :coupon, :total, :idempotency_key, :raw_payload)');
+        
         $stmt->execute([
             'order_number' => $orderNumber,
             'customer_id' => $customerId,

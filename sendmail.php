@@ -296,23 +296,11 @@ $_POST['MAIL_OUR'] = 'Result = ' . ($success ? '1' : '0');
 $_POST['MAIL_USER'] = 'Result = ' . ($success2 ? '1' : '0');
 $_POST['CRM_SENT'] = $crmSent ? '1' : '0';
 
-if (!function_exists('p2log')) {
-    function p2log($data, string $key = 'main'): void
-    {
-        $logDir = __DIR__ . '/log';
-        if (!is_dir($logDir)) {
-            @mkdir($logDir, 0755, true);
-        }
-        $start = (new DateTime())->modify('monday this week');
-        $end   = (new DateTime())->modify('sunday this week');
-        $week  = $start->format('d.m') . '-' . $end->format('d.m.y');
-        $file  = $logDir . '/' . $key . '_' . $week . '.log';
-        $dump  = '[' . date('Y-m-d H:i:s') . "]\n"
-            . (is_array($data) || is_object($data) ? print_r($data, true) : (string)$data)
-            . "\n\n";
-        @file_put_contents($file, $dump, FILE_APPEND);
-    }
-}
+// FIX: p2log() вже визначена в config/db.php — дублікат видалено.
+// Додаємо debug-інформацію про статус збереження замовлення у лог.
+$_POST['DB_SAVED']    = $dbSaved ? '1' : '0';
+$_POST['DB_ORDER_ID'] = $dbOrderId ? (string)$dbOrderId : 'null';
+$_POST['DB_ERROR']    = (!$dbSaved && !($pdo instanceof PDO)) ? 'no_pdo_connection' : '';
 p2log($_POST);
 
 // === AMO CRM ===

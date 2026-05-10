@@ -11,6 +11,12 @@ yarn-error.log*
 .tmp
 .swp
 
+# FIX: зберігаємо саму директорію log/ в репозиторії (через .gitkeep),
+#      але ігноруємо вміст (*.log файли)
+!log/
+!log/.gitkeep
+!log/.htaccess
+
 # Залежності (node, python, composer)
 node_modules/
 __pycache__/

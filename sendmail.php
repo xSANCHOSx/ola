@@ -176,7 +176,12 @@ foreach ($orderResult as $item) {
 }
 
 $orderNumber = null;
-$pdo = dev_db_connection();
+$pdo = null;
+try {
+    $pdo = dev_db_connection();
+} catch (Throwable $e) {
+    dev_log_runtime('DB connection failed in sendmail: ' . $e->getMessage());
+}
 $dbOrderId = null;
 $dbSaved = false;
 if ($pdo instanceof PDO) {
@@ -292,13 +297,20 @@ $_POST['MAIL_USER'] = 'Result = ' . ($success2 ? '1' : '0');
 $_POST['CRM_SENT'] = $crmSent ? '1' : '0';
 
 if (!function_exists('p2log')) {
-    function p2log($arr, $key = ''): void
+    function p2log($data, string $key = 'main'): void
     {
-        $key = $key ?: 'main';
-        $dump = (is_array($arr) || is_object($arr)) ? print_r($arr, true) : $arr;
-        $dump .= "\r\n";
-        $files = $_SERVER['DOCUMENT_ROOT'] . '/log/' . $key . '.log';
-        @file_put_contents($files, $dump, FILE_APPEND);
+        $logDir = __DIR__ . '/log';
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0755, true);
+        }
+        $start = (new DateTime())->modify('monday this week');
+        $end   = (new DateTime())->modify('sunday this week');
+        $week  = $start->format('d.m') . '-' . $end->format('d.m.y');
+        $file  = $logDir . '/' . $key . '_' . $week . '.log';
+        $dump  = '[' . date('Y-m-d H:i:s') . "]\n"
+            . (is_array($data) || is_object($data) ? print_r($data, true) : (string)$data)
+            . "\n\n";
+        @file_put_contents($file, $dump, FILE_APPEND);
     }
 }
 p2log($_POST);

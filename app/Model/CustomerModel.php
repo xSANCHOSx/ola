@@ -42,6 +42,8 @@ class CustomerModel
         OlaLogger::debug('CUSTOMER_INSERT_IGNORE', ['rows_inserted' => $rowsInserted]);
 
         // UPDATE — завжди оновлюємо лічильники
+        // FIX HY093: WHERE використовує окремі плейсхолдери :where_phone / :where_email
+        // бо PDO native не допускає одного імені двічі в одному prepared statement
         $updateStmt = $pdo->prepare(
             'UPDATE customers
              SET full_name          = :full_name,
@@ -55,8 +57,8 @@ class CustomerModel
                  orders_count       = orders_count + 1,
                  total_spent        = total_spent + :total_spent,
                  last_order_at      = NOW()
-             WHERE phone_normalized = :phone_norm
-                OR email_normalized = :email_norm
+             WHERE phone_normalized = :where_phone
+                OR email_normalized = :where_email
              LIMIT 1'
         );
         $updateStmt->execute([
@@ -69,6 +71,8 @@ class CustomerModel
             'email_norm'      => $emailNorm,
             'order_no'        => $orderNumber,
             'total_spent'     => $total,
+            'where_phone'     => $phoneNorm,
+            'where_email'     => $emailNorm,
         ]);
         OlaLogger::debug('CUSTOMER_UPDATE', ['rows_affected' => $updateStmt->rowCount()]);
 

@@ -22,9 +22,12 @@ CREATE TABLE IF NOT EXISTS customers (
   last_order_at TIMESTAMP NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_customers_email_normalized (email_normalized),
-  INDEX idx_customers_last_order_at (last_order_at),
-  INDEX idx_customers_phone_normalized (phone_normalized)
+  -- FIX BUG-2: додано UNIQUE KEY замість звичайного INDEX.
+  -- Без UNIQUE ключів INSERT IGNORE не ігнорував конфлікти і кожне замовлення
+  -- створювало новий рядок клієнта — дублі накопичувались безкінечно.
+  UNIQUE KEY uq_customers_phone_normalized (phone_normalized),
+  UNIQUE KEY uq_customers_email_normalized (email_normalized),
+  INDEX idx_customers_last_order_at (last_order_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS order_sequence (
@@ -66,6 +69,10 @@ CREATE TABLE IF NOT EXISTS orders (
   delivery_address_snapshot TEXT,
   coupon VARCHAR(64) DEFAULT NULL,
   total DECIMAL(12,2) NOT NULL DEFAULT 0,
+  -- FIX BUG-1: нове поле — чи були ціни верифіковані через таблицю products.
+  -- 0 = ціни взяті від клієнта (products таблиця порожня або external_id не збігся).
+  -- 1 = ціни підтверджені з БД. Дозволяє адміну відфільтрувати підозрілі замовлення.
+  price_verified TINYINT(1) NOT NULL DEFAULT 0,
   outbound_email_sent TINYINT(1) NOT NULL DEFAULT 0,
   outbound_crm_sent TINYINT(1) NOT NULL DEFAULT 0,
   outbound_amo_sent TINYINT(1) NOT NULL DEFAULT 0,

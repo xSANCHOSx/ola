@@ -253,28 +253,50 @@ if (empty($orderResult)) {
 
 $totalSum = 0.0;
 
+// FIX BUG-1: Верифікація цін більше НЕ є блокуючою.
+// Попередня поведінка: якщо products таблиця порожня або external_id не збігається
+// з id з кошика — весь замовлення відкидався через exit() до будь-якого INSERT.
+// Це була головна причина втрати замовлень у продакшні.
+// Нова поведінка: підозрілі товари логуються, але замовлення продовжує виконуватись
+// із ціною клієнта як fallback. Поле price_verified показує чи пройшла верифікація.
+$priceVerified = true;
+
 if ($pdo instanceof PDO && !empty($orderResult)) {
-    $productIds   = array_unique(array_column($orderResult, 'id'));
-    $placeholders = implode(',', array_fill(0, count($productIds), '?'));
+    try {
+        $productIds   = array_unique(array_column($orderResult, 'id'));
+        $placeholders = implode(',', array_fill(0, count($productIds), '?'));
 
-    $stmt = $pdo->prepare(
-        "SELECT external_id, price FROM products WHERE external_id IN ($placeholders)"
-    );
-    $stmt->execute(array_values($productIds));
-    $dbPrices = array_column($stmt->fetchAll(), 'price', 'external_id');
+        $stmt = $pdo->prepare(
+            "SELECT external_id, price FROM products WHERE external_id IN ($placeholders)"
+        );
+        $stmt->execute(array_values($productIds));
+        $dbPrices = array_column($stmt->fetchAll(), 'price', 'external_id');
 
-    foreach ($orderResult as $item) {
-        $pid = (string) ($item['id'] ?? '');
-        if (!isset($dbPrices[$pid])) {
-            log_security_event('UNKNOWN_PRODUCT', ['id' => $pid]);
-            http_response_code(400);
-            echo json_encode(['error' => 'Unknown product: ' . $pid]);
-            exit;
+        foreach ($orderResult as $item) {
+            $pid      = (string) ($item['id'] ?? '');
+            $quantity = (int) ($item['num'] ?? 0);
+
+            if (!isset($dbPrices[$pid])) {
+                // Логуємо підозру, але НЕ блокуємо замовлення
+                log_security_event('UNVERIFIED_PRODUCT', ['id' => $pid, 'client_price' => $item['price'] ?? null]);
+                $priceVerified = false;
+                // Fallback: довіряємо ціні клієнта, замовлення зберігається
+                $totalSum += ((float) ($item['price'] ?? 0)) * $quantity;
+            } else {
+                $totalSum += (float) $dbPrices[$pid] * $quantity;
+            }
         }
-        $totalSum += (float) $dbPrices[$pid] * (int) ($item['num'] ?? 0);
+    } catch (Throwable $e) {
+        // БД недоступна під час верифікації — fallback на ціни клієнта
+        dev_log_runtime('Price verification DB error: ' . $e->getMessage());
+        $priceVerified = false;
+        foreach ($orderResult as $item) {
+            $totalSum += ((float) ($item['price'] ?? 0)) * (int) ($item['num'] ?? 0);
+        }
     }
 } else {
     // Fallback якщо БД недоступна — довіряємо цінам клієнта
+    $priceVerified = false;
     foreach ($orderResult as $item) {
         $totalSum += ((float) ($item['price'] ?? 0) * (int) ($item['num'] ?? 0));
     }
@@ -347,8 +369,8 @@ if ($pdo instanceof PDO) {
         $customerId = upsert_customer($pdo, $payload, $orderNumber, $totalSum);
 
         $stmt = $pdo->prepare(
-            'INSERT INTO orders (order_number, customer_id, customer_name_snapshot, customer_email_snapshot, customer_phone_snapshot, contact_method_snapshot, contact_username_snapshot, delivery_address_snapshot, coupon, total, idempotency_key, raw_payload, created_at)
-             VALUES (:order_number, :customer_id, :name, :email, :phone, :contact_method, :contact_username, :delivery_address, :coupon, :total, :idempotency_key, :raw_payload, NOW())'
+            'INSERT INTO orders (order_number, customer_id, customer_name_snapshot, customer_email_snapshot, customer_phone_snapshot, contact_method_snapshot, contact_username_snapshot, delivery_address_snapshot, coupon, total, price_verified, idempotency_key, raw_payload, created_at)
+             VALUES (:order_number, :customer_id, :name, :email, :phone, :contact_method, :contact_username, :delivery_address, :coupon, :total, :price_verified, :idempotency_key, :raw_payload, NOW())'
         );
         $stmt->execute([
             'order_number'     => $orderNumber,
@@ -361,6 +383,7 @@ if ($pdo instanceof PDO) {
             'delivery_address' => $payload['comments'],
             'coupon'           => $payload['coupon'],
             'total'            => $totalSum,
+            'price_verified'   => $priceVerified ? 1 : 0,
             'idempotency_key'  => $idempotency,
             'raw_payload'      => json_encode($_POST, JSON_UNESCAPED_UNICODE),
         ]);
@@ -454,14 +477,26 @@ p2log($_POST);
 
 require_once __DIR__ . '/amo/order.php';
 
+// FIX BUG-3: функція amo_send_order() раніше лише визначалась через require_once,
+// але ніколи не викликалась. Замовлення не потрапляли в AMO CRM.
+$amoResult = amo_send_order($_POST);
+$_POST['AMO_SENT'] = $amoResult ? '1' : '0';
+
 if ($pdo instanceof PDO && $dbSaved && $dbOrderId) {
     try {
+        // FIX BUG-4: outbound_amo_sent більше не захардкожено в 1.
+        // Тепер зберігається реальний результат виклику amo_send_order().
         $stmt = $pdo->prepare(
-            'UPDATE orders SET outbound_email_sent = :email_sent, outbound_crm_sent = :crm_sent, outbound_amo_sent = 1 WHERE id = :id'
+            'UPDATE orders
+             SET outbound_email_sent = :email_sent,
+                 outbound_crm_sent   = :crm_sent,
+                 outbound_amo_sent   = :amo_sent
+             WHERE id = :id'
         );
         $stmt->execute([
             'email_sent' => ($success && $success2) ? 1 : 0,
             'crm_sent'   => $crmSent ? 1 : 0,
+            'amo_sent'   => $amoResult ? 1 : 0,
             'id'         => $dbOrderId,
         ]);
     } catch (Throwable $e) {

@@ -21,11 +21,11 @@
 
 -- ─── КРОК 2: FIX BUG-2 — UNIQUE ключі на customers ──────────
 -- Змінюємо звичайні INDEX на UNIQUE KEY (INSERT IGNORE тепер правильно спрацює)
-ALTER TABLE customers
-  DROP INDEX idx_customers_phone_normalized,
-  DROP INDEX idx_customers_email_normalized,
-  ADD UNIQUE KEY uq_customers_phone_normalized (phone_normalized),
-  ADD UNIQUE KEY uq_customers_email_normalized (email_normalized);
+  ALTER TABLE customers
+    DROP INDEX idx_customers_phone_normalized,
+    DROP INDEX idx_customers_email_normalized,
+    ADD UNIQUE KEY uq_customers_phone_normalized (phone_normalized),
+    ADD UNIQUE KEY uq_customers_email_normalized (email_normalized);
 
 -- ─── КРОК 3: FIX BUG-1 — поле price_verified в orders ───────
 -- Нове поле: 0 = ціна від клієнта (products таблиця порожня),

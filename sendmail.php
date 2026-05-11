@@ -95,6 +95,10 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
     $emailNorm = mb_strtolower(trim((string) $payload['email']));
 
     // Попытка вставить нового клиента; при конфликте уникального индекса — молча пропускаем
+    // FIX HY093: ':order_no' використовувався ДВІЧІ в одному prepared statement.
+    // З PDO::ATTR_EMULATE_PREPARES => false (native MariaDB protocol) це викликало
+    // SQLSTATE[HY093] "Invalid parameter number" — транзакція відкочувалась і замовлення губилось.
+    // Рішення: два окремих іменованих параметри :first_order_no та :last_order_no.
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO customers
             (full_name, email, phone, contact_method, contact_username,
@@ -104,9 +108,8 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
          VALUES
             (:full_name, :email, :phone, :contact_method, :contact_username,
              :phone_norm, :email_norm,
-             :order_no, :order_no,
+             :first_order_no, :last_order_no,
              0, 0, NOW())'
-        // orders_count и total_spent начинаем с 0 — они будут увеличены в UPDATE ниже
     );
     $stmt->execute([
         'full_name'        => $payload['name'],
@@ -116,7 +119,8 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
         'contact_username' => $payload['contact_username'],
         'phone_norm'       => $phoneNorm,
         'email_norm'       => $emailNorm,
-        'order_no'         => $orderNumber,
+        'first_order_no'   => $orderNumber,
+        'last_order_no'    => $orderNumber,
     ]);
 
     // Всегда обновляем данные и увеличиваем счётчики — независимо от того,

@@ -16,7 +16,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 	<div class="container-fluid">
 		<div class="row">
 			<section class="slider">
-				<div class="flexslider" data-flexslider-init="true">
+				<div class="flexslider">
 					<ul class="slides">
 						<li>
 							<div class="flex-caption_l">
@@ -24,7 +24,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 									<!--Гарантия Защиты Волос-->
 								</span>
 							</div>
-							<img src="/images/banner-1.jpg" alt="Banner 1" width="1920" height="600" />
+							<img src="/images/banner-1.jpg" />
 							<div class="flex-caption_r">
 								<span>
 									<!--Один Ингридиент меняет все-->
@@ -32,7 +32,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 							</div>
 						</li>
 						<li>
-							<img src="/images/banner-2.jpg" alt="Banner 2" width="1920" height="600" />
+							<img src="/images/banner-2.jpg" />
 						</li>
 					</ul>
 				</div>
@@ -70,15 +70,15 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 					</div>
 				</div>
 				<div class="col-md-6 youtube animate--one" data-animate="fadeInDown" data-duration="2.5">
-					<div class="flexslider" data-flexslider-init="true" id="slider">
+					<div class="flexslider" id="slider">
 						<ul class="slides">
 							<li id="slide1">
-								<img src="/images/bg.png" alt="Bg" width="560" height="315" loading="lazy">
+								<img src="/images/bg.png">
 								<!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/NKfTbACBRfs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>-->
 							</li>
 
 							<li id="slide2">
-								<img src="/images/poster.png" alt="Poster" width="560" height="315" loading="lazy">
+								<img src="/images/poster.png">
 								<!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/NKfTbACBRfs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>-->
 							</li>
 						</ul>
@@ -191,7 +191,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 				<div class="col-md-4 col-xs-12">
 					<div class="member-box animate--one" data-animate="zoomIn">
 						<div class="member-profile">
-							<img src="/images/5.png" alt="Member 1" loading="lazy">
+							<img src="/images/5.png" alt="Member 1">
 						</div>
 
 					</div>
@@ -199,9 +199,109 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 				<div class="col-md-4 col-xs-12">
 					<div class="member-box animate--one" data-animate="zoomIn">
 						<div class="member-profile">
-							<img src="/images/6.jpg" alt="Member 1" loading="lazy">
+							<img src="/images/6.jpg" alt="Member 1">
 						</div>
-	<!-- Content continues... -->
+					</div>
+				</div>
+				<div class="col-md-4 col-xs-12">
+
+					<div class="member-box animate--one" data-animate="zoomIn">
+						<div class="member-profile">
+							<img src="/images/5.png" alt="Member 1">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- ./ Ending Meet the team section -->
+	<!-- What Customers Say section -->
+	<section id="max-testimonial-section">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="max-section-title testimonial-title">
+					<h2>Отзывы Олаплекс</h2>
+				</div>
+			</div>
+		</div>
+
+		<div id="max-customer-section" class="container">
+			<div class="row">
+				<div class="col-md-12" data-wow-delay="0.2s">
+					<div class="flexslider">
+						<ul class="slides">
+							<li>
+								<!-- Quote 1 -->
+								<div class="item active">
+									<div class="row">
+										<div class="col-sm-2 col-sm-offset-2  col-xs-12 testimonial-box">
+											<img class="img-responsive " src="/images/test1.png" alt="Profile 1">
+										</div>
+										<div class="col-sm-6 col-xs-12 testimonial-box">
+											<div class="testimonial-name">Татьяна</h2>
+												<p class="testimonial-quote">Я считаю, что радость клиента важна настолько же, насколько важен
+													результат.
+													Каждая девушка, пришедшая ко мне в салон, с восторгом смотрела на свои волосы, и обещала
+													рекомендовать
+													мои услуги своим подругам! А все благодаря роскошной системе Olaplex. Она действительно
+													реанимирует даже
+													самые, казалось бы, безнадежные пряди. И на цвет влияет тоже хорошо, сама этими штуками
+													пользуюсь, и вам
+													советую!</p>
+
+											</div>
+										</div>
+									</div>
+							</li>
+							<li>
+								<!-- Quote 2 -->
+								<div class="item">
+									<div class="row">
+										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
+											<img class="img-responsive " src="/images/test2.png" alt="Profile 2">
+										</div>
+										<div class="col-sm-6 col-xs-12 testimonial-box">
+											<div class="testimonial-name">Анна</h2>
+												<p class="testimonial-quote">Ко мне часто приходят девушки, которые раньше красились дома, ну и,
+													конечно же,
+													сожгли свои волосы. Я в таких случаях стопроцентно использую защиту и коктейль Olaplex,
+													поскольку после них
+													локоны становятся блестящими, мягкими и выглядят ухоженными, каждая клиентка уходит счастливой
+													неимоверно!
+													Сразу же видно, даже на мокрых волосах, что они стали здоровее. Действительно отличный
+													помощник при окрашивании
+													или выравнивании. </p>
+											</div>
+										</div>
+									</div>
+							</li>
+							<li>
+								<!-- Quote 3 -->
+								<div class="item">
+									<div class="row">
+										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
+											<img class="img-responsive " src="/images/test3.png" alt="Profile 3">
+										</div>
+										<div class="col-sm-6 col-xs-12 testimonial-box">
+											<div class="testimonial-name">Ольга</h2>
+												<p class="testimonial-quote">Перед тем, как использовать что-то новенькое в салоне, я сначала
+													пробую на себе!
+													В общем, скажу сразу – это потрясающие средства! Мои волосы стали гладкими, убрались все
+													торчащие волоски.
+													Мягкие, очень приятные на ощупь, и цвет получился просто шикарный! После мытья головы эффект
+													не пропал,
+													а вот домашний уход имеет накопительный эффект, что очень радует. За такие чудеса не жалко и
+													миллион отдать,
+													что мне, что моим посетителям!</p>
+											</div>
+										</div>
+									</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
 	</section>
 	<!-- Meet the team section -->
 	<section id="max-team-section">
@@ -209,13 +309,13 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 			<h2>Кто использует Olaplex</h2>
 		</div>
 		<div id="max-team" class="container">
-			<div class="flexslider" data-flexslider-init="true">
+			<div class="flexslider">
 				<ul class="slides">
 					<li>
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="/images/kim.jpg" alt="Member 1" loading="lazy">
+									<img src="/images/kim.jpg" alt="Member 1">
 									<div class="member-name">KIM KARDASHIAN</div>
 								</div>
 
@@ -224,7 +324,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="/images/khloe.jpg" alt="Member 2" loading="lazy">
+									<img src="/images/khloe.jpg" alt="Member 2">
 									<div class="member-name">KHLOE KARDASHIAN</div>
 								</div>
 							</div>
@@ -232,7 +332,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="/images/jlo.jpg" alt="Member 3" loading="lazy">
+									<img src="/images/jlo.jpg" alt="Member 3">
 									<div class="member-name">JENNIFER LOPEZ</div>
 								</div>
 							</div>
@@ -242,7 +342,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="/images/gwenth.jpg" alt="Member 4" loading="lazy">
+									<img src="/images/gwenth.jpg" alt="Member 4">
 									<div class="member-name">GWYNETH PALTROW</div>
 								</div>
 
@@ -251,7 +351,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="/images/theron.jpg" alt="Member 5" loading="lazy">
+									<img src="/images/theron.jpg" alt="Member 5">
 									<div class="member-name">CHARLIZE THERON</div>
 								</div>
 							</div>
@@ -260,7 +360,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one" data-animate="zoomIn">
 								<div class="member-profile star">
-									<img src="/images/blunt.jpg" alt="Member 6" loading="lazy">
+									<img src="/images/blunt.jpg" alt="Member 6">
 									<div class="member-name">EMILY BLUNT</div>
 								</div>
 							</div>
@@ -295,46 +395,15 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 	</script>
 	<script src="/js/cart.js" type="text/javascript"></script>
 	<script src="/js/cart-init.js" type="text/javascript"></script>
-	
-	<!-- ОПТИМІЗОВАНИЙ FLEXSLIDER - БЕЗ DEFER, ІНІЦІАЛІЗУЄТЬСЯ ВІДРАЗУ -->
-	<script src="/js/jquery.flexslider-min.js"></script>
+	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script type="text/javascript">
-	// КРИТИЧНО: Ініціалізуємо слайдери в ready(), не в load()
-	// Це дозволяє слайдерам показатися ДО завантаження усіх зображень
-	$(document).ready(function() {
-		// Знаходимо всі елементи зі слайдерами
-		var sliders = $('[data-flexslider-init="true"]');
-		
-		if (sliders.length > 0) {
-			sliders.each(function(index) {
-				var $slider = $(this);
-				
-				// Ініціалізуємо слайдер одразу, без очікування завантаження зображень
-				$slider.flexslider({
-					animation: "slide",
-					animationSpeed: 500,
-					animationLoop: true,
-					itemWidth: 210,
-					itemMargin: 5,
-					minItems: 1,
-					maxItems: 3,
-					controlNav: false,
-					touch: true,
-					prevText: "←",
-					nextText: "→",
-					keyboard: true,
-					slideshow: true,
-					slideshowSpeed: 7000,
-					pauseOnHover: true,
-					pauseOnAction: true,
-					start: function(slider) {
-						console.log('Slider ' + index + ' initialized');
-					}
-				});
-			});
-		}
+	$(window).on('load', function() {
+		$('.flexslider').flexslider({
+			animation: "slide"
+		})
 	});
 	</script>
+
 
 	<!-- Custom JavaScript -->
 	<script src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
@@ -372,7 +441,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 
 	<script>
 	$('#phoneNumber').inputmask("+7(999)999-99-99")
-	
+	slide2
 	$(function() {
 		var videos = $("#slide1")
 

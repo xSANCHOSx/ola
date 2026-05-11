@@ -22,6 +22,7 @@ $cssBust = function (string $f) {
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap&subset=cyrillic-ext"
         rel="stylesheet">
     <!-- Libs -->
+    <link rel="stylesheet" href="/css/critical.css">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/font-awesome.min.css">
     <link rel="stylesheet" href="/css/animate.css">

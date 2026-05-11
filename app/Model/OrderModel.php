@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 class OrderModel
 {
-    /**
-     * INSERT нового замовлення. Повертає lastInsertId.
-     */
     public static function save(
         PDO    $pdo,
         int    $orderNumber,
@@ -29,28 +26,32 @@ class OrderModel
                  :coupon, :total, :price_verified, :idempotency_key, :raw_payload, NOW())'
         );
 
-        $stmt->execute([
-            'order_number'     => $orderNumber,
-            'customer_id'      => $customerId,
-            'name'             => $payload['name'],
-            'email'            => $payload['email'],
-            'phone'            => $payload['phone'],
-            'contact_method'   => $payload['contact_method'],
-            'contact_username' => $payload['contact_username'],
-            'delivery_address' => $payload['comments'],
-            'coupon'           => $payload['coupon'],
-            'total'            => $totalSum,
-            'price_verified'   => $priceVerified ? 1 : 0,
-            'idempotency_key'  => $idempotencyKey,
-            'raw_payload'      => json_encode($_POST, JSON_UNESCAPED_UNICODE),
-        ]);
+        $params = [
+            'order_number'    => $orderNumber,
+            'customer_id'     => $customerId,
+            'name'            => $payload['name'],
+            'email'           => $payload['email'],
+            'phone'           => $payload['phone'],
+            'contact_method'  => $payload['contact_method'],
+            'contact_username'=> $payload['contact_username'],
+            'delivery_address'=> $payload['comments'],
+            'coupon'          => $payload['coupon'],
+            'total'           => $totalSum,
+            'price_verified'  => $priceVerified ? 1 : 0,
+            'idempotency_key' => $idempotencyKey,
+            'raw_payload'     => json_encode($_POST, JSON_UNESCAPED_UNICODE),
+        ];
 
-        return (int) $pdo->lastInsertId();
+        OlaLogger::debug('ORDER_INSERT_PARAMS', array_diff_key($params, ['raw_payload' => 1]));
+
+        $stmt->execute($params);
+        $id = (int) $pdo->lastInsertId();
+
+        OlaLogger::info('ORDER_INSERTED', ['id' => $id, 'order_number' => $orderNumber]);
+
+        return $id;
     }
 
-    /**
-     * INSERT рядків order_items для вказаного замовлення.
-     */
     public static function saveItems(PDO $pdo, int $orderId, array $items): void
     {
         $stmt = $pdo->prepare(
@@ -60,21 +61,22 @@ class OrderModel
                 (:order_id, :product_external_id, :catalog_number, :name, :price, :quantity)'
         );
 
-        foreach ($items as $item) {
-            $stmt->execute([
-                'order_id'            => $orderId,
-                'product_external_id' => (string) ($item['id']            ?? ''),
-                'catalog_number'      => (string) ($item['catalogNumber']  ?? '-'),
-                'name'                => (string) ($item['name']           ?? ''),
-                'price'               => (float)  ($item['price']          ?? 0),
-                'quantity'            => (int)    ($item['num']            ?? 0),
-            ]);
+        foreach ($items as $i => $item) {
+            $params = [
+                'order_id'           => $orderId,
+                'product_external_id'=> (string) ($item['id']           ?? ''),
+                'catalog_number'     => (string) ($item['catalogNumber'] ?? '-'),
+                'name'               => (string) ($item['name']          ?? ''),
+                'price'              => (float)  ($item['price']         ?? 0),
+                'quantity'           => (int)    ($item['num']           ?? 0),
+            ];
+            OlaLogger::debug('ORDER_ITEM_INSERT', ['row' => $i, 'params' => $params]);
+            $stmt->execute($params);
         }
+
+        OlaLogger::info('ORDER_ITEMS_DONE', ['order_id' => $orderId, 'count' => count($items)]);
     }
 
-    /**
-     * Оновлює статуси outbound після відправки.
-     */
     public static function updateOutboundStatus(
         PDO  $pdo,
         int  $orderId,
@@ -96,14 +98,18 @@ class OrderModel
                 'amo_sent'   => $amoSent   ? 1 : 0,
                 'id'         => $orderId,
             ]);
+            OlaLogger::debug('OUTBOUND_STATUS_UPDATED', [
+                'order_id' => $orderId,
+                'email'    => $emailSent,
+                'crm'      => $crmSent,
+                'amo'      => $amoSent,
+            ]);
         } catch (Throwable $e) {
+            OlaLogger::error('OUTBOUND_STATUS_FAIL', ['msg' => $e->getMessage(), 'order_id' => $orderId]);
             dev_log_runtime('Order outbound status update failed: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Перевіряє idempotency key. Повертає рядок або null.
-     */
     public static function findByIdempotencyKey(PDO $pdo, string $key): ?array
     {
         $stmt = $pdo->prepare(
@@ -111,6 +117,8 @@ class OrderModel
         );
         $stmt->execute(['key' => $key]);
         $row = $stmt->fetch();
+
+        OlaLogger::debug('IDEMPOTENCY_CHECK', ['key' => $key, 'found' => (bool) $row]);
 
         return $row ?: null;
     }

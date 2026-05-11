@@ -4,21 +4,17 @@ declare(strict_types=1);
 
 class CustomerModel
 {
-    /**
-     * Атомарний INSERT IGNORE + UPDATE + SELECT.
-     * Повертає id клієнта або null при помилці.
-     *
-     * FIX HY093: ':order_no' більше не повторюється у одному prepared statement.
-     * Використовуємо :first_order_no та :last_order_no — окремі параметри.
-     * З PDO::ATTR_EMULATE_PREPARES => false (native MariaDB) повторний параметр
-     * викликав SQLSTATE[HY093] "Invalid parameter number".
-     */
     public static function upsert(PDO $pdo, array $payload, int $orderNumber, float $total): ?int
     {
         $phoneNorm = self::normalizePhone((string) $payload['phone']);
         $emailNorm = mb_strtolower(trim((string) $payload['email']));
 
-        // Спроба вставити нового клієнта; при конфлікті унікального індексу — мовчки пропускаємо
+        OlaLogger::debug('CUSTOMER_UPSERT_KEYS', [
+            'phone_norm' => $phoneNorm,
+            'email_norm' => $emailNorm,
+        ]);
+
+        // INSERT IGNORE — новий клієнт
         $stmt = $pdo->prepare(
             'INSERT IGNORE INTO customers
                 (full_name, email, phone, contact_method, contact_username,
@@ -31,19 +27,21 @@ class CustomerModel
                  :first_order_no, :last_order_no,
                  0, 0, NOW())'
         );
-        $stmt->execute([
-            'full_name'        => $payload['name'],
-            'email'            => $payload['email'],
-            'phone'            => $payload['phone'],
-            'contact_method'   => $payload['contact_method'],
-            'contact_username' => $payload['contact_username'],
-            'phone_norm'       => $phoneNorm,
-            'email_norm'       => $emailNorm,
-            'first_order_no'   => $orderNumber,
-            'last_order_no'    => $orderNumber,
+        $insertResult = $stmt->execute([
+            'full_name'       => $payload['name'],
+            'email'           => $payload['email'],
+            'phone'           => $payload['phone'],
+            'contact_method'  => $payload['contact_method'],
+            'contact_username'=> $payload['contact_username'],
+            'phone_norm'      => $phoneNorm,
+            'email_norm'      => $emailNorm,
+            'first_order_no'  => $orderNumber,
+            'last_order_no'   => $orderNumber,
         ]);
+        $rowsInserted = $stmt->rowCount();
+        OlaLogger::debug('CUSTOMER_INSERT_IGNORE', ['rows_inserted' => $rowsInserted]);
 
-        // Завжди оновлюємо дані і збільшуємо лічильники
+        // UPDATE — завжди оновлюємо лічильники
         $updateStmt = $pdo->prepare(
             'UPDATE customers
              SET full_name          = :full_name,
@@ -62,31 +60,32 @@ class CustomerModel
              LIMIT 1'
         );
         $updateStmt->execute([
-            'full_name'        => $payload['name'],
-            'email'            => $payload['email'],
-            'phone'            => $payload['phone'],
-            'contact_method'   => $payload['contact_method'],
-            'contact_username' => $payload['contact_username'],
-            'phone_norm'       => $phoneNorm,
-            'email_norm'       => $emailNorm,
-            'order_no'         => $orderNumber,
-            'total_spent'      => $total,
+            'full_name'       => $payload['name'],
+            'email'           => $payload['email'],
+            'phone'           => $payload['phone'],
+            'contact_method'  => $payload['contact_method'],
+            'contact_username'=> $payload['contact_username'],
+            'phone_norm'      => $phoneNorm,
+            'email_norm'      => $emailNorm,
+            'order_no'        => $orderNumber,
+            'total_spent'     => $total,
         ]);
+        OlaLogger::debug('CUSTOMER_UPDATE', ['rows_affected' => $updateStmt->rowCount()]);
 
-        // Отримуємо id — гарантовано існуючого рядка
+        // SELECT id
         $selectStmt = $pdo->prepare(
             'SELECT id FROM customers
              WHERE phone_normalized = :phone_norm
                 OR email_normalized = :email_norm
              LIMIT 1'
         );
-        $selectStmt->execute([
-            'phone_norm' => $phoneNorm,
-            'email_norm' => $emailNorm,
-        ]);
+        $selectStmt->execute(['phone_norm' => $phoneNorm, 'email_norm' => $emailNorm]);
         $row = $selectStmt->fetch();
 
-        return $row ? (int) $row['id'] : null;
+        $id = $row ? (int) $row['id'] : null;
+        OlaLogger::info('CUSTOMER_ID', ['id' => $id]);
+
+        return $id;
     }
 
     private static function normalizePhone(string $phone): string

@@ -18,18 +18,18 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # Шлях до папок
+            # Путь к файлам
             BASE_DIR="/var/www/www-root/data/www/sanchos-dev.site"
             TEMP_DIR="$BASE_DIR/temp"
             REPO="git@github.com:REAL_USER/REAL_REPO.git"
 
-            # Створюємо структуру папок
+            # Создаём структуру файлов
             mkdir -p $TEMP_DIR
             cd $TEMP_DIR
 
-            # Ініціалізація або оновлення репозиторію
+            # Нициализация или обновление репозитория
             if [ ! -d ".git" ]; then
-              # Використовуємо -o StrictHostKeyChecking=no для SSH всередині сервера
+              # Оставляем ПО жэстки (StrictHostKeyChecking=no для SSH внутри сервера)
               git clone $REPO .
             else
               git fetch origin main
@@ -51,4 +51,4 @@ jobs:
               --exclude='db.php' \
               ./ ../
 
-            echo "Деплой виконано успішно."
+            echo "Деплой выполнен успешно."

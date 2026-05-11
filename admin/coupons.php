@@ -154,7 +154,7 @@ function create_coupon(PDO $pdo, array $data): array
         return ['success' => true, 'coupon_id' => (int)$pdo->lastInsertId()];
     } catch (Throwable $e) {
         dev_log_runtime('Coupon creation failed: ' . $e->getMessage());
-        return ['success' => false, 'errors' => ['general' => 'Помилка при створенні купона']];
+        return ['success' => false, 'errors' => ['general' => 'Ошибка при создании купона']];
     }
 }
 
@@ -234,7 +234,7 @@ function delete_coupon(PDO $pdo, int $coupon_id): array
         return ['success' => true];
     } catch (Throwable $e) {
         dev_log_runtime('Coupon deletion failed: ' . $e->getMessage());
-        return ['success' => false, 'error' => 'Помилка при видаленні купона'];
+        return ['success' => false, 'error' => 'Ошибка при удалении купона'];
     }
 }
 
@@ -263,7 +263,7 @@ function toggle_coupon_status(PDO $pdo, int $coupon_id): array
         return ['success' => true, 'new_status' => $new_status];
     } catch (Throwable $e) {
         dev_log_runtime('Coupon status toggle failed: ' . $e->getMessage());
-        return ['success' => false, 'error' => 'Помилка при зміні статусу'];
+        return ['success' => false, 'error' => 'Ошибка при изменении статуса'];
     }
 }
 
@@ -494,7 +494,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         }
 
         function openEditModal(couponId, coupon) {
-            document.getElementById('modalTitle').textContent = 'Редагування купона';
+            document.getElementById('modalTitle').textContent = 'Оредактирование купона';
             document.getElementById('couponId').value = couponId;
             document.getElementById('code').value = coupon.code;
             document.getElementById('name').value = coupon.name;
@@ -542,14 +542,14 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        showMessage('success', 'Купон успішно збережений');
+                        showMessage('success', 'Купон успешно сохранен');
                         bsModal.hide();
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        data.errors ? displayErrors(data.errors) : showMessage('error', data.error || 'Помилка при збереженні');
+                        data.errors ? displayErrors(data.errors) : showMessage('error', data.error || 'Ошибка при сохранении');
                     }
                 })
-                .catch(e => showMessage('error', 'Помилка мережі: ' + e.message));
+                .catch(e => showMessage('error', 'Ошибка сети: ' + e.message));
         }
 
         function toggleStatus(couponId) {
@@ -572,7 +572,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         }
 
         function deleteCoupon(couponId, code) {
-            if (!confirm(`Видалити купон "${code}"? Цю дію не можна скасувати!`)) return;
+            if (!confirm(`Удалить купон "‎${code}‎"? Это действие нельзя отменить!`)) return;
             fetch('?ajax=1&action=delete', {
                     method: 'POST',
                     body: new URLSearchParams({

@@ -22,14 +22,14 @@ if (!$isCli) {
 
     if ($setupToken === '' || ($_GET['token'] ?? '') !== $setupToken) {
         http_response_code(403);
-        exit('<b>403 Forbidden.</b> Передайте правильний ?token= або запустіть через CLI.');
+        exit('<b>403 Forbidden.</b> Передайте правильный ?token= или запустите через CLI.');
     }
     header('Content-Type: text/plain; charset=utf-8');
 } else {
     require_once __DIR__ . '/config/db.php';
 }
 
-// ── Підключення до БД ─────────────────────────────────────────────────────────
+// ── Подключение к БД ─────────────────────────────────────────────────────────
 try {
     $pdo = dev_db_connection();
 } catch (Throwable $e) {
@@ -74,7 +74,7 @@ if (file_exists($migFile)) {
             $pdo->exec($sql);
             $mOk++;
         } catch (Throwable $e) {
-            // Ігноруємо "Duplicate entry" для INSERT дефолтних купонів
+            // Игнорируем "Duplicate entry" для INSERT стандартных купонов
             if (strpos($e->getMessage(), 'Duplicate') === false) {
                 echo '⚠️  Migration warning: ' . $e->getMessage() . "\n";
             }

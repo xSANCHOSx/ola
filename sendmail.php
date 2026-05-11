@@ -14,17 +14,17 @@ function normalize_phone(string $phone): string
 
 function next_order_number_fallback(string $counterFile): int
 {
-    // FIX #1: використовуємо flock для виключного блокування файлу,
-    // щоб уникнути race condition при паралельних запитах.
-    // Раніше: file_get_contents + file_put_contents без блокування
-    // → два процеси могли прочитати однакове значення і записати дубль.
+    // FIX #1: используем flock для эксклюзивного блокирования файла,
+    // чтобы исключить race condition при параллельных запросах.
+    // Прежде: file_get_contents + file_put_contents без блокирования
+    // → два процесса могли прочитать одинаковое значение и записать дубль.
 
-    $fp = fopen($counterFile, 'c+'); // 'c+' — відкриває або створює, не обрізає
+    $fp = fopen($counterFile, 'c+'); // 'c+' — открывает или создаёт, не обрезает
     if ($fp === false) {
         throw new \RuntimeException("Cannot open counter file: $counterFile");
     }
 
-    if (!flock($fp, LOCK_EX)) { // виключне блокування — інші процеси чекають
+    if (!flock($fp, LOCK_EX)) { // эксклюзивное блокирование — другие процессы ждуть
         fclose($fp);
         throw new \RuntimeException("Cannot acquire lock on counter file: $counterFile");
     }
@@ -34,12 +34,12 @@ function next_order_number_fallback(string $counterFile): int
         $counter = ctype_digit($raw) && $raw !== '' ? (int) $raw : 0;
         $counter++;
 
-        ftruncate($fp, 0); // очищаємо файл перед записом
+        ftruncate($fp, 0); // очищаем файл перед записью
         rewind($fp);
         fwrite($fp, (string) $counter);
         fflush($fp);
     } finally {
-        flock($fp, LOCK_UN); // завжди знімаємо блокування
+        flock($fp, LOCK_UN); // всегда снимаем блокирование
         fclose($fp);
     }
 
@@ -80,21 +80,21 @@ function next_order_number_db(PDO $pdo, string $counterFile): int
 
 function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $total): ?int
 {
-    // FIX #5: прибрано TOCTOU race condition.
-    // Раніше: SELECT → перевірка → INSERT або UPDATE.
-    // При двох паралельних першозамовленнях від одного клієнта обидва процеси
-    // знаходили $customer = null і робили INSERT → Duplicate key Exception.
+    // FIX #5: устранена TOCTOU race condition.
+    // Прежде: SELECT → проверка → INSERT или UPDATE.
+    // При двух параллельных первых заказах от одного клиента оба процесса
+    // находили $customer = null и делали INSERT → Duplicate key Exception.
     //
-    // Рішення: атомарний INSERT IGNORE + окремий UPDATE.
-    // INSERT IGNORE мовчки ігнорує конфлікт унікального ключа (phone_normalized
-    // або email_normalized), тому дублікатів не виникає. Потім завжди виконується
-    // UPDATE щоб оновити дані та лічильники. Нарешті SELECT повертає id рядка,
-    // незалежно від того, був він щойно вставлений чи вже існував.
+    // Решение: атомарные INSERT IGNORE + отдельные UPDATE.
+    // INSERT IGNORE молча игнорирует конфликт уникального ключа (phone_normalized
+    // или email_normalized), поэтому дубликатов не возникает. Потом всегда выполняется
+    // UPDATE, чтобы обновить данные и счётчики. Наконец SELECT возвращает id ряда,
+    // независимо от того, был он только что вставлен или уже существовал.
 
     $phoneNorm = normalize_phone((string) $payload['phone']);
     $emailNorm = mb_strtolower(trim((string) $payload['email']));
 
-    // Спроба вставити нового клієнта; при конфлікті унікального індексу — мовчки пропускаємо
+    // Попытка вставить нового клиента; при конфликте уникального индекса — молча пропускаем
     $stmt = $pdo->prepare(
         'INSERT IGNORE INTO customers
             (full_name, email, phone, contact_method, contact_username,
@@ -106,7 +106,7 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
              :phone_norm, :email_norm,
              :order_no, :order_no,
              0, 0, NOW())'
-        // orders_count і total_spent починаємо з 0 — вони будуть збільшені в UPDATE нижче
+        // orders_count и total_spent начинаем с 0 — они будут увеличены в UPDATE ниже
     );
     $stmt->execute([
         'full_name'        => $payload['name'],
@@ -119,8 +119,8 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
         'order_no'         => $orderNumber,
     ]);
 
-    // Завжди оновлюємо дані та збільшуємо лічильники — незалежно від того,
-    // чи щойно вставили рядок, чи він вже існував
+    // Всегда обновляем данные и увеличиваем счётчики — независимо от того,
+    // был ли строка только что вставлена или уже существовала
     $updateStmt = $pdo->prepare(
         'UPDATE customers
          SET full_name          = :full_name,
@@ -150,7 +150,7 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
         'total_spent'      => $total,
     ]);
 
-    // Отримуємо id — гарантовано існуючого рядка
+    // Получаем id — гарантированно существующего ряда
     $selectStmt = $pdo->prepare(
         'SELECT id FROM customers
          WHERE phone_normalized = :phone_norm
@@ -169,11 +169,11 @@ function upsert_customer(PDO $pdo, array $payload, int $orderNumber, float $tota
 $cfg = dev_app_config();
 $counterFile = $cfg['fallback_counter_file'] ?? (__DIR__ . '/counter.txt');
 
-// FIX #2: одне підключення до БД на весь файл.
-// Раніше: $pdo = dev_db_connection() викликався двічі — окремо для верифікації цін
-// і окремо для отримання номера замовлення. Якщо перше вдалося, а друге — ні
-// (або навпаки), логіка верифікації цін могла обійтися, і система довіряла
-// цінам від клієнта. Тепер одне з'єднання передається у всі функції.
+// FIX #2: одно подключение к БД на всем файле.
+// Прежде: $pdo = dev_db_connection() вызывался дважды — отдельно для проверки цен
+// и отдельно для получения номера заказа. Если первая удалось, а вторая — нет
+// (или наоборот), логика проверки цен могла пройти, и система доверяла
+// ценам от клиента. Теперь одно соединение передается во все функции.
 $pdo = dev_db_connection();
 
 // === SECURITY CHECKS ===
@@ -212,7 +212,7 @@ $payload = [
     'comments'         => trim((string) ($_POST['comments'] ?? '')),
     'coupon'           => trim((string) ($_POST['coupon'] ?? '')),
     'id_product'       => trim((string) ($_POST['id_product'] ?? '')),
-    'client_order_uuid'=> trim((string) ($_POST['client_order_uuid'] ?? '')),
+    'client_order_uuid' => trim((string) ($_POST['client_order_uuid'] ?? '')),
 ];
 
 $orderResult = json_decode((string) ($_POST['order_result'] ?? '[]'), true);
@@ -375,7 +375,7 @@ if ($pdo instanceof PDO) {
             foreach ($orderResult as $item) {
                 $itemStmt->execute([
                     'order_id'           => $dbOrderId,
-                    'product_external_id'=> (string) ($item['id'] ?? ''),
+                    'product_external_id' => (string) ($item['id'] ?? ''),
                     'catalog_number'     => (string) ($item['catalogNumber'] ?? '-'),
                     'name'               => (string) ($item['name'] ?? ''),
                     'price'              => (float) ($item['price'] ?? 0),

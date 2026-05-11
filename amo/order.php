@@ -2,10 +2,10 @@
 
 /**
  * AMO CRM order integration.
- * Повністю ізольований від основного потоку — будь-яка помилка тут
- * логується і НЕ впливає на відправку пошти та збереження в БД.
+ * Полностью изолирован от основного потока — любая ошибка здесь
+ * логируется и НЕ влияет на отправку почты и сохранение в БД.
  *
- * @return bool  true — успішно відправлено в AMO, false — помилка
+ * @return bool  true — успешно отправлено в AMO, false — ошибка
  */
 function amo_send_order(array $post): bool
 {
@@ -83,7 +83,7 @@ function amo_send_order(array $post): bool
         $amo->sendOrder($toSendInfo);
         return true;
     } catch (\Throwable $e) {
-        // Логуємо, але НЕ пробрасуємо — замовлення вже збережено і відправлено на пошту
+        // Логируем, но НЕ пробрасываем — заказ уже сохранен и отправлен на почту
         if (function_exists('dev_log_runtime')) {
             dev_log_runtime('AMO send failed: ' . $e->getMessage());
         }

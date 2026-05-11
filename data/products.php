@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/db.php';
 
-// save_utm_cookies() визначена в config/db.php
-// Якщо з якихось причин її там немає — визначаємо тут як fallback
+// save_utm_cookies() определена в config/db.php
+// Если по какой-то причине её там нет — определяем здесь как fallback
 if (!function_exists('save_utm_cookies')) {
     function save_utm_cookies(): void
     {

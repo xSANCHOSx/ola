@@ -392,13 +392,13 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         <?php endif; ?>
     </div>
 
-    <!-- Bootstrap Modal -->
-    <div class="modal fade" id="couponModal" tabindex="-1">
-        <div class="modal-dialog">
+    <!-- Bootstrap 3 Modal -->
+    <div class="modal fade" id="couponModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Новый купон</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h4 class="modal-title" id="modalTitle">Новый купон</h4>
                 </div>
                 <div class="modal-body">
                     <form id="couponForm">
@@ -463,7 +463,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
                     <button type="button" class="btn btn-primary" onclick="submitCouponForm()">Сохранить купон</button>
                 </div>
             </div>
@@ -478,7 +478,10 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
 
         function getModal() {
             if (!bsModal) {
-                bsModal = new bootstrap.Modal(document.getElementById('couponModal'));
+                bsModal = {
+                    show: () => $('#couponModal').modal('show'),
+                    hide: () => $('#couponModal').modal('hide')
+                };
             }
             return bsModal;
         }

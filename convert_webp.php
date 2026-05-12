@@ -38,6 +38,7 @@ function convertToWebp(string $source, int $quality = 82): string
 
 $imageDirs = [
 	__DIR__ . '/images/',
+	__DIR__ . '/data/images/',
 	__DIR__ . '/data/uploads/products/',
 	__DIR__ . '/data/uploads/blog/',
 ];

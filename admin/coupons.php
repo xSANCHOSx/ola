@@ -165,7 +165,7 @@ function update_coupon(PDO $pdo, int $coupon_id, array $data): array
 {
     $coupon = get_coupon_by_id($pdo, $coupon_id);
     if (!$coupon) {
-        return ['success' => false, 'errors' => ['general' => 'Купон не знайдено']];
+        return ['success' => false, 'errors' => ['general' => 'Купон не найден']];
     }
 
     $errors = validate_coupon_data($data);
@@ -174,7 +174,7 @@ function update_coupon(PDO $pdo, int $coupon_id, array $data): array
     }
 
     if ($data['code'] !== $coupon['code'] && get_coupon_by_code($pdo, $data['code'])) {
-        return ['success' => false, 'errors' => ['code' => 'Купон з таким кодом вже існує']];
+        return ['success' => false, 'errors' => ['code' => 'Купон с таким кодом уже существует']];
     }
 
     try {
@@ -218,7 +218,7 @@ function delete_coupon(PDO $pdo, int $coupon_id): array
 {
     $coupon = get_coupon_by_id($pdo, $coupon_id);
     if (!$coupon) {
-        return ['success' => false, 'error' => 'Купон не знайдено'];
+        return ['success' => false, 'error' => 'Купон не найден'];
     }
 
     try {
@@ -245,7 +245,7 @@ function toggle_coupon_status(PDO $pdo, int $coupon_id): array
 {
     $coupon = get_coupon_by_id($pdo, $coupon_id);
     if (!$coupon) {
-        return ['success' => false, 'error' => 'Купон не знайдено'];
+        return ['success' => false, 'error' => 'Купон не найден'];
     }
 
     try {
@@ -314,7 +314,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управління купонами - Адмін</title>
+    <title>Управление купонами - Админ</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
 </head>
 
@@ -323,14 +323,14 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         <?php require __DIR__ . '/_nav.php'; ?>
 
         <div class="d-flex align-items-center justify-content-between mb-3">
-            <h3 class="mb-0">💰 Управління купонами</h3>
+            <h3 class="mb-0">💰 Управление купонами</h3>
             <button class="btn btn-success" onclick="openCreateModal()">➕ Новый купон</button>
         </div>
 
         <div id="successMsg" class="alert alert-success d-none"></div>
         <div id="errorMsg" class="alert alert-danger  d-none"></div>
 
-        <h5 class="mb-3">Активних купонів: <span class="badge bg-success"><?= $active_count ?></span></h5>
+        <h5 class="mb-3">Активных купонов: <span class="badge bg-success"><?= $active_count ?></span></h5>
 
         <?php if (!empty($coupons)): ?>
             <table class="table table-bordered table-striped">
@@ -338,12 +338,12 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                     <tr>
                         <th>Код</th>
                         <th>Название</th>
-                        <th>Знижка</th>
-                        <th>Мін. сума</th>
-                        <th>Дійсно до</th>
-                        <th>Використано</th>
+                        <th>Скидка</th>
+                        <th>Мин. сумма</th>
+                        <th>Действительно до</th>
+                        <th>Использовано</th>
                         <th>Статус</th>
-                        <th>Дії</th>
+                        <th>Действия</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -376,7 +376,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                                     ✎ Ред.
                                 </button>
                                 <button class="btn btn-sm btn-warning" onclick="toggleStatus(<?= (int)$coupon['id'] ?>)">
-                                    <?= $coupon['is_active'] ? '🔴 Вимк.' : '🟢 Увімк.' ?>
+                                    <?= $coupon['is_active'] ? '🔴 Выкл.' : '🟢 Вкл.' ?>
                                 </button>
                                 <button class="btn btn-sm btn-danger"
                                     onclick="deleteCoupon(<?= (int)$coupon['id'] ?>, '<?= admin_h((string)$coupon['code']) ?>')">
@@ -388,7 +388,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                 </tbody>
             </table>
         <?php else: ?>
-            <p class="text-muted text-center py-4">Купони не знайдені</p>
+            <p class="text-muted text-center py-4">Купоны не найдены</p>
         <?php endif; ?>
     </div>
 
@@ -418,16 +418,16 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Тип знижки</label>
+                            <label class="form-label fw-bold">Тип скидки</label>
                             <select id="discountType" name="discount_type" class="form-select" onchange="updateDiscountLabel()">
-                                <option value="fixed">Фіксована сума (р.)</option>
-                                <option value="percent">Відсоток (%)</option>
+                                <option value="fixed">Фиксированная сумма (р.)</option>
+                                <option value="percent">Процент (%)</option>
                             </select>
                             <div class="text-danger small" id="discount_type-error"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold" id="discountLabel">Величина знижки (р.)</label>
+                            <label class="form-label fw-bold" id="discountLabel">Размер скидки (р.)</label>
                             <input type="number" id="discountValue" name="discount_value" class="form-control" step="0.01" required>
                             <div class="text-danger small" id="discount_value-error"></div>
                         </div>
@@ -464,37 +464,41 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-primary" onclick="submitCouponForm()">Зберегти купон</button>
+                    <button type="button" class="btn btn-primary" onclick="submitCouponForm()">Сохранить купон</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="/js/jquery-3.7.1.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap.bundle.min.js"></script>
     <script>
         const CSRF = '<?= $csrf ?>';
-        let bsModal;
-        document.addEventListener('DOMContentLoaded', function() {
-            bsModal = new bootstrap.Modal(document.getElementById('couponModal'));
-        });
+        let bsModal = null;
+
+        function getModal() {
+            if (!bsModal) {
+                bsModal = new bootstrap.Modal(document.getElementById('couponModal'));
+            }
+            return bsModal;
+        }
 
         function updateDiscountLabel() {
             const type = document.getElementById('discountType').value;
             document.getElementById('discountLabel').textContent =
-                type === 'percent' ? 'Величина знижки (%)' : 'Величина знижки (р.)';
+                type === 'percent' ? 'Размер скидки (%)' : 'Размер скидки (р.)';
         }
 
         function openCreateModal() {
-            document.getElementById('modalTitle').textContent = 'Новий купон';
+            document.getElementById('modalTitle').textContent = 'Новый купон';
             document.getElementById('couponForm').reset();
             document.getElementById('couponId').value = '';
             clearErrors();
-            bsModal.show();
+            getModal().show();
         }
 
         function openEditModal(couponId, coupon) {
-            document.getElementById('modalTitle').textContent = 'Оредактирование купона';
+            document.getElementById('modalTitle').textContent = 'Редактирование купона';
             document.getElementById('couponId').value = couponId;
             document.getElementById('code').value = coupon.code;
             document.getElementById('name').value = coupon.name;
@@ -507,7 +511,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
             document.getElementById('maxUsageCount').value = coupon.max_usage_count ?? '';
             updateDiscountLabel();
             clearErrors();
-            bsModal.show();
+            getModal().show();
         }
 
         function clearErrors() {
@@ -543,7 +547,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                 .then(data => {
                     if (data.success) {
                         showMessage('success', 'Купон успешно сохранен');
-                        bsModal.hide();
+                        getModal().hide();
                         setTimeout(() => location.reload(), 1000);
                     } else {
                         data.errors ? displayErrors(data.errors) : showMessage('error', data.error || 'Ошибка при сохранении');
@@ -553,7 +557,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         }
 
         function toggleStatus(couponId) {
-            if (!confirm('Ви впевнені?')) return;
+            if (!confirm('Вы уверены?')) return;
             fetch('?ajax=1&action=toggle_status', {
                     method: 'POST',
                     body: new URLSearchParams({
@@ -564,11 +568,11 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        showMessage('success', 'Статус змінено');
+                        showMessage('success', 'Статус изменен');
                         setTimeout(() => location.reload(), 1000);
                     } else showMessage('error', data.error);
                 })
-                .catch(e => showMessage('error', 'Помилка: ' + e.message));
+                .catch(e => showMessage('error', 'Ошибка: ' + e.message));
         }
 
         function deleteCoupon(couponId, code) {
@@ -583,11 +587,11 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        showMessage('success', 'Купон видалено');
+                        showMessage('success', 'Купон удален');
                         setTimeout(() => location.reload(), 1000);
                     } else showMessage('error', data.error);
                 })
-                .catch(e => showMessage('error', 'Помилка: ' + e.message));
+                .catch(e => showMessage('error', 'Ошибка: ' + e.message));
         }
     </script>
 </body>

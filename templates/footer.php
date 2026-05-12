@@ -30,7 +30,7 @@ foreach ($products as $product) {
 					</ul>
 					<div class="number navbar-brand hidden-sm hidden-xs">
 						<a href="tel:+74950322929">+7 (495) 032-29-29</a>
-						<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
+						<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp" loading="lazy"></a>
 					</div>
 					<div class="number navbar-brand hidden-sm hidden-xs" style="padding-left:15px;"><a
 							href="mailto:admin@olaplex-shop.ru">admin@olaplex-shop.ru</a></br><a
@@ -69,44 +69,45 @@ foreach ($products as $product) {
 		</div>
 </section>
 <!-- ./ Footer Section Ends -->
+
+<div id="cookie-notice"
+	style="position: fixed; bottom: 0; width: 100%; background: #333; color: #fff; padding: 10px; text-align: center; z-index: 1000; display: none;">
+	Этот сайт использует cookies. <a href="/policy" style="color: #fff; text-decoration: underline;">Подробнее</a>
+	<button onclick="acceptCookies()"
+		style="margin-left: 10px; background: #0073aa; color: #fff; border: none; padding: 5px 10px;">Принять</button>
+</div>
+
 <!-- Top.Mail.Ru counter -->
 <script type="text/javascript">
-	var _tmr = window._tmr || (window._tmr = []);
-	_tmr.push({
-		id: "3629866",
-		type: "pageView",
-		start: (new Date()).getTime()
-	});
-	(function(d, w, id) {
-		if (d.getElementById(id)) return;
-		var ts = d.createElement("script");
-		ts.type = "text/javascript";
-		ts.async = true;
-		ts.id = id;
-		ts.src = "https://top-fwz1.mail.ru/js/code.js";
-		var f = function() {
-			var s = d.getElementsByTagName("script")[0];
-			s.parentNode.insertBefore(ts, s);
-		};
-		if (w.opera == "[object Opera]") {
-			d.addEventListener("DOMContentLoaded", f, false);
-		} else {
-			f();
-		}
-	})(document, window, "tmr-code");
+(function () {
+  function loadTMR() {
+    var _tmr = window._tmr || (window._tmr = []);
+    _tmr.push({ id: "3629866", type: "pageView", start: (new Date()).getTime() });
+    if (document.getElementById('tmr-code')) return;
+    var ts = document.createElement("script");
+    ts.type = "text/javascript";
+    ts.async = true;
+    ts.id = "tmr-code";
+    ts.src = "https://top-fwz1.mail.ru/js/code.js";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(ts, s);
+  }
+  if (window.requestIdleCallback) {
+    requestIdleCallback(loadTMR);
+  } else {
+    setTimeout(loadTMR, 1500);
+  }
+})();
 </script>
 <noscript>
 	<div><img src="https://top-fwz1.mail.ru/counter?id=3629866;js=na" style="position:absolute;left:-9999px;"
 			alt="Top.Mail.Ru" /></div>
 </noscript>
-<!-- /Top.Mail.Ru counter -->
 
-<div id="cookie-notice"
-	style="position: fixed; bottom: 0; width: 100%; background: #333; color: #fff; padding: 10px; text-align: center; z-index: 1000;">
-	Этот сайт использует cookies. <a href="/policy" style="color: #fff; text-decoration: underline;">Подробнее</a>
-	<button onclick="acceptCookies()"
-		style="margin-left: 10px; background: #0073aa; color: #fff; border: none; padding: 5px 10px;">Принять</button>
-</div>
 <!-- Envybox callback widget -->
-<link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css">
-<script src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4d8a7b33dcf97067342ac246b5aecaa" charset="UTF-8" async></script>
+<link rel="preload" href="https://cdn.envybox.io/widget/cbk.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css"></noscript>
+<script src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4d8a7b33dcf97067342ac246b5aecaa" charset="UTF-8" async defer></script>
+
+<!-- Analytics moved to end of body -->
+<?php require __DIR__ . '/analytics.php'; ?>

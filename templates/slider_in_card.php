@@ -10,7 +10,7 @@
 				<?php foreach ($products as $index => $product): ?>
 					<li>
 						<div class="col-xs-12">
-							<div class="member-box animate--one" data-animate="zoomIn">
+							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile">
 									<a href="<?= $product['link'] ?>">
 										<h2 style="min-height: 72px;">
@@ -20,7 +20,7 @@
 											<?= $product['name'] ?>
 										</h2>
 										<div class="img_wrap">
-											<img src="<?= $product['image'] ?>" alt="<?= $product['cat_number'] ?> <?= $product['name'] ?>">
+											<img src="<?= $product['image'] ?>" alt="<?= $product['cat_number'] ?> <?= $product['name'] ?>" loading="lazy">
 										</div>
 									</a>
 								</div>

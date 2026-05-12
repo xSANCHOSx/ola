@@ -197,3 +197,28 @@ document.addEventListener('DOMContentLoaded', function() {
 	const checked = document.querySelector('input[name="contact_method"]:checked');
 	if (checked) updateField(checked.value);
 });
+
+// Нативна маска телефону — замінює inputmask (25 рядків замість 181 KB)
+document.addEventListener('DOMContentLoaded', function () {
+  var phone = document.getElementById('phoneNumber');
+  if (!phone) return;
+
+  phone.addEventListener('input', function (e) {
+    var val = e.target.value.replace(/\D/g, '');
+    if (val.startsWith('7') || val.startsWith('8')) val = val.slice(1);
+    var result = '+7(';
+    if (val.length > 0) result += val.slice(0, 3);
+    if (val.length >= 3) result += ')' + val.slice(3, 6);
+    if (val.length >= 6) result += '-' + val.slice(6, 8);
+    if (val.length >= 8) result += '-' + val.slice(8, 10);
+    e.target.value = result;
+  });
+
+  phone.addEventListener('keydown', function (e) {
+    if (e.key === 'Backspace' && phone.value === '+7(') e.preventDefault();
+  });
+
+  phone.addEventListener('focus', function () {
+    if (!phone.value) phone.value = '+7(';
+  });
+});

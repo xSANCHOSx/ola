@@ -16,80 +16,16 @@ if ($productIndex !== false) {
 	exit();
 }
 
+$defaultTitle = htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') . ' - Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине';
+$defaultDescription = 'Средства для волос Olaplex (Олаплекс) для домашнего использования можно заказать у нас! Отличные цены, доставка по всей территории России!';
+$pageTitle = !empty($currentProduct['seo_title']) ? htmlspecialchars((string)$currentProduct['seo_title'], ENT_QUOTES, 'UTF-8') : $defaultTitle;
+$pageDescription = !empty($currentProduct['seo_description']) ? htmlspecialchars((string)$currentProduct['seo_description'], ENT_QUOTES, 'UTF-8') : $defaultDescription;
 ?>
 
 <!DOCTYPE html>
 <html lang="ru">
 
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="yandex-verification" content="0bef8202615abb0b" />
-	<meta name="google-site-verification" content="RzlStn4gRa1keV7FRXBfC3k3Ns_qAVPFEEos43KSWsA" />
-	<?php
-	$defaultTitle = htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') . ' - Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине';
-	$defaultDescription = 'Средства для волос Olaplex (Олаплекс) для домашнего использования можно заказать у нас! Отличные цены, доставка по всей территории России!';
-	$metaTitle = !empty($currentProduct['seo_title']) ? htmlspecialchars((string)$currentProduct['seo_title'], ENT_QUOTES, 'UTF-8') : $defaultTitle;
-	$metaDescription = !empty($currentProduct['seo_description']) ? htmlspecialchars((string)$currentProduct['seo_description'], ENT_QUOTES, 'UTF-8') : $defaultDescription;
-	?>
-	<title><?= $metaTitle ?></title>
-	<meta name="description" content="<?= $metaDescription ?>" />
-
-	<!-- CSS Libraries -->
-	<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&amp;subset=cyrillic-ext" rel="stylesheet">
-	<link rel="stylesheet" href="css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-	<link href="css/animate.css" rel="stylesheet" type="text/css" />
-
-	<link href="css/icon.css" rel="stylesheet" type="text/css" />
-	<link rel="icon" href="favicon.ico" type="image/x-icon">
-	<link href="css/flexslider.css" rel="stylesheet" type="text/css" />
-	<!-- Custom CSS -->
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="css/wicart.css">
-	<!-- Yandex.Metrika counter -->
-	<script type="text/javascript">
-	(function(m, e, t, r, i, k, a) {
-		m[i] = m[i] || function() {
-			(m[i].a = m[i].a || []).push(arguments)
-		}
-		m[i].l = 1 * new Date()
-		for (var j = 0; j < document.scripts.length; j++) {
-			if (document.scripts[j].src === r) {
-				return
-			}
-		}
-		k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-	})
-	(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym")
-
-	ym(48443993, "init", {
-		clickmap: true,
-		trackLinks: true,
-		accurateTrackBounce: true,
-		webvisor: true,
-		ecommerce: "dataLayer"
-	});
-	</script>
-	<noscript>
-		<div><img src="https://mc.yandex.ru/watch/48443993" style="position:absolute; left:-9999px;" alt="" /></div>
-	</noscript>
-	<!-- /Yandex.Metrika counter -->
-
-	<!-- Global site tag (gtag.js) - Google Analytics -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-120050968-1"></script>
-	<script>
-	window.dataLayer = window.dataLayer || []
-
-	function gtag() {
-		dataLayer.push(arguments)
-	}
-	gtag('js', new Date())
-
-	gtag('config', 'UA-120050968-1');
-	</script>
-
-</head>
+<?php require __DIR__ . '/head.php'; ?>
 
 <body class="single">
 	<?php include 'header.php'; ?>
@@ -104,15 +40,15 @@ if ($productIndex !== false) {
 		<div class="max-feature-section-list" class="container-fluid even3">
 			<div class="row">
 				<div class="col-sm-12 col-md-5 offset-md-1 visible-md visible-lg ">
-					<div class="img animate--one" data-animate="fadeInDown" data-duration="2"><img
+					<div class="img animated fadeInDown"><img
 							src="<?= htmlspecialchars($currentProduct['image'], ENT_QUOTES, 'UTF-8') ?>"
-							alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>"></div>
+							alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" fetchpriority="high"></div>
 				</div>
 				<div class="col-sm-12 col-md-5 offset-md-1 visible-xs visible-sm">
 					<div class="image"><img src="<?= htmlspecialchars($currentProduct['image'], ENT_QUOTES, 'UTF-8') ?>"
-							alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>"></div>
+							alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" fetchpriority="high"></div>
 				</div>
-				<div class="col-sm-12 col-md-5 tovar-name animate--one" data-animate="fadeInDown" data-duration="3">
+				<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
 					<span></span>
 					<div class="col-xs-12 buy">
 						<?php if (product_is_buyable($currentProduct)) { ?>
@@ -123,11 +59,11 @@ if ($productIndex !== false) {
 								<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
 							</p>
 							<div class="stars">
-								<img style="width: 18px;" src="/images/star.png">
-								<img style="width: 18px;" src="/images/star.png">
-								<img style="width: 18px;" src="/images/star.png">
-								<img style="width: 18px;" src="/images/star.png">
-								<img style="width: 18px;" src="/images/star.png">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
 								<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
 									itemtype="http://schema.org/AggregateRating">
 									<meta itemprop="bestRating" content="5">
@@ -175,118 +111,81 @@ if ($productIndex !== false) {
 	<?php include 'order_form.php'; ?>
 
 	<!-- All JavaScript libraries -->
-	<script src="/js/jquery-3.7.1.min.js"></script>
-	<script src="/js/bootstrap.min.js"></script>
-	<script src="/js/jquery.inputmask.bundle.js"></script>
-	<script src="/js/cart.js" type="text/javascript"></script>
-	<script src="/js/cart-init.js" type="text/javascript"></script>
+	<script defer src="/js/jquery-3.7.1.min.js"></script>
+	<script defer src="/js/bootstrap.min.js"></script>
+	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart-init.js"></script>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
-	<script type="text/javascript">
-	/*	$(window).load(function(){
-				$('.flexslider').flexslider({
-				animation: "slide"
-				});
-			});*/
-	(function() {
+	<script defer src="/js/main.js?v=<?= date('Ymd', filemtime(__DIR__ . '/../js/main.js')) ?>"></script>
 
-		// store the slider in a local variable
-		var $window = $(window),
-			flexslider = {
-				vars: {}
-			}
-
+	<script>
+	window.addEventListener('DOMContentLoaded', function() {
 		// tiny helper function to add breakpoints
 		function getGridSize() {
 			return (window.innerWidth < 600) ? 2 :
 				(window.innerWidth < 900) ? 3 : 4
 		}
 
-		/* $(function() {
-			 SyntaxHighlighter.all();
-		 });
-		*/
-
-		$window.load(function() {
-			$('.flexslider').flexslider({
-				animation: "slide",
-				itemWidth: 240,
-				itemMargin: 5,
-				animationLoop: true,
-				minItems: getGridSize(), // use function to pull in initial value
-				maxItems: getGridSize(), // use function to pull in initial value
-				startAt: 0,
-				slideshow: true, //Boolean: Animate slider automatically
-				slideshowSpeed: 7000, //Integer: Set the speed of the slideshow cycling, in milliseconds
-				animationSpeed: 600, //Integer: Set the speed of animations, in milliseconds
-				initDelay: 0,
-			})
-		})
+		$('.flexslider').flexslider({
+			animation: "slide",
+			itemWidth: 240,
+			itemMargin: 5,
+			animationLoop: true,
+			minItems: getGridSize(),
+			maxItems: getGridSize(),
+			startAt: 0,
+			slideshow: true,
+			slideshowSpeed: 7000,
+			animationSpeed: 600,
+			initDelay: 0,
+		});
 
 		// check grid size on resize event
-		$window.resize(function() {
+		$(window).resize(function() {
 			var gridSize = getGridSize()
+			var flex = $('.flexslider').data('flexslider');
+			if (flex) {
+				flex.vars.minItems = gridSize;
+				flex.vars.maxItems = gridSize;
+			}
+		});
 
-			flexslider.vars.minItems = gridSize
-			flexslider.vars.maxItems = gridSize
-		})
-	}());
-	</script>
-
-	<!-- Custom JavaScript -->
-	<script src="/js/main.js"></script>
-
-	<script>
-	$(document).ready(function() {
 		$('#order .close_popup').click(function() {
 			$('#formToSend input:checkbox').removeAttr("checked")
 			$("#formToSend input[type=submit]").attr('disabled', 'disabled')
 			$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
 		})
-		$(function() {
-			$('#formToSend input:checkbox').change(function() {
-				if ($(this).is(':checked')) {
-					$("#formToSend input[type=submit]").removeAttr('disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
-				} else {
-					$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-				}
-			})
+		
+		$('#formToSend input:checkbox').change(function() {
+			if ($(this).is(':checked')) {
+				$("#formToSend input[type=submit]").removeAttr('disabled')
+				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
+			} else {
+				$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+			}
 		})
+		
 		$('#send').click(function() {
 			if (($("#formToSend input[type=text]").val()) == !"") {
 				$('#formToSend input[type=hidden].valTrFal').remove()
 				$('#formToSend .font-geometria-light').remove()
 				$('#overflw .basket_num_buttons').remove()
-
 			}
 		})
-	});
 
-	//});
-	</script>
-
-	<script>
-	$('#phoneNumber').inputmask("+7(999)999-99-99")
-	$(function() {
-		var videos = $(".youtube")
-
-		videos.on("click", function() {
+		$(".youtube").on("click", function() {
 			var elm = $(this),
 				conts = elm.contents(),
 				le = conts.length,
 				ifr = null
-
 			for (var i = 0; i < le; i++) {
 				if (conts[i].nodeType == 8) ifr = conts[i].textContent
 			}
-
 			elm.addClass("player").html(ifr)
 			elm.off("click")
 		})
 	});
 	</script>
-
 </body>
-
 </html>

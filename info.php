@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <?php
 $pageTitle = 'Информация о продукции Olaplex';
 $pageDescription = 'FAQ о том, как правильно пользоваться продукцией Олаплекс, что нужно знать перед тем как начать использовать продукцию.';
 require __DIR__ . '/templates/head.php';
 ?>
-
 <body>
 	<?php include 'templates/header.php'; ?>
-
 	<!-- About us section -->
 	<section id="max-aboutus-section product">
 		<div class="max-section-title">
@@ -18,7 +15,7 @@ require __DIR__ . '/templates/head.php';
 		<div class="container" id="aboutus-section">
 			<div class="row">
 				<div class="col-md-12">
-					<div id="max-feature-para" class="animate--one" data-animate="fadeInDown" data-duration="1">
+					<div id="max-feature-para" class="animate--one animated fadeInDown">
 						<h2 style="text-align: center;">КАК СОБРАТЬ ДОЗАТОР?</h2>
 						<ol>
 							<li style="text-align: justify;">Снять герметическую упаковку с бутылочки защитного концентрата Olaplex
@@ -66,18 +63,14 @@ require __DIR__ . '/templates/head.php';
 		</div>
 	</section>
 	<!-- ./About us section end -->
-
 	<?php include 'templates/footer.php'; ?>
 	<?php include 'templates/order_form.php'; ?>
-
 	<!-- All JavaScript libraries -->
-	<script src="/js/jquery-3.7.1.min.js"></script>
-	<script src="/js/bootstrap.min.js"></script>
-	<script src="/js/jquery.inputmask.bundle.js"></script>
-	<script src="/js/cart.js" type="text/javascript"></script>
-	<script src="/js/cart-init.js" type="text/javascript"></script>
+	<script defer src="/js/jquery-3.7.1.min.js"></script>
+	<script defer src="/js/bootstrap.min.js"></script>
+	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart-init.js"></script>
 	<!-- Custom JavaScript -->
-	<script src="/js/main.js"></script>
+	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
 </body>
-
 </html>

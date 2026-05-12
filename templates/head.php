@@ -19,23 +19,18 @@ $cssBust = function (string $f) {
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap&subset=cyrillic-ext"
-        rel="stylesheet">
-    <!-- Libs -->
-    <link rel="stylesheet" href="/css/critical.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Preload Critical Assets -->
+    <link rel="preload" href="/css/bootstrap.min.css" as="style">
+    <link rel="preload" href="/css/styles.css?v=<?= $cssBust('css/styles.css') ?>" as="style">
+
+    <!-- CSS Loading -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.css">
-    <link rel="stylesheet" href="/css/icon.css">
-    <link rel="stylesheet" href="/css/flexslider.css">
+    <link rel="stylesheet" href="/css/styles.css?v=<?= $cssBust('css/styles.css') ?>">
+    <link rel="stylesheet" href="/css/wicart.css?v=<?= $cssBust('css/wicart.css') ?>" media="print" onload="this.media='all'">
+    
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
-    <!-- App CSS -->
-    <link rel="stylesheet" href="/css/styles.css?v=<?= $cssBust('css/styles.css') ?>">
-    <link rel="stylesheet" href="/css/wicart.css?v=<?= $cssBust('css/wicart.css') ?>">
-
     <?php if (!empty($extraCss)) echo $extraCss; ?>
-
-    <!-- Analytics -->
-    <?php require __DIR__ . '/analytics.php'; ?>
 </head>

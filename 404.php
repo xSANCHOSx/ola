@@ -26,7 +26,7 @@ require __DIR__ . '/templates/head.php';
 		<div class="page-404-container">
 
 			<div class="page-404-image">
-				<img src="/images/404.png" alt="404 - Страница не найдена">
+				<img src="/images/404.png" alt="404 - Страница не найдена" fetchpriority="high">
 			</div>
 
 			<div class="page-404-content">
@@ -40,18 +40,11 @@ require __DIR__ . '/templates/head.php';
 
 	<?php include 'templates/footer.php'; ?>
 
-	<script src="/js/jquery-3.7.1.min.js"></script>
-	<script src="/js/bootstrap.min.js"></script>
-	<script src="/js/jquery.inputmask.bundle.js"></script>
-	<script src="/js/cart.js" type="text/javascript"></script>
-	<script src="/js/cart-init.js" type="text/javascript"></script>
-
-	<script src="/js/main.js"></script>
-
-	<script>
-		$('#phoneNumber').inputmask("+7(999)999-99-99")
-	</script>
-		charset="UTF-8" async></script>
+	<script defer src="/js/jquery-3.7.1.min.js"></script>
+	<script defer src="/js/bootstrap.min.js"></script>
+	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart-init.js"></script>
+	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
 
 </body>
 

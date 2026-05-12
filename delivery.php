@@ -18,7 +18,7 @@ require __DIR__ . '/templates/head.php';
 			<div class="row">
 				<p class="zakaz-min">Сумма минимального заказа - <strong>500</strong>рублей.</p>
 				<div class="col-md-12">
-					<div id="max-feature-para" class="animate--one" data-animate="fadeInDown" data-duration="1">
+					<div id="max-feature-para" class="animate--one animated fadeInDown">
 						<h2>ДОСТАВКА ПО МОСКВЕ:</h2>
 						<p style="text-align:justify"><strong>Бесплатная доставка</strong>&nbsp;
 							в пределах МКАД при сумме заказа свыше&nbsp;
@@ -33,7 +33,7 @@ require __DIR__ . '/templates/head.php';
 			</div>
 			<div class="row">
 				<div class="col-md-12">
-					<div id="max-feature-para" class="animate--one" data-animate="fadeInDown" data-duration="1">
+					<div id="max-feature-para" class="animate--one animated fadeInDown">
 						<h2>СРОКИ ДОСТАВКИ:</h2>
 						<p style="text-align:justify">Курьерская доставка осуществляется в течении 2-3 рабочих дней.</p>
 						<p style="text-align:justify">Доставка осуществляется на следующий день,
@@ -46,7 +46,7 @@ require __DIR__ . '/templates/head.php';
 			</div>
 			<div class="row">
 				<div class="col-md-12">
-					<div id="max-feature-para" class="animate--one" data-animate="fadeInDown" data-duration="1">
+					<div id="max-feature-para" class="animate--one animated fadeInDown">
 						<h2 style="text-align: center;">ДОСТАВКА ПО РОССИИ:</h2>
 						<p style="text-align:justify"><strong>Бесплатная доставка</strong>&nbsp;
 							при сумме заказа свыше&nbsp;
@@ -70,7 +70,7 @@ require __DIR__ . '/templates/head.php';
 			</div>
 			<div class="row">
 				<div class="col-md-12">
-					<div id="max-feature-para" class="animate--one" data-animate="fadeInDown" data-duration="1">
+					<div id="max-feature-para" class="animate--one animated fadeInDown">
 						<h2>СПОСОБЫ ОПЛАТЫ:</h2>
 						<p style="text-align:justify">В нашем интернет-магазине Olaplex-Shop.ru Вы можете оплатить заказ любыми
 							удобными для Вас способами.</p>
@@ -81,9 +81,9 @@ require __DIR__ . '/templates/head.php';
 									комментарии&quot;
 									следует указать название транспортной кампании.</em></span></p>
 						<p style="text-align:justify"><img class="hidden-mobile-phone hidden-tablet" alt=""
-								src="https://www.xn--80aaapvimf6o.xn--p1ai/local/templates/makadamia-rf/img/payment.png" /><img
+								src="https://www.xn--80aaapvimf6o.xn--p1ai/local/templates/makadamia-rf/img/payment.png" loading="lazy" /><img
 								class="mobile-responsive-img hidden-desktop" alt=""
-								src="https://www.xn--80aaapvimf6o.xn--p1ai/local/templates/makadamia-rf/img/mobile-payment-systems.png" />
+								src="https://www.xn--80aaapvimf6o.xn--p1ai/local/templates/makadamia-rf/img/mobile-payment-systems.png" loading="lazy" />
 						</p>
 					</div>
 				</div>
@@ -96,13 +96,12 @@ require __DIR__ . '/templates/head.php';
 	<?php include 'templates/order_form.php'; ?>
 
 	<!-- All JavaScript libraries -->
-	<script src="/js/jquery-3.7.1.min.js"></script>
-	<script src="/js/bootstrap.min.js"></script>
-	<script src="/js/jquery.inputmask.bundle.js"></script>
-	<script src="/js/cart.js" type="text/javascript"></script>
-	<script src="/js/cart-init.js" type="text/javascript"></script>
+	<script defer src="/js/jquery-3.7.1.min.js"></script>
+	<script defer src="/js/bootstrap.min.js"></script>
+	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart-init.js"></script>
 	<!-- Custom JavaScript -->
-	<script src="/js/main.js"></script>
+	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
 </body>
 
 </html>

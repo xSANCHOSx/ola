@@ -24,7 +24,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 									<!--Гарантия Защиты Волос-->
 								</span>
 							</div>
-							<img src="/images/banner-1.jpg" />
+							<img src="/images/banner-1.jpg" fetchpriority="high" />
 							<div class="flex-caption_r">
 								<span>
 									<!--Один Ингридиент меняет все-->
@@ -32,7 +32,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 							</div>
 						</li>
 						<li>
-							<img src="/images/banner-2.jpg" />
+							<img src="/images/banner-2.jpg" loading="lazy" />
 						</li>
 					</ul>
 				</div>
@@ -49,7 +49,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 		<div class="container" id="aboutus-section">
 			<div class="row">
 				<div class="col-md-6">
-					<div id="max-feature-para" class="animate--one" data-animate="fadeInDown" data-duration="2">
+					<div id="max-feature-para" class="animate--one animated fadeInDown">
 						<p style="text-align: justify;">Уникальный продукт Olaplex создан для восстановления и усиления поврежденных
 							дисульфидных связей, отвечающих за силу, прочность и эластичность волос. Всего один компонент. Без масел,
 							альдегидов, сульфатов и силиконов. Формула восстанавливает и защищает волосы, травмированные частыми
@@ -69,22 +69,20 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 						</ul>
 					</div>
 				</div>
-				<div class="col-md-6 youtube animate--one" data-animate="fadeInDown" data-duration="2.5">
+				<div class="col-md-6 youtube animate--one animated fadeInDown">
 					<div class="flexslider" id="slider">
 						<ul class="slides">
 							<li id="slide1">
-								<img src="/images/bg.png">
+								<img src="/images/bg.png" loading="lazy">
 								<!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/NKfTbACBRfs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>-->
 							</li>
 
 							<li id="slide2">
-								<img src="/images/poster.png">
+								<img src="/images/poster.png" loading="lazy">
 								<!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/NKfTbACBRfs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>-->
 							</li>
 						</ul>
 					</div>
-					<!--<img src="/images/bg.png">
-						 <iframe width="560" height="328" src="https://www.youtube.com/embed/e80xWGah3PM?rel=0&amp;showinfo=0&amp;autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>-->
 				</div>
 			</div>
 		</div>
@@ -94,7 +92,6 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 	<section id="max-featured-section" class="products_list">
 		<?php foreach ($products as $index => $product): ?>
 		<?php
-			//$template = ($index % 2 === 0) ? 'templates/product_template_even.php' : 'templates/product_template_odd.php';
 			$template = 'templates/product_template_even_mod.php';
 			include $template;
 			?>
@@ -189,25 +186,25 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 		<div id="max-team" class="container">
 			<div class="row">
 				<div class="col-md-4 col-xs-12">
-					<div class="member-box animate--one" data-animate="zoomIn">
+					<div class="member-box animate--one animated zoomIn">
 						<div class="member-profile">
-							<img src="/images/5.png" alt="Member 1">
+							<img src="/images/5.png" alt="Member 1" loading="lazy">
 						</div>
 
 					</div>
 				</div>
 				<div class="col-md-4 col-xs-12">
-					<div class="member-box animate--one" data-animate="zoomIn">
+					<div class="member-box animate--one animated zoomIn">
 						<div class="member-profile">
-							<img src="/images/6.jpg" alt="Member 1">
+							<img src="/images/6.jpg" alt="Member 1" loading="lazy">
 						</div>
 					</div>
 				</div>
 				<div class="col-md-4 col-xs-12">
 
-					<div class="member-box animate--one" data-animate="zoomIn">
+					<div class="member-box animate--one animated zoomIn">
 						<div class="member-profile">
-							<img src="/images/5.png" alt="Member 1">
+							<img src="/images/5.png" alt="Member 1" loading="lazy">
 						</div>
 					</div>
 				</div>
@@ -227,15 +224,15 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 
 		<div id="max-customer-section" class="container">
 			<div class="row">
-				<div class="col-md-12" data-wow-delay="0.2s">
+				<div class="col-md-12">
 					<div class="flexslider">
 						<ul class="slides">
 							<li>
 								<!-- Quote 1 -->
-								<div class="item active">
+								<div class="item">
 									<div class="row">
-										<div class="col-sm-2 col-sm-offset-2  col-xs-12 testimonial-box">
-											<img class="img-responsive " src="/images/test1.png" alt="Profile 1">
+										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
+											<img class="img-responsive " src="/images/test1.png" alt="Profile 1" loading="lazy">
 										</div>
 										<div class="col-sm-6 col-xs-12 testimonial-box">
 											<div class="testimonial-name">Татьяна</h2>
@@ -258,7 +255,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 								<div class="item">
 									<div class="row">
 										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
-											<img class="img-responsive " src="/images/test2.png" alt="Profile 2">
+											<img class="img-responsive " src="/images/test2.png" alt="Profile 2" loading="lazy">
 										</div>
 										<div class="col-sm-6 col-xs-12 testimonial-box">
 											<div class="testimonial-name">Анна</h2>
@@ -280,7 +277,7 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 								<div class="item">
 									<div class="row">
 										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
-											<img class="img-responsive " src="/images/test3.png" alt="Profile 3">
+											<img class="img-responsive " src="/images/test3.png" alt="Profile 3" loading="lazy">
 										</div>
 										<div class="col-sm-6 col-xs-12 testimonial-box">
 											<div class="testimonial-name">Ольга</h2>
@@ -313,26 +310,26 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 				<ul class="slides">
 					<li>
 						<div class="col-sm-4 col-xs-12">
-							<div class="member-box animate--one" data-animate="zoomIn">
+							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/kim.jpg" alt="Member 1">
+									<img src="/images/kim.jpg" alt="Member 1" loading="lazy">
 									<div class="member-name">KIM KARDASHIAN</div>
 								</div>
 
 							</div>
 						</div>
 						<div class="col-sm-4 col-xs-12">
-							<div class="member-box animate--one" data-animate="zoomIn">
+							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/khloe.jpg" alt="Member 2">
+									<img src="/images/khloe.jpg" alt="Member 2" loading="lazy">
 									<div class="member-name">KHLOE KARDASHIAN</div>
 								</div>
 							</div>
 						</div>
 						<div class="col-sm-4 col-xs-12">
-							<div class="member-box animate--one" data-animate="zoomIn">
+							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/jlo.jpg" alt="Member 3">
+									<img src="/images/jlo.jpg" alt="Member 3" loading="lazy">
 									<div class="member-name">JENNIFER LOPEZ</div>
 								</div>
 							</div>
@@ -340,27 +337,27 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 					</li>
 					<li>
 						<div class="col-sm-4 col-xs-12">
-							<div class="member-box animate--one" data-animate="zoomIn">
+							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/gwenth.jpg" alt="Member 4">
+									<img src="/images/gwenth.jpg" alt="Member 4" loading="lazy">
 									<div class="member-name">GWYNETH PALTROW</div>
 								</div>
 
 							</div>
 						</div>
 						<div class="col-sm-4 col-xs-12">
-							<div class="member-box animate--one" data-animate="zoomIn">
+							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/theron.jpg" alt="Member 5">
+									<img src="/images/theron.jpg" alt="Member 5" loading="lazy">
 									<div class="member-name">CHARLIZE THERON</div>
 								</div>
 							</div>
 						</div>
 
 						<div class="col-sm-4 col-xs-12">
-							<div class="member-box animate--one" data-animate="zoomIn">
+							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/blunt.jpg" alt="Member 6">
+									<img src="/images/blunt.jpg" alt="Member 6" loading="lazy">
 									<div class="member-name">EMILY BLUNT</div>
 								</div>
 							</div>
@@ -376,9 +373,8 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 	<?php include 'templates/order_form.php'; ?>
 
 	<!-- All JavaScript libraries -->
-	<script src="/js/jquery-3.7.1.min.js"></script>
-	<script src="/js/bootstrap.min.js"></script>
-	<script src="/js/jquery.inputmask.bundle.js"></script>
+	<script defer src="/js/jquery-3.7.1.min.js"></script>
+	<script defer src="/js/bootstrap.min.js"></script>
 	<script>
 	<?php
 		$_productsById = [];
@@ -393,93 +389,65 @@ $currentUrl = $_SERVER['REQUEST_URI'];
 		?>
 	window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
 	</script>
-	<script src="/js/cart.js" type="text/javascript"></script>
-	<script src="/js/cart-init.js" type="text/javascript"></script>
+	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart-init.js"></script>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
-	<script type="text/javascript">
-	$(window).on('load', function() {
-		$('.flexslider').flexslider({
-			animation: "slide"
-		})
-	});
-	</script>
-
-
-	<!-- Custom JavaScript -->
-	<script src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
+	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
 
 	<script>
-	$(document).ready(function() {
+	window.addEventListener('DOMContentLoaded', function() {
+		$('.flexslider').flexslider({
+			animation: "slide"
+		});
+
 		$('#order .close_popup').click(function() {
 			$('#formToSend input:checkbox').removeAttr("checked")
 			$("#formToSend input[type=submit]").attr('disabled', 'disabled')
 			$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
 		})
-		$(function() {
-			$('#formToSend input:checkbox').change(function() {
-				if ($(this).is(':checked')) {
-					$("#formToSend input[type=submit]").removeAttr('disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
-				} else {
-					$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-				}
-			})
+		
+		$('#formToSend input:checkbox').change(function() {
+			if ($(this).is(':checked')) {
+				$("#formToSend input[type=submit]").removeAttr('disabled')
+				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
+			} else {
+				$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+			}
 		})
+		
 		$('#send').click(function() {
 			if (($("#formToSend input[type=text]").val()) == !"") {
 				$('#formToSend input[type=hidden].valTrFal').remove()
 				$('#formToSend .font-geometria-light').remove()
 				$('#overflw .basket_num_buttons').remove()
-
 			}
 		})
-	});
 
-	//});
-	</script>
-
-	<script>
-	$('#phoneNumber').inputmask("+7(999)999-99-99")
-	slide2
-	$(function() {
-		var videos = $("#slide1")
-
-		videos.on("click", function() {
+		$("#slide1").on("click", function() {
 			var elm = $(this),
 				conts = elm.contents(),
 				le = conts.length,
 				ifr = null
-
 			for (var i = 0; i < le; i++) {
 				if (conts[i].nodeType == 8) ifr = conts[i].textContent
 			}
-
 			elm.addClass("player").html(ifr)
 			elm.off("click")
 		})
-	})
-	$(function() {
-		var video2 = $("#slide2")
 
-		video2.on("click", function() {
+		$("#slide2").on("click", function() {
 			var elm2 = $(this),
 				conts2 = elm2.contents(),
 				le2 = conts2.length,
 				ifr2 = null
-
 			for (var i = 0; i < le2; i++) {
 				if (conts2[i].nodeType == 8) ifr2 = conts2[i].textContent
 			}
-
 			elm2.addClass("player").html(ifr2)
 			elm2.off("click")
 		})
 	});
 	</script>
-
-	charset="UTF-8" async></script> -->
-
 </body>
-
 </html>

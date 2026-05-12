@@ -1,10 +1,10 @@
 <div class="max-feature-section-list container-fluid <?= ($index % 2 === 0) ? 'even' : 'odd'; ?>">
 	<div class="row">
 		<div class="col-sm-12 col-md-6 img_lg">
-			<div class="image animate--one" data-animate="fadeInDown" data-duration="2"><img src="<?= $product['image'] ?>"
-					alt="<?= $product['cat_number'] ?> <?= $product['name'] ?>"></div>
+			<div class="image animated fadeInDown"><img src="<?= $product['image'] ?>"
+					alt="<?= $product['cat_number'] ?> <?= $product['name'] ?>" loading="lazy"></div>
 		</div>
-		<div class="col-sm-12 col-md-6 tovar-name animate--one" data-animate="fadeInDown" data-duration="3" data-id="">
+		<div class="col-sm-12 col-md-6 tovar-name animated fadeInDown" data-id="">
 			<h2><a class="name_link" href="<?= $product['link'] ?>">
 					<?php if (!empty($product['cat_number'])): ?>
 					<strong><?= $product['cat_number'] ?></strong><br />

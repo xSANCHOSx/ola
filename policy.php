@@ -22,7 +22,7 @@ require __DIR__ . '/templates/head.php';
 						<span class="icon-bar"></span>
 					</button>
 					<a class="navbar-brand" href="/">
-						<img id="logo" src="/images/logo.png" alt="Olaplex Logo">
+						<img id="logo" src="/images/logo.png" alt="Olaplex Logo" fetchpriority="high">
 					</a>
 
 				</div>
@@ -34,17 +34,17 @@ require __DIR__ . '/templates/head.php';
 						<li><a href="/#max-featured-section">Продукция</a></li>
 						<li><a href="/#max-work-section">Как использовать</a></li>
 						<li><a href="/#max-purchase-section">Доставка</a></li>
-						<li><a href="info.html">Справка</a></li>
+						<li><a href="/info">Справка</a></li>
 					</ul>
 					<div class="number navbar-brand hidden-sm hidden-xs">+7 (495) 135-28-44</div>
 					<div class="cart visible-lg visible-md cart_full" onclick="cart.showWinow('bcontainer', 1)">
-						<img src="/images/basket.png" />
+						<img src="/images/basket.png" alt="basket" loading="lazy">
 						<span id="basketwidjet"></span>
 					</div>
 				</div>
 				<div class="number navbar-brand hidden-md hidden-lg">+7 (495) 135-28-44</div>
 				<div class="cart visible-sm visible-xs cart_mobile" onclick="cart.showWinow('bcontainer', 1)">
-					<img src="/images/basket.png" /><span id="basketwidjet"></span>
+					<img src="/images/basket.png" alt="basket" loading="lazy"><span id="basketwidjet"></span>
 				</div>
 				<!-- /.navbar-collapse -->
 			</nav>
@@ -62,7 +62,7 @@ require __DIR__ . '/templates/head.php';
 		<div class="container" id="aboutus-section">
 			<div class="row">
 				<div class="col-md-12">
-					<div id="max-feature-para" class="animate--one" data-animate="fadeInDown" data-duration="1"
+					<div id="max-feature-para" class="animate--one animated fadeInDown"
 						style="text-align:justify; font-size:17px;">
 						<p>Настоящая Политика конфиденциальности персональных данных (далее &mdash; Политика) действует в отношении
 							всей информации, которую ИП Зубова Анастасия Александровна, может получить о пользователе во время
@@ -178,14 +178,13 @@ require __DIR__ . '/templates/head.php';
 	<!----------------------------------------------------->
 
 	<!-- All JavaScript libraries -->
-	<script src="/js/jquery-3.7.1.min.js"></script>
-	<script src="/js/bootstrap.min.js"></script>
-	<script src="/js/jquery.inputmask.bundle.js"></script>
-	<script src="/js/cart.js" type="text/javascript"></script>
-	<script src="/js/cart-init.js" type="text/javascript"></script>
+	<script defer src="/js/jquery-3.7.1.min.js"></script>
+	<script defer src="/js/bootstrap.min.js"></script>
+	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart-init.js"></script>
 
 	<!-- Custom JavaScript -->
-	<script src="/js/main.js"></script>
+	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
 
 </body>
 

@@ -42,3 +42,36 @@ function getDiscountTimer(string $uniqueId): string
         </div>
     ";
 }
+
+
+/**
+ * Генерує <picture> з WebP якщо файл існує, інакше — звичайний <img>
+ *
+ * @param string $src    Шлях до зображення (відносно кореня сайту)
+ * @param string $alt    Alt текст
+ * @param string $class  CSS класи
+ * @param array  $attrs  Додаткові атрибути ['loading' => 'lazy', 'width' => 400, ...]
+ */
+function webp_img(string $src, string $alt = '', string $class = '', array $attrs = []): string
+{
+    $webpSrc  = preg_replace('/\.(jpe?g|png)$/i', '.webp', $src);
+    $webpPath = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . ltrim($webpSrc, '/');
+
+    // Збираємо рядок атрибутів
+    $attrStr = '';
+    if ($class) $attrs['class'] = $class;
+    foreach ($attrs as $k => $v) {
+        $attrStr .= ' ' . htmlspecialchars($k) . '="' . htmlspecialchars((string)$v) . '"';
+    }
+
+    $altStr = ' alt="' . htmlspecialchars($alt) . '"';
+
+    if (file_exists($webpPath)) {
+        return '<picture>'
+            . '<source srcset="' . htmlspecialchars($webpSrc) . '" type="image/webp">'
+            . '<img src="' . htmlspecialchars($src) . '"' . $altStr . $attrStr . '>'
+            . '</picture>';
+    }
+
+    return '<img src="' . htmlspecialchars($src) . '"' . $altStr . $attrStr . '>';
+}

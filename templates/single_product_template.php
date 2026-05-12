@@ -46,8 +46,9 @@ require __DIR__ . '/head.php'; ?>
 							alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" fetchpriority="high"></div>
 				</div>
 				<div class="col-sm-12 col-md-5 offset-md-1 visible-xs visible-sm">
-					<div class="image"><img src="<?= htmlspecialchars($currentProduct['image'], ENT_QUOTES, 'UTF-8') ?>"
-							alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" fetchpriority="high"></div>
+					<div class="image">
+						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
+					</div>
 				</div>
 				<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
 					<span></span>

@@ -25,7 +25,7 @@ require __DIR__ . '/templates/head.php'; ?>
 									<!--Гарантия Защиты Волос-->
 								</span>
 							</div>
-							<img src="/images/banner-1.jpg" fetchpriority="high" />
+							<?= webp_img('/images/banner-1.jpg', 'Olaplex', '', ['fetchpriority' => 'high', 'width' => 1920, 'height' => 600]) ?>
 							<div class="flex-caption_r">
 								<span>
 									<!--Один Ингридиент меняет все-->
@@ -33,7 +33,7 @@ require __DIR__ . '/templates/head.php'; ?>
 							</div>
 						</li>
 						<li>
-							<img src="/images/banner-2.jpg" loading="lazy" />
+							<?= webp_img('/images/banner-2.jpg', 'Olaplex', '', ['fetchpriority' => 'high', 'width' => 1920, 'height' => 600]) ?>
 						</li>
 					</ul>
 				</div>
@@ -74,12 +74,12 @@ require __DIR__ . '/templates/head.php'; ?>
 					<div class="flexslider" id="slider">
 						<ul class="slides">
 							<li id="slide1">
-								<img src="/images/bg.png" loading="lazy">
+								<?= webp_img('/images/bg.png', 'Olaplex', '', ['loading' => 'lazy']) ?>
 								<!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/NKfTbACBRfs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>-->
 							</li>
 
 							<li id="slide2">
-								<img src="/images/poster.png" loading="lazy">
+								<?= webp_img('/images/poster.png', 'Olaplex', '', ['loading' => 'lazy']) ?>
 								<!-- <iframe width="560" height="315" src="https://www.youtube.com/embed/NKfTbACBRfs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>-->
 							</li>
 						</ul>
@@ -92,7 +92,7 @@ require __DIR__ . '/templates/head.php'; ?>
 	<!-- Feature Section Starts -->
 	<section id="max-featured-section" class="products_list">
 		<?php foreach ($products as $index => $product): ?>
-		<?php
+			<?php
 			$template = 'templates/product_template_even_mod.php';
 			include $template;
 			?>
@@ -189,7 +189,7 @@ require __DIR__ . '/templates/head.php'; ?>
 				<div class="col-md-4 col-xs-12">
 					<div class="member-box animate--one animated zoomIn">
 						<div class="member-profile">
-							<img src="/images/5.png" alt="Member 1" loading="lazy">
+							<?= webp_img('/images/5.png', 'Member 1', 'img-responsive', ['loading' => 'lazy']) ?>
 						</div>
 
 					</div>
@@ -197,7 +197,7 @@ require __DIR__ . '/templates/head.php'; ?>
 				<div class="col-md-4 col-xs-12">
 					<div class="member-box animate--one animated zoomIn">
 						<div class="member-profile">
-							<img src="/images/6.jpg" alt="Member 1" loading="lazy">
+							<?= webp_img('/images/6.jpg', 'Member 1', 'img-responsive', ['loading' => 'lazy']) ?>
 						</div>
 					</div>
 				</div>
@@ -205,7 +205,7 @@ require __DIR__ . '/templates/head.php'; ?>
 
 					<div class="member-box animate--one animated zoomIn">
 						<div class="member-profile">
-							<img src="/images/5.png" alt="Member 1" loading="lazy">
+							<?= webp_img('/images/5.png', 'Member 1', 'img-responsive', ['loading' => 'lazy']) ?>
 						</div>
 					</div>
 				</div>
@@ -233,7 +233,7 @@ require __DIR__ . '/templates/head.php'; ?>
 								<div class="item">
 									<div class="row">
 										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
-											<img class="img-responsive " src="/images/test1.png" alt="Profile 1" loading="lazy">
+											<?= webp_img('/images/test1.png', 'Profile 1', 'img-responsive', ['loading' => 'lazy']) ?>
 										</div>
 										<div class="col-sm-6 col-xs-12 testimonial-box">
 											<div class="testimonial-name">Татьяна</h2>
@@ -256,7 +256,7 @@ require __DIR__ . '/templates/head.php'; ?>
 								<div class="item">
 									<div class="row">
 										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
-											<img class="img-responsive " src="/images/test2.png" alt="Profile 2" loading="lazy">
+											<?= webp_img('/images/test2.png', 'Profile 2', 'img-responsive', ['loading' => 'lazy']) ?>
 										</div>
 										<div class="col-sm-6 col-xs-12 testimonial-box">
 											<div class="testimonial-name">Анна</h2>
@@ -278,7 +278,7 @@ require __DIR__ . '/templates/head.php'; ?>
 								<div class="item">
 									<div class="row">
 										<div class="col-sm-2 col-sm-offset-2 col-xs-12 testimonial-box">
-											<img class="img-responsive " src="/images/test3.png" alt="Profile 3" loading="lazy">
+											<?= webp_img('/images/test3.png', 'Profile 3', 'img-responsive', ['loading' => 'lazy']) ?>
 										</div>
 										<div class="col-sm-6 col-xs-12 testimonial-box">
 											<div class="testimonial-name">Ольга</h2>
@@ -313,7 +313,7 @@ require __DIR__ . '/templates/head.php'; ?>
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/kim.jpg" alt="Member 1" loading="lazy">
+									<?= webp_img('/images/kim.jpg', 'Member 1', 'img-responsive', ['loading' => 'lazy']) ?>
 									<div class="member-name">KIM KARDASHIAN</div>
 								</div>
 
@@ -322,7 +322,7 @@ require __DIR__ . '/templates/head.php'; ?>
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/khloe.jpg" alt="Member 2" loading="lazy">
+									<?= webp_img('/images/khloe.jpg', 'Member 2', 'img-responsive', ['loading' => 'lazy']) ?>
 									<div class="member-name">KHLOE KARDASHIAN</div>
 								</div>
 							</div>
@@ -330,7 +330,7 @@ require __DIR__ . '/templates/head.php'; ?>
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/jlo.jpg" alt="Member 3" loading="lazy">
+									<?= webp_img('/images/jlo.jpg', 'Member 3', 'img-responsive', ['loading' => 'lazy']) ?>
 									<div class="member-name">JENNIFER LOPEZ</div>
 								</div>
 							</div>
@@ -340,7 +340,7 @@ require __DIR__ . '/templates/head.php'; ?>
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/gwenth.jpg" alt="Member 4" loading="lazy">
+									<?= webp_img('/images/gwenth.jpg', 'Member 4', 'img-responsive', ['loading' => 'lazy']) ?>
 									<div class="member-name">GWYNETH PALTROW</div>
 								</div>
 
@@ -349,7 +349,7 @@ require __DIR__ . '/templates/head.php'; ?>
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/theron.jpg" alt="Member 5" loading="lazy">
+									<?= webp_img('/images/theron.jpg', 'Member 5', 'img-responsive', ['loading' => 'lazy']) ?>
 									<div class="member-name">CHARLIZE THERON</div>
 								</div>
 							</div>
@@ -358,7 +358,7 @@ require __DIR__ . '/templates/head.php'; ?>
 						<div class="col-sm-4 col-xs-12">
 							<div class="member-box animate--one animated zoomIn">
 								<div class="member-profile star">
-									<img src="/images/blunt.jpg" alt="Member 6" loading="lazy">
+									<?= webp_img('/images/blunt.jpg', 'Member 6', 'img-responsive', ['loading' => 'lazy']) ?>
 									<div class="member-name">EMILY BLUNT</div>
 								</div>
 							</div>
@@ -377,7 +377,7 @@ require __DIR__ . '/templates/head.php'; ?>
 	<script defer src="/js/jquery-3.7.1.min.js"></script>
 	<script defer src="/js/bootstrap.min.js"></script>
 	<script>
-	<?php
+		<?php
 		$_productsById = [];
 		foreach ($products as $p) {
 			// Сохраняем по числовому ключу (010 → 10) и оригинальной строке
@@ -388,70 +388,71 @@ require __DIR__ . '/templates/head.php'; ?>
 			}
 		}
 		?>
-	window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
+		window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
 	</script>
 	<script defer src="/js/cart.js"></script>
 	<script defer src="/js/cart-init.js"></script>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
-	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
+	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>">
+	</script>
 
 	<script>
-	window.addEventListener('DOMContentLoaded', function() {
-		$('.flexslider').flexslider({
-			animation: "slide",
-			start: function(slider) {
-				slider.addClass('flex-ready');
-			}
-		});
+		window.addEventListener('DOMContentLoaded', function() {
+			$('.flexslider').flexslider({
+				animation: "slide",
+				start: function(slider) {
+					slider.addClass('flex-ready');
+				}
+			});
 
-		$('#order .close_popup').click(function() {
-			$('#formToSend input:checkbox').removeAttr("checked")
-			$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-			$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-		})
-
-		$('#formToSend input:checkbox').change(function() {
-			if ($(this).is(':checked')) {
-				$("#formToSend input[type=submit]").removeAttr('disabled')
-				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
-			} else {
+			$('#order .close_popup').click(function() {
+				$('#formToSend input:checkbox').removeAttr("checked")
 				$("#formToSend input[type=submit]").attr('disabled', 'disabled')
 				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-			}
-		})
+			})
 
-		$('#send').click(function() {
-			if (($("#formToSend input[type=text]").val()) == !"") {
-				$('#formToSend input[type=hidden].valTrFal').remove()
-				$('#formToSend .font-geometria-light').remove()
-				$('#overflw .basket_num_buttons').remove()
-			}
-		})
+			$('#formToSend input:checkbox').change(function() {
+				if ($(this).is(':checked')) {
+					$("#formToSend input[type=submit]").removeAttr('disabled')
+					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
+				} else {
+					$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+				}
+			})
 
-		$("#slide1").on("click", function() {
-			var elm = $(this),
-				conts = elm.contents(),
-				le = conts.length,
-				ifr = null
-			for (var i = 0; i < le; i++) {
-				if (conts[i].nodeType == 8) ifr = conts[i].textContent
-			}
-			elm.addClass("player").html(ifr)
-			elm.off("click")
-		})
+			$('#send').click(function() {
+				if (($("#formToSend input[type=text]").val()) == !"") {
+					$('#formToSend input[type=hidden].valTrFal').remove()
+					$('#formToSend .font-geometria-light').remove()
+					$('#overflw .basket_num_buttons').remove()
+				}
+			})
 
-		$("#slide2").on("click", function() {
-			var elm2 = $(this),
-				conts2 = elm2.contents(),
-				le2 = conts2.length,
-				ifr2 = null
-			for (var i = 0; i < le2; i++) {
-				if (conts2[i].nodeType == 8) ifr2 = conts2[i].textContent
-			}
-			elm2.addClass("player").html(ifr2)
-			elm2.off("click")
-		})
-	});
+			$("#slide1").on("click", function() {
+				var elm = $(this),
+					conts = elm.contents(),
+					le = conts.length,
+					ifr = null
+				for (var i = 0; i < le; i++) {
+					if (conts[i].nodeType == 8) ifr = conts[i].textContent
+				}
+				elm.addClass("player").html(ifr)
+				elm.off("click")
+			})
+
+			$("#slide2").on("click", function() {
+				var elm2 = $(this),
+					conts2 = elm2.contents(),
+					le2 = conts2.length,
+					ifr2 = null
+				for (var i = 0; i < le2; i++) {
+					if (conts2[i].nodeType == 8) ifr2 = conts2[i].textContent
+				}
+				elm2.addClass("player").html(ifr2)
+				elm2.off("click")
+			})
+		});
 	</script>
 </body>
 

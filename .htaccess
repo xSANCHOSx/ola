@@ -60,25 +60,6 @@ Options +FollowSymLinks
 RewriteEngine On
 RewriteBase /
 
-# --- WebP auto-serve ---
-# Виправлено: прибрано зайвий DOCUMENT_ROOT, RewriteRule використовує $1
-<IfModule mod_rewrite.c>
-    RewriteCond %{HTTP_ACCEPT} image/webp
-    RewriteCond %{REQUEST_FILENAME} \.(jpe?g|png)$
-    RewriteCond %{REQUEST_FILENAME::-4}.webp -f [OR]
-    RewriteCond %{REQUEST_FILENAME::-5}.webp -f
-    RewriteRule ^(.+)\.(jpe?g|png)$ $1.webp [T=image/webp,L]
-</IfModule>
-
-<IfModule mod_headers.c>
-    <FilesMatch "\.webp$">
-        Header set Content-Type "image/webp"
-    </FilesMatch>
-    <FilesMatch "\.(jpe?g|png|webp)$">
-        Header append Vary Accept
-    </FilesMatch>
-</IfModule>
-
 # --- URL routing ---
 
 # 1. Убираем .php из URL

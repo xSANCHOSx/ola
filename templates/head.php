@@ -29,9 +29,8 @@ $cssBust = function (string $f) {
 	<link rel="preload" href="/css/styles.css?v=<?= $cssBust('css/styles.css') ?>" as="style">
 
 	<!-- CSS Loading -->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/3.4.1/css/bootstrap.min.css"
-		integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUcsjbAkOnoGq2H7C359ad4uyWFZ6qv6paGthjDuJ8w=="
-		crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css"
+		integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
 
 	<link rel="stylesheet" href="/css/styles.css?v=<?= $cssBust('css/styles.css') ?>">
 	<link rel="stylesheet" href="/css/wicart.css?v=<?= $cssBust('css/wicart.css') ?>" media="print"

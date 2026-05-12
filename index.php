@@ -398,7 +398,10 @@ require __DIR__ . '/templates/head.php'; ?>
 	<script>
 	window.addEventListener('DOMContentLoaded', function() {
 		$('.flexslider').flexslider({
-			animation: "slide"
+			animation: "slide",
+			start: function(slider) {
+				slider.addClass('flex-ready');
+			}
 		});
 
 		$('#order .close_popup').click(function() {

@@ -118,6 +118,7 @@ if (!move_uploaded_file($file['tmp_name'], $target)) {
 
 // Встановлюємо більш строгі права доступу
 @chmod($target, 0644);
+convert_to_webp($target);
 
 dev_log_security('BLOG_UPLOAD_SUCCESS', ['filename' => $fileName]);
 

@@ -54,6 +54,25 @@ AddEncoding gzip .gz
     ExpiresByType application/javascript "access plus 7 days"
 </IfModule>
 
+# ======= WEBP AUTO-SERVE =======
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP_ACCEPT} image/webp
+  RewriteCond %{REQUEST_URI} \.(jpe?g|png)$
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME::-4}.webp -f [OR]
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME::-5}.webp -f
+  RewriteRule \.(jpe?g|png)$ %{REQUEST_FILENAME::-4}.webp [T=image/webp,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.webp$">
+    Header set Content-Type "image/webp"
+  </FilesMatch>
+  <FilesMatch "\.(jpe?g|png|webp)$">
+    Header append Vary Accept
+  </FilesMatch>
+</IfModule>
+
 Options +FollowSymLinks
 RewriteEngine On
 RewriteBase /

@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
             $target = $dir . '/' . $fileName;
             if (move_uploaded_file($_FILES['image_upload']['tmp_name'], $target)) {
                 $data['image'] = 'data/uploads/products/' . $fileName;
+                convert_to_webp($target);
             }
         }
     }

@@ -48,3 +48,32 @@ function admin_h(string $value): string
 {
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
+
+// ===== WebP конвертація =====
+function convert_to_webp(string $source, int $quality = 82): void
+{
+    if (!function_exists('imagewebp')) return;
+
+    $ext  = strtolower(pathinfo($source, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['jpg', 'jpeg', 'png'], true)) return;
+
+    $dest = preg_replace('/\.(jpe?g|png)$/i', '.webp', $source);
+    if (file_exists($dest)) return;
+
+    $image = match ($ext) {
+        'jpg', 'jpeg' => imagecreatefromjpeg($source),
+        'png'         => imagecreatefrompng($source),
+        default       => null
+    };
+
+    if (!$image) return;
+
+    if ($ext === 'png') {
+        imagepalettetotruecolor($image);
+        imagealphablending($image, true);
+        imagesavealpha($image, true);
+    }
+
+    imagewebp($image, $dest, $quality);
+    imagedestroy($image);
+}

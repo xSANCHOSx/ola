@@ -20,7 +20,7 @@
 											<?= $product['name'] ?>
 										</h2>
 										<div class="img_wrap">
-											<img src="<?= $product['image'] ?>" alt="<?= $product['cat_number'] ?> <?= $product['name'] ?>" loading="lazy">
+											<?= webp_img($product['image'], $product['cat_number'] . ' ' . $product['name'], '', ['loading' => 'lazy', 'width' => 400, 'height' => 400]) ?>
 										</div>
 									</a>
 								</div>

@@ -42,6 +42,12 @@ AddEncoding gzip .gz
     DirectoryIndex index.php index.html
 </IfModule>
 
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css
+    AddOutputFilterByType BROTLI_COMPRESS application/javascript application/json
+    AddOutputFilterByType BROTLI_COMPRESS image/svg+xml font/woff2
+</IfModule>
+
 <IfModule mod_expires.c>
     ExpiresActive on
     ExpiresByType image/jpeg    "access plus 30 days"

@@ -41,19 +41,18 @@ require __DIR__ . '/head.php'; ?>
 		<div class="max-feature-section-list" class="container-fluid even3">
 			<div class="row">
 				<div class="col-sm-12 col-md-5 offset-md-1 visible-md visible-lg ">
-					<div class="img animated fadeInDown"><img
-							src="<?= htmlspecialchars($currentProduct['image'], ENT_QUOTES, 'UTF-8') ?>"
-							alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" fetchpriority="high"></div>
-				</div>
-				<div class="col-sm-12 col-md-5 offset-md-1 visible-xs visible-sm">
-					<div class="image">
+					<div class="img animated fadeInDown">
 						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
 					</div>
-				</div>
-				<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
-					<span></span>
-					<div class="col-xs-12 buy">
-						<?php if (product_is_buyable($currentProduct)) { ?>
+					<div class="col-sm-12 col-md-5 offset-md-1 visible-xs visible-sm">
+						<div class="image">
+							<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
+						</div>
+					</div>
+					<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
+						<span></span>
+						<div class="col-xs-12 buy">
+							<?php if (product_is_buyable($currentProduct)) { ?>
 							<?php include 'single_special.php'; ?>
 							<div class="price_inner">
 								<p>Цена: <span
@@ -61,11 +60,7 @@ require __DIR__ . '/head.php'; ?>
 									<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
 								</p>
 								<div class="stars">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
+									<div class="stars-rating"></div>
 									<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
 										itemtype="http://schema.org/AggregateRating">
 										<meta itemprop="bestRating" content="5">
@@ -79,32 +74,32 @@ require __DIR__ . '/head.php'; ?>
 									</div>
 								</div>
 							</div>
-						<?php } elseif (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
+							<?php } elseif (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
 							<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
 							<p><strong>Срок доставки: 7-14 дней</strong></p>
-						<?php } else { ?>
+							<?php } else { ?>
 							<p><span class="regular_price"><strong>Нет в наличии</strong></span></p>
 
-						<?php } ?>
-						<p><?php echo nl2br($currentProduct['short_desc']); ?></p>
-						<button class="b1c"
-							<?php if (!empty($currentProduct['in_stock']) || (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder')) { ?>
-							onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id']) ?>')" <?php } else { ?>
-							disabled <?php } ?>>
-							<?php echo product_button_label($currentProduct); ?>
-						</button>
-					</div>
-					<noindex>
-						<div style="text-align: justify;" class="product-description">
-							<?php
-							$description = !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'];
-							echo $description;
-							?>
+							<?php } ?>
+							<p><?php echo nl2br($currentProduct['short_desc']); ?></p>
+							<button class="b1c"
+								<?php if (!empty($currentProduct['in_stock']) || (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder')) { ?>
+								onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id']) ?>')"
+								<?php } else { ?> disabled <?php } ?>>
+								<?php echo product_button_label($currentProduct); ?>
+							</button>
 						</div>
-					</noindex>
+						<noindex>
+							<div style="text-align: justify;" class="product-description">
+								<?php
+								$description = !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'];
+								echo $description;
+								?>
+							</div>
+						</noindex>
+					</div>
 				</div>
 			</div>
-		</div>
 	</section>
 	<!-- ./ Feature Section Ends -->
 	<?php include 'slider_in_card.php'; ?>
@@ -121,76 +116,76 @@ require __DIR__ . '/head.php'; ?>
 	<script defer src="/js/main.js?v=<?= date('Ymd', filemtime(__DIR__ . '/../js/main.js')) ?>"></script>
 
 	<script>
-		window.addEventListener('DOMContentLoaded', function() {
-			// tiny helper function to add breakpoints
-			function getGridSize() {
-				return (window.innerWidth < 600) ? 2 :
-					(window.innerWidth < 900) ? 3 : 4
+	window.addEventListener('DOMContentLoaded', function() {
+		// tiny helper function to add breakpoints
+		function getGridSize() {
+			return (window.innerWidth < 600) ? 2 :
+				(window.innerWidth < 900) ? 3 : 4
+		}
+
+		$('.flexslider').flexslider({
+			animation: "slide",
+			itemWidth: 240,
+			itemMargin: 5,
+			animationLoop: true,
+			minItems: getGridSize(),
+			maxItems: getGridSize(),
+			startAt: 0,
+			slideshow: true,
+			slideshowSpeed: 7000,
+			animationSpeed: 600,
+			initDelay: 0,
+			start: function(slider) {
+				slider.addClass('flex-ready');
 			}
+		});
 
-			$('.flexslider').flexslider({
-				animation: "slide",
-				itemWidth: 240,
-				itemMargin: 5,
-				animationLoop: true,
-				minItems: getGridSize(),
-				maxItems: getGridSize(),
-				startAt: 0,
-				slideshow: true,
-				slideshowSpeed: 7000,
-				animationSpeed: 600,
-				initDelay: 0,
-				start: function(slider) {
-					slider.addClass('flex-ready');
-				}
-			});
+		// check grid size on resize event
+		$(window).resize(function() {
+			var gridSize = getGridSize()
+			var flex = $('.flexslider').data('flexslider');
+			if (flex) {
+				flex.vars.minItems = gridSize;
+				flex.vars.maxItems = gridSize;
+			}
+		});
 
-			// check grid size on resize event
-			$(window).resize(function() {
-				var gridSize = getGridSize()
-				var flex = $('.flexslider').data('flexslider');
-				if (flex) {
-					flex.vars.minItems = gridSize;
-					flex.vars.maxItems = gridSize;
-				}
-			});
+		$('#order .close_popup').click(function() {
+			$('#formToSend input:checkbox').removeAttr("checked")
+			$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+			$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+		})
 
-			$('#order .close_popup').click(function() {
-				$('#formToSend input:checkbox').removeAttr("checked")
+		$('#formToSend input:checkbox').change(function() {
+			if ($(this).is(':checked')) {
+				$("#formToSend input[type=submit]").removeAttr('disabled')
+				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
+			} else {
 				$("#formToSend input[type=submit]").attr('disabled', 'disabled')
 				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-			})
+			}
+		})
 
-			$('#formToSend input:checkbox').change(function() {
-				if ($(this).is(':checked')) {
-					$("#formToSend input[type=submit]").removeAttr('disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
-				} else {
-					$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-				}
-			})
+		$('#send').click(function() {
+			if (($("#formToSend input[type=text]").val()) == !"") {
+				$('#formToSend input[type=hidden].valTrFal').remove()
+				$('#formToSend .font-geometria-light').remove()
+				$('#overflw .basket_num_buttons').remove()
+			}
+		})
 
-			$('#send').click(function() {
-				if (($("#formToSend input[type=text]").val()) == !"") {
-					$('#formToSend input[type=hidden].valTrFal').remove()
-					$('#formToSend .font-geometria-light').remove()
-					$('#overflw .basket_num_buttons').remove()
-				}
-			})
-
-			$(".youtube").on("click", function() {
-				var elm = $(this),
-					conts = elm.contents(),
-					le = conts.length,
-					ifr = null
-				for (var i = 0; i < le; i++) {
-					if (conts[i].nodeType == 8) ifr = conts[i].textContent
-				}
-				elm.addClass("player").html(ifr)
-				elm.off("click")
-			})
-		});
+		$(".youtube").on("click", function() {
+			var elm = $(this),
+				conts = elm.contents(),
+				le = conts.length,
+				ifr = null
+			for (var i = 0; i < le; i++) {
+				if (conts[i].nodeType == 8) ifr = conts[i].textContent
+			}
+			elm.addClass("player").html(ifr)
+			elm.off("click")
+		})
+	});
 	</script>
 </body>
 

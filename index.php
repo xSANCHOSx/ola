@@ -400,6 +400,7 @@ require __DIR__ . '/templates/head.php'; ?>
 		window.addEventListener('DOMContentLoaded', function() {
 			$('.flexslider').flexslider({
 				animation: "slide",
+				directionNav: false,
 				start: function(slider) {
 					slider.addClass('flex-ready');
 				}

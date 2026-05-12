@@ -3,8 +3,7 @@
 	'use strict'
 	if (!$) return
 
-	const COUPON_CODE = 'OLA5600'
-	const COUPON_DISCOUNT = 5600
+	const COUPON_API_URL = '/api/validate_coupon.php'
 
 	class CartStore {
 		constructor(storageKey) {
@@ -12,10 +11,10 @@
 			this.idsKey = storageKey + '_ids'
 			this.items = this.readJSON(this.storageKey, {})
 			this.ids = this.readJSON(this.idsKey, [])
-			this.coupon =
-				localStorage.getItem('coupon_take_' + COUPON_CODE) === COUPON_CODE
-					? COUPON_CODE
-					: ''
+			// Відновити купон із localStorage
+			const saved = this.readJSON('cart_coupon', null)
+			this.coupon = saved ? saved.code : ''
+			this.coupon_discount = saved ? saved.discount : 0
 		}
 		readJSON(key, fallback) {
 			try {
@@ -69,13 +68,15 @@
 			this.ids = []
 			this.persist()
 		}
-		setCoupon(code) {
-			if (code === COUPON_CODE) {
-				this.coupon = code
-				localStorage.setItem('coupon_take_' + COUPON_CODE, code)
-				return true
-			}
-			return false
+		setCoupon(code, discount) {
+			this.coupon = code
+			this.coupon_discount = discount
+			localStorage.setItem('cart_coupon', JSON.stringify({ code, discount }))
+		}
+		clearCoupon() {
+			this.coupon = ''
+			this.coupon_discount = 0
+			localStorage.removeItem('cart_coupon')
 		}
 		totalItems() {
 			return Object.values(this.items).reduce(
@@ -89,7 +90,7 @@
 					s + (parseFloat(item.price) || 0) * (parseInt(item.num, 10) || 0),
 				0,
 			)
-			if (this.coupon === COUPON_CODE) sum = Math.max(0, sum - COUPON_DISCOUNT)
+			if (this.coupon_discount > 0) sum = Math.max(0, sum - this.coupon_discount)
 			return sum
 		}
 		asOrderItems() {
@@ -440,17 +441,44 @@
 				.fadeIn(250)
 			setTimeout(() => toast.fadeOut(250, () => toast.remove()), duration)
 		}
-		setCoupon() {
-			const code = $("input[name='coupon_input_value']").val()
-			if (this.store.setCoupon(code)) {
-				this.ui.showCoupon(code)
-				this.ui.renderTotals()
-			} else {
-				$("input[name='coupon_input_value']").css('border-color', '#e74c3c')
-				setTimeout(
-					() => $("input[name='coupon_input_value']").css('border-color', ''),
-					1500,
-				)
+		async setCoupon() {
+			const code = $("input[name='coupon_input_value']").val().trim().toUpperCase()
+			if (!code) return
+
+			const sum = this.store.totalPrice() + this.store.coupon_discount // сума без знижки
+			if (sum <= 0) return
+
+			const $input = $("input[name='coupon_input_value']")
+			const $btn = $('.coupon_input .bbutton')
+			$btn.prop('disabled', true).text('...')
+
+			try {
+				const url = new URL(COUPON_API_URL, window.location.origin)
+				url.searchParams.set('code', code)
+				url.searchParams.set('sum', sum.toFixed(2))
+				const res = await fetch(url.toString())
+				const data = await res.json()
+
+				if (res.ok && data.valid) {
+					const discount = data.calculation.discount_amount
+					this.store.setCoupon(code, discount)
+					this.ui.showCoupon(code)
+					this.ui.renderTotals()
+					$input.css('border-color', '#27ae60')
+				} else {
+					this.store.clearCoupon()
+					$input.css('border-color', '#e74c3c')
+					setTimeout(() => $input.css('border-color', ''), 1500)
+					// Показати повідомлення про помилку
+					const $err = $('.coupon_error')
+					if ($err.length) { $err.text(data.error || 'Купон недействителен').show() }
+					else { $input.attr('placeholder', data.error || 'Неверный купон') }
+				}
+			} catch (e) {
+				$input.css('border-color', '#e74c3c')
+				setTimeout(() => $input.css('border-color', ''), 1500)
+			} finally {
+				$btn.prop('disabled', false).text('Применить')
 			}
 		}
 		toggleCoupon() {
@@ -475,7 +503,7 @@
 			this.checkout.submit(items, this.store.coupon, data => {
 				if (data === 'ok') {
 					this.clearBasket()
-					localStorage.removeItem('coupon_take_' + COUPON_CODE)
+					this.store.clearCoupon()
 					window.location.href = '/success.php'
 				}
 			})

@@ -11,6 +11,11 @@ ErrorDocument 404 /404.php
     php_flag log_errors on
 </IfModule>
 
+# GZIP compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/xml
+</IfModule>
+
 # Перенаправление на gzip файлы
 AddEncoding gzip .gz
 <FilesMatch "\.js.gz$">
@@ -26,7 +31,7 @@ AddEncoding gzip .gz
     <FilesMatch "\.(js|css|txt)$">
         Header set Cache-Control "max-age=604800"
     </FilesMatch>
-    <FilesMatch "\.(flv|swf|ico|gif|jpg|jpeg|png)$">
+    <FilesMatch "\.(flv|swf|ico|gif|jpg|jpeg|png|svg|webp)$">
         Header set Cache-Control "max-age=2592000"
     </FilesMatch>
     <FilesMatch "\.(pl|php|cgi|spl|scgi|fcgi)$">
@@ -40,9 +45,13 @@ AddEncoding gzip .gz
 
 <IfModule mod_expires.c>
     ExpiresActive on
-    ExpiresByType image/jpeg "access plus 3 day"
-    ExpiresByType image/png "access plus 3 day"
-    ExpiresByType image/gif "access plus 3 day"
+    ExpiresByType image/jpeg "access plus 30 days"
+    ExpiresByType image/png "access plus 30 days"
+    ExpiresByType image/gif "access plus 30 days"
+    ExpiresByType image/svg+xml "access plus 30 days"
+    ExpiresByType image/webp "access plus 30 days"
+    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
 </IfModule>
 
 Options +FollowSymLinks

@@ -118,12 +118,21 @@ function validate_coupon_data(array $data): array
  */
 /**
  * Нормалізувати дату з datetime-local (2026-05-13T00:00) → MySQL DATETIME (2026-05-13 00:00:00)
+ * Для valid_to додатково виставляємо кінець дня (23:59:59) щоб купон працював весь день
  */
-function normalize_datetime(?string $val): ?string
+function normalize_datetime(?string $val, bool $endOfDay = false): ?string
 {
     if (empty($val)) return null;
     $ts = strtotime($val);
-    return $ts ? date('Y-m-d H:i:s', $ts) : null;
+    if (!$ts) return null;
+    if ($endOfDay) {
+        // Якщо час не вказаний явно (00:00) — ставимо кінець дня
+        $hasTime = preg_match('/T\d{2}:\d{2}(?::\d{2})?$/', $val) && !str_ends_with($val, 'T00:00') && !str_ends_with($val, 'T00:00:00');
+        if (!$hasTime) {
+            return date('Y-m-d', $ts) . ' 23:59:59';
+        }
+    }
+    return date('Y-m-d H:i:s', $ts);
 }
 
 function create_coupon(PDO $pdo, array $data): array
@@ -151,7 +160,7 @@ function create_coupon(PDO $pdo, array $data): array
             (float)$data['discount_value'],
             (float)($data['min_order_sum'] ?? 0),
             !empty($data['valid_from']) ? normalize_datetime($data['valid_from']) : null,
-            !empty($data['valid_to'])   ? normalize_datetime($data['valid_to'])   : null,
+            !empty($data['valid_to'])   ? normalize_datetime($data['valid_to'], true) : null,
             !empty($data['max_usage_count']) ? (int)$data['max_usage_count'] : null,
             isset($data['is_active']) ? 1 : 0,
         ]);
@@ -202,7 +211,7 @@ function update_coupon(PDO $pdo, int $coupon_id, array $data): array
             (float)$data['discount_value'],
             (float)($data['min_order_sum'] ?? 0),
             !empty($data['valid_from']) ? normalize_datetime($data['valid_from']) : null,
-            !empty($data['valid_to'])   ? normalize_datetime($data['valid_to'])   : null,
+            !empty($data['valid_to'])   ? normalize_datetime($data['valid_to'], true) : null,
             !empty($data['max_usage_count']) ? (int)$data['max_usage_count'] : null,
             isset($data['is_active']) ? 1 : 0,
             $coupon_id,

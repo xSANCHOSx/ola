@@ -24,9 +24,9 @@ $pageDescription = !empty($currentProduct['seo_description']) ? htmlspecialchars
 
 <!DOCTYPE html>
 <html lang="ru">
-$extraCss = ($extraCss ?? '') . '
+<?php  $extraCss = ($extraCss ?? '') . '
 <link rel="stylesheet" href="/css/flexslider.css">';
-<?php require __DIR__ . '/head.php'; ?>
+require __DIR__ . '/head.php'; ?>
 
 <body class="single">
 	<?php include 'header.php'; ?>
@@ -53,36 +53,36 @@ $extraCss = ($extraCss ?? '') . '
 					<span></span>
 					<div class="col-xs-12 buy">
 						<?php if (product_is_buyable($currentProduct)) { ?>
-							<?php include 'single_special.php'; ?>
-							<div class="price_inner">
-								<p>Цена: <span
-										class="price_old"><?= htmlspecialchars($currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?></span>
-									<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
-								</p>
-								<div class="stars">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
-									<img style="width: 18px;" src="/images/star.png" loading="lazy">
-									<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
-										itemtype="http://schema.org/AggregateRating">
-										<meta itemprop="bestRating" content="5">
-										<meta itemprop="ratingValue" content="5">
-										<span class="ratingCount" itemprop="ratingCount">30</span>
-									</div>
-									<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-										<meta itemprop="priceCurrency" content="RUB" />
-										<meta itemprop="price"
-											content="<?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?>" />
-									</div>
+						<?php include 'single_special.php'; ?>
+						<div class="price_inner">
+							<p>Цена: <span
+									class="price_old"><?= htmlspecialchars($currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?></span>
+								<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
+							</p>
+							<div class="stars">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
+								<img style="width: 18px;" src="/images/star.png" loading="lazy">
+								<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
+									itemtype="http://schema.org/AggregateRating">
+									<meta itemprop="bestRating" content="5">
+									<meta itemprop="ratingValue" content="5">
+									<span class="ratingCount" itemprop="ratingCount">30</span>
+								</div>
+								<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+									<meta itemprop="priceCurrency" content="RUB" />
+									<meta itemprop="price"
+										content="<?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?>" />
 								</div>
 							</div>
+						</div>
 						<?php } elseif (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
-							<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
-							<p><strong>Срок доставки: 7-14 дней</strong></p>
+						<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
+						<p><strong>Срок доставки: 7-14 дней</strong></p>
 						<?php } else { ?>
-							<p><span class="regular_price"><strong>Нет в наличии</strong></span></p>
+						<p><span class="regular_price"><strong>Нет в наличии</strong></span></p>
 
 						<?php } ?>
 						<p><?php echo nl2br($currentProduct['short_desc']); ?></p>
@@ -120,73 +120,73 @@ $extraCss = ($extraCss ?? '') . '
 	<script defer src="/js/main.js?v=<?= date('Ymd', filemtime(__DIR__ . '/../js/main.js')) ?>"></script>
 
 	<script>
-		window.addEventListener('DOMContentLoaded', function() {
-			// tiny helper function to add breakpoints
-			function getGridSize() {
-				return (window.innerWidth < 600) ? 2 :
-					(window.innerWidth < 900) ? 3 : 4
+	window.addEventListener('DOMContentLoaded', function() {
+		// tiny helper function to add breakpoints
+		function getGridSize() {
+			return (window.innerWidth < 600) ? 2 :
+				(window.innerWidth < 900) ? 3 : 4
+		}
+
+		$('.flexslider').flexslider({
+			animation: "slide",
+			itemWidth: 240,
+			itemMargin: 5,
+			animationLoop: true,
+			minItems: getGridSize(),
+			maxItems: getGridSize(),
+			startAt: 0,
+			slideshow: true,
+			slideshowSpeed: 7000,
+			animationSpeed: 600,
+			initDelay: 0,
+		});
+
+		// check grid size on resize event
+		$(window).resize(function() {
+			var gridSize = getGridSize()
+			var flex = $('.flexslider').data('flexslider');
+			if (flex) {
+				flex.vars.minItems = gridSize;
+				flex.vars.maxItems = gridSize;
 			}
+		});
 
-			$('.flexslider').flexslider({
-				animation: "slide",
-				itemWidth: 240,
-				itemMargin: 5,
-				animationLoop: true,
-				minItems: getGridSize(),
-				maxItems: getGridSize(),
-				startAt: 0,
-				slideshow: true,
-				slideshowSpeed: 7000,
-				animationSpeed: 600,
-				initDelay: 0,
-			});
+		$('#order .close_popup').click(function() {
+			$('#formToSend input:checkbox').removeAttr("checked")
+			$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+			$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+		})
 
-			// check grid size on resize event
-			$(window).resize(function() {
-				var gridSize = getGridSize()
-				var flex = $('.flexslider').data('flexslider');
-				if (flex) {
-					flex.vars.minItems = gridSize;
-					flex.vars.maxItems = gridSize;
-				}
-			});
-
-			$('#order .close_popup').click(function() {
-				$('#formToSend input:checkbox').removeAttr("checked")
+		$('#formToSend input:checkbox').change(function() {
+			if ($(this).is(':checked')) {
+				$("#formToSend input[type=submit]").removeAttr('disabled')
+				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
+			} else {
 				$("#formToSend input[type=submit]").attr('disabled', 'disabled')
 				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-			})
+			}
+		})
 
-			$('#formToSend input:checkbox').change(function() {
-				if ($(this).is(':checked')) {
-					$("#formToSend input[type=submit]").removeAttr('disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
-				} else {
-					$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-				}
-			})
+		$('#send').click(function() {
+			if (($("#formToSend input[type=text]").val()) == !"") {
+				$('#formToSend input[type=hidden].valTrFal').remove()
+				$('#formToSend .font-geometria-light').remove()
+				$('#overflw .basket_num_buttons').remove()
+			}
+		})
 
-			$('#send').click(function() {
-				if (($("#formToSend input[type=text]").val()) == !"") {
-					$('#formToSend input[type=hidden].valTrFal').remove()
-					$('#formToSend .font-geometria-light').remove()
-					$('#overflw .basket_num_buttons').remove()
-				}
-			})
-
-			$(".youtube").on("click", function() {
-				var elm = $(this),
-					conts = elm.contents(),
-					le = conts.length,
-					ifr = null
-				for (var i = 0; i < le; i++) {
-					if (conts[i].nodeType == 8) ifr = conts[i].textContent
-				}
-				elm.addClass("player").html(ifr)
-				elm.off("click")
-			})
-		});
+		$(".youtube").on("click", function() {
+			var elm = $(this),
+				conts = elm.contents(),
+				le = conts.length,
+				ifr = null
+			for (var i = 0; i < le; i++) {
+				if (conts[i].nodeType == 8) ifr = conts[i].textContent
+			}
+			elm.addClass("player").html(ifr)
+			elm.off("click")
+		})
+	});
 	</script>
 </body>
 

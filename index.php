@@ -25,7 +25,7 @@ require __DIR__ . '/templates/head.php'; ?>
 									<!--Гарантия Защиты Волос-->
 								</span>
 							</div>
-							<?= webp_img('/images/banner-1.jpg', 'Olaplex', '', ['fetchpriority' => 'high', 'width' => 1920, 'height' => 600]) ?>
+							<?= webp_img('/images/banner-1.jpg', 'Olaplex', '', ['fetchpriority' => 'high']) ?>
 							<div class="flex-caption_r">
 								<span>
 									<!--Один Ингридиент меняет все-->
@@ -33,7 +33,7 @@ require __DIR__ . '/templates/head.php'; ?>
 							</div>
 						</li>
 						<li>
-							<?= webp_img('/images/banner-2.jpg', 'Olaplex', '', ['fetchpriority' => 'high', 'width' => 1920, 'height' => 600]) ?>
+							<?= webp_img('/images/banner-2.jpg', 'Olaplex', '', ['fetchpriority' => 'high']) ?>
 						</li>
 					</ul>
 				</div>
@@ -92,7 +92,7 @@ require __DIR__ . '/templates/head.php'; ?>
 	<!-- Feature Section Starts -->
 	<section id="max-featured-section" class="products_list">
 		<?php foreach ($products as $index => $product): ?>
-		<?php
+			<?php
 			$template = 'templates/product_template_even_mod.php';
 			include $template;
 			?>
@@ -377,7 +377,7 @@ require __DIR__ . '/templates/head.php'; ?>
 	<script defer src="/js/jquery-3.7.1.min.js"></script>
 	<script defer src="/js/bootstrap.min.js"></script>
 	<script>
-	<?php
+		<?php
 		$_productsById = [];
 		foreach ($products as $p) {
 			// Сохраняем по числовому ключу (010 → 10) и оригинальной строке
@@ -388,7 +388,7 @@ require __DIR__ . '/templates/head.php'; ?>
 			}
 		}
 		?>
-	window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
+		window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
 	</script>
 	<script defer src="/js/cart.js"></script>
 	<script defer src="/js/cart-init.js"></script>
@@ -397,62 +397,62 @@ require __DIR__ . '/templates/head.php'; ?>
 	</script>
 
 	<script>
-	window.addEventListener('DOMContentLoaded', function() {
-		$('.flexslider').flexslider({
-			animation: "slide",
-			start: function(slider) {
-				slider.addClass('flex-ready');
-			}
-		});
+		window.addEventListener('DOMContentLoaded', function() {
+			$('.flexslider').flexslider({
+				animation: "slide",
+				start: function(slider) {
+					slider.addClass('flex-ready');
+				}
+			});
 
-		$('#order .close_popup').click(function() {
-			$('#formToSend input:checkbox').removeAttr("checked")
-			$("#formToSend input[type=submit]").attr('disabled', 'disabled')
-			$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-		})
-
-		$('#formToSend input:checkbox').change(function() {
-			if ($(this).is(':checked')) {
-				$("#formToSend input[type=submit]").removeAttr('disabled')
-				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
-			} else {
+			$('#order .close_popup').click(function() {
+				$('#formToSend input:checkbox').removeAttr("checked")
 				$("#formToSend input[type=submit]").attr('disabled', 'disabled')
 				$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
-			}
-		})
+			})
 
-		$('#send').click(function() {
-			if (($("#formToSend input[type=text]").val()) == !"") {
-				$('#formToSend input[type=hidden].valTrFal').remove()
-				$('#formToSend .font-geometria-light').remove()
-				$('#overflw .basket_num_buttons').remove()
-			}
-		})
+			$('#formToSend input:checkbox').change(function() {
+				if ($(this).is(':checked')) {
+					$("#formToSend input[type=submit]").removeAttr('disabled')
+					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_true')
+				} else {
+					$("#formToSend input[type=submit]").attr('disabled', 'disabled')
+					$('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled')
+				}
+			})
 
-		$("#slide1").on("click", function() {
-			var elm = $(this),
-				conts = elm.contents(),
-				le = conts.length,
-				ifr = null
-			for (var i = 0; i < le; i++) {
-				if (conts[i].nodeType == 8) ifr = conts[i].textContent
-			}
-			elm.addClass("player").html(ifr)
-			elm.off("click")
-		})
+			$('#send').click(function() {
+				if (($("#formToSend input[type=text]").val()) == !"") {
+					$('#formToSend input[type=hidden].valTrFal').remove()
+					$('#formToSend .font-geometria-light').remove()
+					$('#overflw .basket_num_buttons').remove()
+				}
+			})
 
-		$("#slide2").on("click", function() {
-			var elm2 = $(this),
-				conts2 = elm2.contents(),
-				le2 = conts2.length,
-				ifr2 = null
-			for (var i = 0; i < le2; i++) {
-				if (conts2[i].nodeType == 8) ifr2 = conts2[i].textContent
-			}
-			elm2.addClass("player").html(ifr2)
-			elm2.off("click")
-		})
-	});
+			$("#slide1").on("click", function() {
+				var elm = $(this),
+					conts = elm.contents(),
+					le = conts.length,
+					ifr = null
+				for (var i = 0; i < le; i++) {
+					if (conts[i].nodeType == 8) ifr = conts[i].textContent
+				}
+				elm.addClass("player").html(ifr)
+				elm.off("click")
+			})
+
+			$("#slide2").on("click", function() {
+				var elm2 = $(this),
+					conts2 = elm2.contents(),
+					le2 = conts2.length,
+					ifr2 = null
+				for (var i = 0; i < le2; i++) {
+					if (conts2[i].nodeType == 8) ifr2 = conts2[i].textContent
+				}
+				elm2.addClass("player").html(ifr2)
+				elm2.off("click")
+			})
+		});
 	</script>
 </body>
 

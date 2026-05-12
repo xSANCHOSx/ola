@@ -36,21 +36,30 @@ function convertToWebp(string $source, int $quality = 82): string
 	return "❌ помилка запису: $dest";
 }
 
-// Шлях до папки з зображеннями
-$imagesDir = __DIR__ . '/images/';
-
-$files = new RecursiveIteratorIterator(
-	new RecursiveDirectoryIterator($imagesDir)
-);
+$imageDirs = [
+	__DIR__ . '/images/',
+	__DIR__ . '/data/uploads/products/',
+	__DIR__ . '/data/uploads/blog/',
+];
 
 echo "<pre>\n";
 $count = 0;
-foreach ($files as $file) {
-	if (!$file->isFile()) continue;
-	$ext = strtolower($file->getExtension());
-	if (!in_array($ext, ['jpg', 'jpeg', 'png'])) continue;
+foreach ($imageDirs as $imagesDir) {
+	if (!is_dir($imagesDir)) {
+		echo "⚠️ Папка не існує: $imagesDir\n";
+		continue;
+	}
+	echo "\n📁 $imagesDir\n";
+	$files = new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator($imagesDir)
+	);
+	foreach ($files as $file) {
+		if (!$file->isFile()) continue;
+		$ext = strtolower($file->getExtension());
+		if (!in_array($ext, ['jpg', 'jpeg', 'png'])) continue;
 
-	echo convertToWebp($file->getPathname()) . "\n";
-	$count++;
+		echo convertToWebp($file->getPathname()) . "\n";
+		$count++;
+	}
 }
 echo "\nГотово. Оброблено файлів: $count\n</pre>";

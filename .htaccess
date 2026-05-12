@@ -1,7 +1,6 @@
 AddDefaultCharset UTF-8
 Options -Indexes
 
-# Указываем серверу файл для ошибки 404
 ErrorDocument 404 /404.php
 
 <IfModule mod_php5.c>
@@ -23,7 +22,7 @@ AddEncoding gzip .gz
     Header set Content-Encoding: gzip
 </FilesMatch>
 
-# Включаем кэш в браузерах
+# Кэш в браузерах
 <IfModule mod_headers.c>
     <FilesMatch "\.(html|htm)$">
         Header set Cache-Control "max-age=43200"
@@ -45,37 +44,42 @@ AddEncoding gzip .gz
 
 <IfModule mod_expires.c>
     ExpiresActive on
-    ExpiresByType image/jpeg "access plus 30 days"
-    ExpiresByType image/png "access plus 30 days"
-    ExpiresByType image/gif "access plus 30 days"
+    ExpiresByType image/jpeg    "access plus 30 days"
+    ExpiresByType image/png     "access plus 30 days"
+    ExpiresByType image/gif     "access plus 30 days"
     ExpiresByType image/svg+xml "access plus 30 days"
-    ExpiresByType image/webp "access plus 30 days"
-    ExpiresByType text/css "access plus 7 days"
+    ExpiresByType image/webp    "access plus 30 days"
+    ExpiresByType image/x-icon  "access plus 1 year"
+    ExpiresByType font/woff2    "access plus 1 year"
+    ExpiresByType text/css               "access plus 7 days"
     ExpiresByType application/javascript "access plus 7 days"
 </IfModule>
 
-# ======= WEBP AUTO-SERVE =======
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteCond %{HTTP_ACCEPT} image/webp
-  RewriteCond %{REQUEST_URI} \.(jpe?g|png)$
-  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME::-4}.webp -f [OR]
-  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_FILENAME::-5}.webp -f
-  RewriteRule \.(jpe?g|png)$ %{REQUEST_FILENAME::-4}.webp [T=image/webp,L]
-</IfModule>
-
-<IfModule mod_headers.c>
-  <FilesMatch "\.webp$">
-    Header set Content-Type "image/webp"
-  </FilesMatch>
-  <FilesMatch "\.(jpe?g|png|webp)$">
-    Header append Vary Accept
-  </FilesMatch>
-</IfModule>
-
+# ======= REWRITE =======
 Options +FollowSymLinks
 RewriteEngine On
 RewriteBase /
+
+# --- WebP auto-serve ---
+# Виправлено: прибрано зайвий DOCUMENT_ROOT, RewriteRule використовує $1
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_ACCEPT} image/webp
+    RewriteCond %{REQUEST_FILENAME} \.(jpe?g|png)$
+    RewriteCond %{REQUEST_FILENAME::-4}.webp -f [OR]
+    RewriteCond %{REQUEST_FILENAME::-5}.webp -f
+    RewriteRule ^(.+)\.(jpe?g|png)$ $1.webp [T=image/webp,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.webp$">
+        Header set Content-Type "image/webp"
+    </FilesMatch>
+    <FilesMatch "\.(jpe?g|png|webp)$">
+        Header append Vary Accept
+    </FilesMatch>
+</IfModule>
+
+# --- URL routing ---
 
 # 1. Убираем .php из URL
 RewriteCond %{REQUEST_FILENAME}.php -f
@@ -93,22 +97,17 @@ RewriteRule ^(.*)$ https://%1/$1 [L,R=301]
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.(php|html|htm)\ HTTP/
 RewriteRule ^(.*)index\.(php|html|htm)$ https://olaplex-shop.ru/$1 [R=301,L]
 
-# ⚠️ 5. BLOG ROUTING (ПЕРЕД товарами!)
-# /blog/ -> листинг постов
+# 5. BLOG ROUTING (ПЕРЕД товарами!)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^blog/?$ templates/blog_listing.php [L,QSA]
 
-# /blog/slug -> одиночный пост
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^blog/([a-z0-9\-]+)/?$ templates/blog_single.php?slug=$1 [L,QSA]
 
-# 6. ОСНОВНОЙ РОУТИНГ ТОВАРОВ (в конце!)
-# Если это НЕ реальный файл и НЕ реальная папка
+# 6. Роутинг товаров
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-# И это НЕ сама страница 404
 RewriteCond %{REQUEST_URI} !^/404\.php$
-# Отдаем запрос в шаблон товара
 RewriteRule .? templates/single_product_template.php [L,QSA]

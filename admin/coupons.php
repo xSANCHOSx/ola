@@ -327,8 +327,8 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
             <button class="btn btn-success" onclick="openCreateModal()">➕ Новый купон</button>
         </div>
 
-        <div id="successMsg" class="alert alert-success d-none"></div>
-        <div id="errorMsg" class="alert alert-danger  d-none"></div>
+        <div id="successMsg" class="alert alert-success d-none" style="display:none!important"></div>
+        <div id="errorMsg" class="alert alert-danger  d-none" style="display:none!important"></div>
 
         <h5 class="mb-3">Активных купонов: <span class="badge bg-success"><?= $active_count ?></span></h5>
 
@@ -471,7 +471,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
     </div>
 
     <script src="/js/jquery-3.7.1.min.js"></script>
-    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
     <script>
         const CSRF = '<?= $csrf ?>';
         let bsModal = null;
@@ -521,8 +521,12 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         function showMessage(type, message) {
             const el = document.getElementById(type === 'success' ? 'successMsg' : 'errorMsg');
             el.textContent = message;
+            el.style.removeProperty('display');
             el.classList.remove('d-none');
-            setTimeout(() => el.classList.add('d-none'), 5000);
+            setTimeout(() => {
+                el.classList.add('d-none');
+                el.style.setProperty('display', 'none', 'important');
+            }, 5000);
         }
 
         function displayErrors(errors) {

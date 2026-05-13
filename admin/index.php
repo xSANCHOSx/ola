@@ -263,6 +263,11 @@ function get_order_items_with_links(PDO $pdo, int $orderId): array {
         document.getElementById('dateFrom').value = '';
         document.getElementById('dateTo').value = '';
         
+        // Скрываем результаты поиска и сообщение об отсутствии результатов
+        document.getElementById('resultsInfo').style.display = 'none';
+        document.getElementById('noResults').style.display = 'none';
+        document.getElementById('loadingSpinner').style.display = 'none';
+        
         // Переходим на вкладку "Все заказы"
         document.querySelector('[data-type="all"]').click();
     });

@@ -234,20 +234,15 @@ if ($stmt instanceof PDOStatement) {
 $edit = null;
 if (isset($_GET['edit'])) {
 	$editId = (int)$_GET['edit'];
-	$edit = []; // порожній масив = новий пост; null = список без форми
-	if ($editId > 0) {
-		$editStmt = $pdo->prepare('SELECT * FROM blog_posts WHERE id = :id');
-		$editStmt->execute(['id' => $editId]);
-		$fetched = $editStmt->fetch();
-		if ($fetched !== false) {
-			$edit = $fetched;
-		}
-	}
-	if (!empty($edit['id'])) {
+	$editStmt = $pdo->prepare('SELECT * FROM blog_posts WHERE id = :id');
+	$editStmt->execute(['id' => $editId]);
+	$edit = $editStmt->fetch();
+
+	if ($edit) {
 		$tagsStmt = $pdo->prepare('SELECT bt.name FROM blog_tags bt 
             JOIN blog_post_tags bpt ON bt.id = bpt.tag_id 
             WHERE bpt.post_id = :id');
-		$tagsStmt->execute(['id' => (int)$edit['id']]);
+		$tagsStmt->execute(['id' => $editId]);
 		$edit['tags'] = implode(', ', array_column($tagsStmt->fetchAll(), 'name'));
 	}
 }
@@ -293,124 +288,46 @@ function generateSlug(string $text): string
 	<!-- CKEditor 5 -->
 	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 	<style>
-	.form-group {
-		margin-bottom: 15px;
-	}
+		.form-group {
+			margin-bottom: 15px;
+		}
 
-	.form-group label {
-		font-weight: bold;
-		margin-bottom: 5px;
-		display: block;
-	}
+		.form-group label {
+			font-weight: bold;
+			margin-bottom: 5px;
+			display: block;
+		}
 
-	.ck-content {
-		min-height: 300px;
-	}
+		.ck-content {
+			min-height: 300px;
+		}
 
-	.alert {
-		padding: 10px;
-		margin-bottom: 15px;
-		border-radius: 4px;
-	}
+		.alert {
+			padding: 10px;
+			margin-bottom: 15px;
+			border-radius: 4px;
+		}
 
-	.alert-success {
-		background: #d4edda;
-		color: #155724;
-		border: 1px solid #c3e6cb;
-	}
+		.alert-success {
+			background: #d4edda;
+			color: #155724;
+			border: 1px solid #c3e6cb;
+		}
 
-	.alert-error {
-		background: #f8d7da;
-		color: #721c24;
-		border: 1px solid #f5c6cb;
-	}
+		.alert-error {
+			background: #f8d7da;
+			color: #721c24;
+			border: 1px solid #f5c6cb;
+		}
 
-	table {
-		word-break: break-word;
-	}
+		table {
+			word-break: break-word;
+		}
 
-	.slug-input {
-		font-family: monospace;
-		font-size: 12px;
-	}
-
-	/* Image upload widget */
-	.image-preview-container {
-		position: relative;
-		display: inline-block;
-		width: 200px;
-	}
-
-	.image-placeholder {
-		width: 200px;
-		height: 200px;
-		background: #e9ecef;
-		border: 2px dashed #dee2e6;
-		border-radius: 8px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: all 0.3s;
-		color: #999;
-		font-size: 14px;
-		overflow: hidden;
-	}
-
-	.image-placeholder:hover {
-		border-color: #adb5bd;
-		background: #dee2e6;
-	}
-
-	.image-preview-img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		border-radius: 6px;
-		display: block;
-	}
-
-	.btn-remove-image {
-		position: absolute;
-		top: 4px;
-		right: 4px;
-		background: #dc3545;
-		border: none;
-		border-radius: 50%;
-		width: 28px;
-		height: 28px;
-		padding: 0;
-		display: none;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		transition: all 0.2s;
-		z-index: 20;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-	}
-
-	.btn-remove-image:hover {
-		background: #c82333;
-		transform: scale(1.1);
-	}
-
-	.btn-remove-image.show {
-		display: flex;
-	}
-
-	.btn-remove-image svg {
-		width: 16px;
-		height: 16px;
-		display: block;
-		stroke: white;
-		stroke-width: 2.5;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-
-	.image-upload-input {
-		display: none !important;
-	}
+		.slug-input {
+			font-family: monospace;
+			font-size: 12px;
+		}
 	</style>
 </head>
 
@@ -421,9 +338,9 @@ function generateSlug(string $text): string
 		<h2>Управление блогом</h2>
 
 		<?php if ($msg): ?>
-		<div class="alert alert-<?= strpos($msg, 'Ошибка') !== false ? 'error' : 'success' ?>">
-			<?= admin_h($msg . $reason) ?>
-		</div>
+			<div class="alert alert-<?= strpos($msg, 'Ошибка') !== false ? 'error' : 'success' ?>">
+				<?= admin_h($msg . $reason) ?>
+			</div>
 		<?php endif; ?>
 
 		<form method="post" enctype="multipart/form-data"
@@ -471,116 +388,105 @@ function generateSlug(string $text): string
 			</div>
 
 			<script>
-			ClassicEditor
-				.create(document.querySelector('#content'), {
-					toolbar: {
-						items: [
-							'undo', 'redo',
-							'|',
-							'heading',
-							'|',
-							'bold', 'italic', 'underline', 'strikethrough',
-							'|',
-							'alignment',
-							'|',
-							'bulletedList', 'numberedList',
-							'|',
-							'link', 'imageUpload', 'blockQuote', 'insertTable',
-							'|',
-							'removeFormat', 'sourceEditing'
-						],
-						shouldNotGroupWhenFull: true
-					},
-					heading: {
-						options: [{
-								model: 'paragraph',
-								title: 'Параграф',
-								class: 'ck-heading_paragraph'
-							},
-							{
-								model: 'heading1',
-								view: 'h1',
-								title: 'Заголовок 1',
-								class: 'ck-heading_heading1'
-							},
-							{
-								model: 'heading2',
-								view: 'h2',
-								title: 'Заголовок 2',
-								class: 'ck-heading_heading2'
-							},
-							{
-								model: 'heading3',
-								view: 'h3',
-								title: 'Заголовок 3',
-								class: 'ck-heading_heading3'
-							}
-						]
-					},
-					image: {
-						upload: {
-							types: ['jpeg', 'png', 'gif', 'webp']
+				ClassicEditor
+					.create(document.querySelector('#content'), {
+						toolbar: {
+							items: [
+								'undo', 'redo',
+								'|',
+								'heading',
+								'|',
+								'bold', 'italic', 'underline', 'strikethrough',
+								'|',
+								'alignment',
+								'|',
+								'bulletedList', 'numberedList',
+								'|',
+								'link', 'imageUpload', 'blockQuote', 'insertTable',
+								'|',
+								'removeFormat', 'sourceEditing'
+							],
+							shouldNotGroupWhenFull: true
 						},
-						resizeOptions: [{
-								name: 'imageResizePercentages',
-								values: ['25', '50', '75', '100']
-							},
-							{
-								name: 'imageResizeByWidth',
-								values: ['200', '300', '400', '500', '600', '800']
-							}
-						],
-						styles: [
-							'full',
-							'alignLeft',
-							'alignRight',
-							'alignCenter'
-						]
-					},
-					simpleUpload: {
-						uploadUrl: '/admin/blog-upload.php'
-					},
-					table: {
-						contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
-					},
-					language: 'uk',
-					autosave: {
-						save(editor) {
-							console.log('Content autosaved');
+						heading: {
+							options: [{
+									model: 'paragraph',
+									title: 'Параграф',
+									class: 'ck-heading_paragraph'
+								},
+								{
+									model: 'heading1',
+									view: 'h1',
+									title: 'Заголовок 1',
+									class: 'ck-heading_heading1'
+								},
+								{
+									model: 'heading2',
+									view: 'h2',
+									title: 'Заголовок 2',
+									class: 'ck-heading_heading2'
+								},
+								{
+									model: 'heading3',
+									view: 'h3',
+									title: 'Заголовок 3',
+									class: 'ck-heading_heading3'
+								}
+							]
 						},
-						waitingTime: 3000,
-						backoffDelay: 5000
-					}
-				})
-				.catch(error => {
-					console.error(error);
-				});
+						image: {
+							upload: {
+								types: ['jpeg', 'png', 'gif', 'webp']
+							},
+							resizeOptions: [{
+									name: 'imageResizePercentages',
+									values: ['25', '50', '75', '100']
+								},
+								{
+									name: 'imageResizeByWidth',
+									values: ['200', '300', '400', '500', '600', '800']
+								}
+							],
+							styles: [
+								'full',
+								'alignLeft',
+								'alignRight',
+								'alignCenter'
+							]
+						},
+						simpleUpload: {
+							uploadUrl: '/admin/blog-upload.php'
+						},
+						table: {
+							contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+						},
+						language: 'uk',
+						autosave: {
+							save(editor) {
+								console.log('Content autosaved');
+							},
+							waitingTime: 3000,
+							backoffDelay: 5000
+						}
+					})
+					.catch(error => {
+						console.error(error);
+					});
 			</script>
 
 			<div class="row">
 				<div class="col-md-8">
 					<div class="form-group">
 						<label>Изображение обложки</label>
-						<input type="hidden" name="featured_image" id="featuredImageInput"
-							value="<?= admin_h((string)($edit['featured_image'] ?? '')) ?>">
-						<div class="image-preview-container">
-							<div id="blogImagePreview" class="image-placeholder">
-								<?php if (!empty($edit['featured_image'])): ?>
-								<img src="/<?= admin_h((string)$edit['featured_image']) ?>" alt="Cover" class="image-preview-img">
-								<?php else: ?>
-								<span>📷 Обкладинка</span>
-								<?php endif; ?>
-							</div>
-							<button type="button" class="btn-remove-image <?= !empty($edit['featured_image']) ? 'show' : '' ?>"
-								id="blogBtnRemove" onclick="blogRemoveImage(event)">
-								<svg viewBox="0 0 24 24" fill="none">
-									<line x1="18" y1="6" x2="6" y2="18"></line>
-									<line x1="6" y1="6" x2="18" y2="18"></line>
-								</svg>
-							</button>
+						<div style="margin-bottom:10px;">
+							<input class="form-control" name="featured_image" placeholder="Шлях до зображення"
+								value="<?= admin_h((string)($edit['featured_image'] ?? '')) ?>">
 						</div>
-						<input type="file" id="blogImageUpload" class="image-upload-input" name="image_upload" accept="image/*">
-						<small class="text-muted" style="display:block; margin-top:6px;">Клацніть на превью для вибору файлу</small>
+						<input type="file" class="form-control" name="image_upload" accept="image/*">
+						<?php if (!empty($edit['featured_image'])): ?>
+							<img src="/<?= admin_h((string)$edit['featured_image']) ?>" alt="<?= admin_h((string)$edit['title']) ?>"
+								style="max-width:200px; max-height:200px; margin-top:10px;">
+						<?php endif; ?>
 					</div>
 				</div>
 				<div class="col-md-4">
@@ -610,11 +516,11 @@ function generateSlug(string $text): string
 			</div>
 
 			<div style="margin-top:20px;">
-				<button type="submit" class="btn btn-success btn-lg" style="margin-right:10px;">
-					<?= !empty($edit['id']) ? '💾 Сохранить' : '➕ Создать пост' ?>
+				<button type="submit" class="btn btn-success" style="margin-right:10px;">
+					<?= $edit ? 'Сохранить' : 'Создать пост' ?>
 				</button>
-				<?php if ($edit !== null): ?>
-				<a href="/admin/blog.php" class="btn btn-secondary btn-lg">↩ Отменить</a>
+				<?php if ($edit): ?>
+					<a href="/admin/blog.php" class="btn btn-secondary">Отменить</a>
 				<?php endif; ?>
 			</div>
 		</form>
@@ -634,70 +540,33 @@ function generateSlug(string $text): string
 			</thead>
 			<tbody>
 				<?php foreach ($posts as $p): ?>
-				<tr>
-					<td><?= admin_h((string)$p['id']) ?></td>
-					<td><?= admin_h((string)$p['title']) ?></td>
-					<td><code><?= admin_h((string)$p['slug']) ?></code></td>
-					<td>
-						<span
-							style="background:<?= $p['status'] === 'published' ? '#d4edda' : '#fff3cd' ?>; padding:3px 8px; border-radius:3px; font-size:12px;">
-							<?= admin_h((string)$p['status']) ?>
-						</span>
-					</td>
-					<td><?= admin_h(date('d.m.Y H:i', strtotime((string)$p['created_at']))) ?></td>
-					<td><?= admin_h((string)$p['views']) ?></td>
-					<td>
-						<a href="/admin/blog.php?edit=<?= (int)$p['id'] ?>" class="btn btn-sm btn-info">✎ Редактировать</a>
-						<form method="post" style="display:inline;">
-							<input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
-							<input type="hidden" name="action" value="delete">
-							<input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
-							<button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">✕
-								Удалить</button>
-						</form>
-					</td>
-				</tr>
+					<tr>
+						<td><?= admin_h((string)$p['id']) ?></td>
+						<td><?= admin_h((string)$p['title']) ?></td>
+						<td><code><?= admin_h((string)$p['slug']) ?></code></td>
+						<td>
+							<span
+								style="background:<?= $p['status'] === 'published' ? '#d4edda' : '#fff3cd' ?>; padding:3px 8px; border-radius:3px; font-size:12px;">
+								<?= admin_h((string)$p['status']) ?>
+							</span>
+						</td>
+						<td><?= admin_h(date('d.m.Y H:i', strtotime((string)$p['created_at']))) ?></td>
+						<td><?= admin_h((string)$p['views']) ?></td>
+						<td>
+							<a href="/admin/blog.php?edit=<?= (int)$p['id'] ?>" class="btn btn-sm btn-info">✎ Редактировать</a>
+							<form method="post" style="display:inline;">
+								<input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+								<input type="hidden" name="action" value="delete">
+								<input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
+								<button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">✕
+									Удалить</button>
+							</form>
+						</td>
+					</tr>
 				<?php endforeach; ?>
 			</tbody>
 		</table>
 	</div>
-	<script>
-	(function() {
-		var imageUpload = document.getElementById('blogImageUpload');
-		if (!imageUpload) return;
-
-		var imagePreview = document.getElementById('blogImagePreview');
-		var btnRemove = document.getElementById('blogBtnRemove');
-
-		// Клік на превью — відкрити діалог вибору файлу
-		imagePreview.addEventListener('click', function() {
-			imageUpload.click();
-		});
-
-		// Завантаження фото
-		imageUpload.addEventListener('change', function(e) {
-			var file = e.target.files[0];
-			if (!file) return;
-			var reader = new FileReader();
-			reader.onload = function(event) {
-				imagePreview.innerHTML = '<img src="' + event.target.result +
-					'" alt="Preview" class="image-preview-img">';
-				btnRemove.classList.add('show');
-			};
-			reader.readAsDataURL(file);
-		});
-
-		// Видалення фото
-		window.blogRemoveImage = function(event) {
-			event.preventDefault();
-			event.stopPropagation();
-			document.getElementById('featuredImageInput').value = '';
-			imageUpload.value = '';
-			imagePreview.innerHTML = '<span>📷 Обкладинка</span>';
-			btnRemove.classList.remove('show');
-		};
-	})();
-	</script>
 </body>
 
 </html>

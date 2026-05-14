@@ -77,3 +77,27 @@ function convert_to_webp(string $source, int $quality = 82): void
     imagewebp($image, $dest, $quality);
     imagedestroy($image);
 }
+
+// ===== Спільні хелпери для адмінки =====
+
+/**
+ * Повертає позиції замовлення з посиланнями на товари в адмінці.
+ * Шукає товар спочатку за external_id, потім за назвою.
+ */
+function get_order_items_with_links(PDO $pdo, int $orderId): array
+{
+    $stmt = $pdo->prepare('
+        SELECT 
+            oi.name, 
+            oi.quantity, 
+            oi.product_external_id,
+            COALESCE(p1.id, p2.id) as product_id
+        FROM order_items oi 
+        LEFT JOIN products p1 ON (oi.product_external_id = p1.external_id AND oi.product_external_id != "")
+        LEFT JOIN products p2 ON (oi.name = p2.name AND p1.id IS NULL)
+        WHERE oi.order_id = :order_id
+        GROUP BY oi.id
+    ');
+    $stmt->execute(['order_id' => $orderId]);
+    return $stmt->fetchAll();
+}

@@ -120,16 +120,10 @@ if (!move_uploaded_file($file['tmp_name'], $target)) {
 @chmod($target, 0644);
 convert_to_webp($target);
 
-// Якщо convert_to_webp створив .webp версію — повертаємо її URL
-$webpTarget = preg_replace('/\.[^.]+$/', '.webp', $target);
-$returnFileName = (file_exists($webpTarget) && $webpTarget !== $target)
-	? preg_replace('/\.[^.]+$/', '.webp', $fileName)
-	: $fileName;
-
-dev_log_security('BLOG_UPLOAD_SUCCESS', ['filename' => $returnFileName]);
+dev_log_security('BLOG_UPLOAD_SUCCESS', ['filename' => $fileName]);
 
 // CKEditor 5 ожидает поле 'url' вместо 'location'
 echo json_encode([
 	'uploaded' => true,
-	'url' => '/data/uploads/blog/' . $returnFileName
+	'url' => '/data/uploads/blog/' . $fileName
 ]);

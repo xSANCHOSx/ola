@@ -44,9 +44,21 @@ $pageDescription = 'Читайте полезные статьи о восста
 					<?php foreach ($posts as $post): ?>
 
 						<article style="margin-bottom: 40px; padding-bottom: 30px; border-bottom: 1px solid #eee;">
-							<?php if (!empty($post['featured_image'])): ?><a href="/blog/<?= htmlspecialchars((string)$post['slug']) ?>">
-									<?= webp_img('/' . $post['featured_image'], $post['title'], 'img-responsive blog_list_image', ['loading' => 'lazy', 'width' => 800, 'height' => 450]) ?>
-								</a>
+							<?php if (!empty($post['featured_image'])): ?>
+							<a href="/blog/<?= htmlspecialchars((string)$post['slug']) ?>">
+								<?php
+								$_imgSrc  = '/' . ltrim((string)$post['featured_image'], '/');
+								$_imgWebp = preg_replace('/\\.(jpe?g|png)$/i', '.webp', $_imgSrc);
+								$_webpFull = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . ltrim($_imgWebp, '/');
+								if (file_exists($_webpFull)): ?>
+								<picture>
+									<source srcset="<?= htmlspecialchars($_imgWebp) ?>" type="image/webp">
+									<img src="<?= htmlspecialchars($_imgSrc) ?>" alt="<?= htmlspecialchars((string)$post['title']) ?>" class="img-responsive blog_list_image" loading="lazy" width="800" height="450">
+								</picture>
+								<?php else: ?>
+								<img src="<?= htmlspecialchars($_imgSrc) ?>" alt="<?= htmlspecialchars((string)$post['title']) ?>" class="img-responsive blog_list_image" loading="lazy" width="800" height="450">
+								<?php endif; ?>
+							</a>
 							<?php endif; ?>
 
 							<h2 style="margin-bottom: 10px; color: #333;">

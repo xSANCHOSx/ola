@@ -1,10 +1,12 @@
 <?php
 session_start();
-$order_id = isset($_SESSION['order_id']) ? $_SESSION['order_id'] : '—';
+$order_id       = isset($_SESSION['order_id'])       ? $_SESSION['order_id']       : '—';
+$coupon_code    = isset($_SESSION['coupon_code'])    ? $_SESSION['coupon_code']    : '';
+$discount_amount= isset($_SESSION['discount_amount'])? (float)$_SESSION['discount_amount'] : 0.0;
+$base_total     = isset($_SESSION['base_total'])     ? (float)$_SESSION['base_total']      : 0.0;
 
-
-// можно очистить после получения
-unset($_SESSION['order_id']);
+// очищаємо після отримання
+unset($_SESSION['order_id'], $_SESSION['coupon_code'], $_SESSION['discount_amount'], $_SESSION['base_total']);
 
 ?>
 <!DOCTYPE html>
@@ -16,6 +18,7 @@ $extraCss = '<style>
     .success-page { margin: 20vh auto; text-align: center; }
     .success-title { font-size: 28px; margin-bottom: 10px; }
     .success-order { font-size: 22px; margin-bottom: 20px; font-weight: bold; }
+    .success-coupon { display: inline-block; background: #fff0f4; border: 1px solid #f5c2cf; border-radius: 6px; padding: 10px 20px; margin-bottom: 18px; color: #ba385c; font-size: 15px; }
     .success-warning { background: #f5f5f5; padding: 15px; border-radius: 6px; margin: 20px auto; max-width: 600px; color: #444; font-size: 14px; }
     .messengers { margin: 25px 0; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
     .messengers .whatsapp { background: #25D366; }
@@ -37,6 +40,13 @@ require __DIR__ . '/templates/head.php';
 		<div class="success-order">
 			Ваш заказ №<?php echo htmlspecialchars($order_id); ?>
 		</div>
+
+		<?php if ($coupon_code !== '' && $discount_amount > 0.0): ?>
+		<div class="success-coupon">
+			🎟 Купон <strong><?php echo htmlspecialchars($coupon_code); ?></strong> применён
+			— скидка <strong><?php echo number_format($discount_amount, 0, '.', ' '); ?> руб.</strong>
+		</div>
+		<?php endif; ?>
 
 		<p class="success-desc">
 			Наш менеджер свяжется с вами в ближайшее время.

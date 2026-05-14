@@ -14,9 +14,13 @@ class NotificationService
         array  $orderResult,
         float  $totalSum,
         string $subject,
-        int    $orderNumber
+        int    $orderNumber,
+        float  $baseTotal      = 0.0,
+        float  $discountAmount = 0.0
     ): array {
-        $template = EmailView::buildTemplate($payload, $subject, $orderResult, $totalSum);
+        $template = EmailView::buildTemplate(
+            $payload, $subject, $orderResult, $totalSum, $baseTotal, $discountAmount
+        );
         $headers  = $this->buildHeaders();
 
         // ── Email до магазину ─────────────────────────────────────────────────

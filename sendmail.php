@@ -15,6 +15,7 @@ require_once __DIR__ . '/app/Service/NotificationService.php';
 require_once __DIR__ . '/app/Model/CustomerModel.php';
 require_once __DIR__ . '/app/Model/OrderModel.php';
 require_once __DIR__ . '/app/Controller/OrderController.php';
+require_once __DIR__ . '/config/coupons.php';
 
 OlaLogger::info('---- SENDMAIL START ----', [
     'ip'     => $_SERVER['REMOTE_ADDR']    ?? '?',

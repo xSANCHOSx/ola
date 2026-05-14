@@ -11,35 +11,41 @@ class OrderModel
         array  $payload,
         float  $totalSum,
         bool   $priceVerified,
-        ?string $idempotencyKey
+        ?string $idempotencyKey,
+        ?int   $couponId          = null,
+        float  $couponDiscount    = 0.0
     ): int {
         $stmt = $pdo->prepare(
             'INSERT INTO orders
                 (order_number, customer_id,
                  customer_name_snapshot, customer_email_snapshot, customer_phone_snapshot,
                  contact_method_snapshot, contact_username_snapshot, delivery_address_snapshot,
-                 coupon, total, price_verified, idempotency_key, raw_payload, created_at)
+                 coupon, coupon_id, coupon_discount_amount,
+                 total, price_verified, idempotency_key, raw_payload, created_at)
              VALUES
                 (:order_number, :customer_id,
                  :name, :email, :phone,
                  :contact_method, :contact_username, :delivery_address,
-                 :coupon, :total, :price_verified, :idempotency_key, :raw_payload, NOW())'
+                 :coupon, :coupon_id, :coupon_discount_amount,
+                 :total, :price_verified, :idempotency_key, :raw_payload, NOW())'
         );
 
         $params = [
-            'order_number'    => $orderNumber,
-            'customer_id'     => $customerId,
-            'name'            => $payload['name'],
-            'email'           => $payload['email'],
-            'phone'           => $payload['phone'],
-            'contact_method'  => $payload['contact_method'],
-            'contact_username'=> $payload['contact_username'],
-            'delivery_address'=> $payload['comments'],
-            'coupon'          => $payload['coupon'],
-            'total'           => $totalSum,
-            'price_verified'  => $priceVerified ? 1 : 0,
-            'idempotency_key' => $idempotencyKey,
-            'raw_payload'     => json_encode($_POST, JSON_UNESCAPED_UNICODE),
+            'order_number'          => $orderNumber,
+            'customer_id'           => $customerId,
+            'name'                  => $payload['name'],
+            'email'                 => $payload['email'],
+            'phone'                 => $payload['phone'],
+            'contact_method'        => $payload['contact_method'],
+            'contact_username'      => $payload['contact_username'],
+            'delivery_address'      => $payload['comments'],
+            'coupon'                => $payload['coupon'],
+            'coupon_id'             => $couponId,
+            'coupon_discount_amount'=> $couponDiscount > 0.0 ? $couponDiscount : null,
+            'total'                 => $totalSum,
+            'price_verified'        => $priceVerified ? 1 : 0,
+            'idempotency_key'       => $idempotencyKey,
+            'raw_payload'           => json_encode($_POST, JSON_UNESCAPED_UNICODE),
         ];
 
         OlaLogger::debug('ORDER_INSERT_PARAMS', array_diff_key($params, ['raw_payload' => 1]));

@@ -21,13 +21,42 @@ class OrderController
 
         OlaLogger::debug('PRICE_VERIFY_START', ['items' => count($orderResult)]);
         $priceService = new PriceService();
-        [$totalSum, $priceVerified] = $priceService->verify($this->pdo, $orderResult);
-        $totalSum = $priceService->applyCoupon($totalSum, $payload['coupon'], $this->cfg['coupons'] ?? []);
+        [$baseTotal, $priceVerified] = $priceService->verify($this->pdo, $orderResult);
+
+        // Застосування купона через БД
+        $couponData     = null;
+        $discountAmount = 0.0;
+        $totalSum       = $baseTotal;
+        $couponCode     = $payload['coupon'];
+
+        if ($couponCode !== '' && $this->pdo instanceof PDO) {
+            $validation = validate_coupon_for_order($this->pdo, $couponCode, $baseTotal);
+            if ($validation['valid']) {
+                $couponData     = $validation['coupon'];
+                $discountAmount = calculate_discount_amount($couponData, $baseTotal);
+                $totalSum       = max(0.0, $baseTotal - $discountAmount);
+                OlaLogger::info('COUPON_APPLIED', [
+                    'code'     => $couponCode,
+                    'discount' => $discountAmount,
+                    'before'   => $baseTotal,
+                    'after'    => $totalSum,
+                ]);
+            } else {
+                OlaLogger::warn('COUPON_NOT_VALID', [
+                    'code'  => $couponCode,
+                    'error' => $validation['error'],
+                ]);
+            }
+        } elseif ($couponCode !== '') {
+            OlaLogger::warn('COUPON_SKIP_NO_DB', ['code' => $couponCode]);
+        }
 
         OlaLogger::info('PRICE_VERIFY_DONE', [
+            'base_total'     => $baseTotal,
+            'discount'       => $discountAmount,
             'total'          => $totalSum,
             'price_verified' => $priceVerified,
-            'coupon'         => $payload['coupon'] ?: '(none)',
+            'coupon'         => $couponCode ?: '(none)',
         ]);
 
         // ── 2. Номер замовлення ───────────────────────────────────────────────
@@ -47,6 +76,10 @@ class OrderController
         OlaLogger::info('ORDER_NUMBER_OK', ['order_number' => $orderNumber]);
         $_POST['ORDER_ID']    = $orderNumber;
         $_SESSION['order_id'] = $orderNumber;
+        // Зберігаємо дані купона в сесії для success.php
+        $_SESSION['coupon_code']     = $couponCode;
+        $_SESSION['discount_amount'] = $discountAmount;
+        $_SESSION['base_total']      = $baseTotal;
 
         // ── 3. Збереження в БД ────────────────────────────────────────────────
 
@@ -55,7 +88,10 @@ class OrderController
 
         if ($this->pdo instanceof PDO) {
             OlaLogger::debug('DB_SAVE_START', ['order_number' => $orderNumber]);
-            $dbOrderId = $this->saveToDb($payload, $orderResult, $orderNumber, $totalSum, $priceVerified);
+            $dbOrderId = $this->saveToDb(
+                $payload, $orderResult, $orderNumber,
+                $totalSum, $priceVerified, $couponData, $discountAmount
+            );
             $dbSaved   = $dbOrderId !== null;
             OlaLogger::info('DB_SAVE_DONE', ['db_order_id' => $dbOrderId, 'saved' => $dbSaved]);
         } else {
@@ -68,7 +104,10 @@ class OrderController
         OlaLogger::debug('NOTIFICATION_START', ['subject' => $subject]);
 
         $notifier = new NotificationService();
-        $sent     = $notifier->send($payload, $orderResult, $totalSum, $subject, $orderNumber);
+        $sent     = $notifier->send(
+            $payload, $orderResult, $totalSum, $subject, $orderNumber,
+            $baseTotal, $discountAmount
+        );
 
         OlaLogger::info('NOTIFICATION_DONE', [
             'email' => $sent['email'],
@@ -108,11 +147,13 @@ class OrderController
     }
 
     private function saveToDb(
-        array $payload,
-        array $orderResult,
-        int   $orderNumber,
-        float $totalSum,
-        bool  $priceVerified
+        array  $payload,
+        array  $orderResult,
+        int    $orderNumber,
+        float  $totalSum,
+        bool   $priceVerified,
+        ?array $couponData     = null,
+        float  $discountAmount = 0.0
     ): ?int {
         try {
             $this->pdo->beginTransaction();
@@ -133,7 +174,9 @@ class OrderController
             OlaLogger::debug('ORDER_INSERT_START', ['order_number' => $orderNumber, 'total' => $totalSum]);
             $dbOrderId = OrderModel::save(
                 $this->pdo, $orderNumber, $customerId,
-                $payload, $totalSum, $priceVerified, $idempotency
+                $payload, $totalSum, $priceVerified, $idempotency,
+                $couponData ? (int) $couponData['id'] : null,
+                $discountAmount
             );
             OlaLogger::debug('ORDER_INSERT_DONE', ['db_order_id' => $dbOrderId]);
 
@@ -144,6 +187,22 @@ class OrderController
 
             $this->pdo->commit();
             OlaLogger::info('TRANSACTION_COMMITTED', ['db_order_id' => $dbOrderId]);
+
+            // Логуємо використання купона після успішного commit
+            if ($couponData !== null && $discountAmount > 0.0) {
+                log_coupon_usage(
+                    $this->pdo,
+                    (int) $couponData['id'],
+                    $dbOrderId,
+                    $discountAmount,
+                    $customerId
+                );
+                OlaLogger::info('COUPON_USAGE_LOGGED', [
+                    'coupon_id'       => $couponData['id'],
+                    'order_id'        => $dbOrderId,
+                    'discount_amount' => $discountAmount,
+                ]);
+            }
 
             return $dbOrderId;
 

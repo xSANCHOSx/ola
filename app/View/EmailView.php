@@ -18,13 +18,23 @@ class EmailView
         array  $payload,
         string $subject,
         array  $orderResult,
-        float  $totalSum
+        float  $totalSum,
+        float  $baseTotal      = 0.0,
+        float  $discountAmount = 0.0
     ): string {
         $customerTable = self::buildCustomerTable($payload);
-        $productTable  = self::buildProductTable($orderResult, $totalSum);
-        $couponHtml    = !empty($payload['coupon'])
-            ? '<p><strong>Купон:</strong> ' . htmlspecialchars($payload['coupon']) . '</p>'
-            : '';
+        $productTable  = self::buildProductTable($orderResult, $totalSum, $baseTotal, $discountAmount);
+        $couponHtml    = '';
+        if (!empty($payload['coupon']) && $discountAmount > 0.0) {
+            $couponHtml = '<p style="margin-top:12px;">'
+                . '<strong>Купон:</strong> ' . htmlspecialchars($payload['coupon'])
+                . ' &mdash; скидка <strong>' . number_format($discountAmount, 2, '.', '') . ' руб.</strong>'
+                . '</p>';
+        } elseif (!empty($payload['coupon'])) {
+            $couponHtml = '<p style="margin-top:12px;color:#999;">'
+                . '<strong>Купон:</strong> ' . htmlspecialchars($payload['coupon'])
+                . ' (не применён)</p>';
+        }
 
         $color = self::PRIMARY_COLOR;
 
@@ -76,8 +86,12 @@ class EmailView
         return $html;
     }
 
-    private static function buildProductTable(array $orderResult, float $totalSum): string
-    {
+    private static function buildProductTable(
+        array $orderResult,
+        float $totalSum,
+        float $baseTotal      = 0.0,
+        float $discountAmount = 0.0
+    ): string {
         $color = self::PRIMARY_COLOR;
         $thStyle = "padding:8px;border:1px solid #ddd;background:{$color};color:#fff;";
 
@@ -103,8 +117,18 @@ class EmailView
         }
         $tbody .= '</tbody>';
 
-        $tfoot = '<tfoot><tr style="font-weight:bold;background:#f9f9f9;">'
-            . '<td colspan="3" style="padding:8px;border:1px solid #ddd;">Итого:</td>'
+        $discountRow = '';
+        if ($discountAmount > 0.0) {
+            $discountRow = '<tr style="color:#ba385c;">'
+                . '<td colspan="3" style="padding:8px;border:1px solid #ddd;">Скидка по купону:</td>'
+                . '<td style="padding:8px;border:1px solid #ddd;">−'
+                    . number_format($discountAmount, 2, '.', '') . ' руб.</td>'
+                . '</tr>';
+        }
+
+        $tfoot = '<tfoot>' . $discountRow
+            . '<tr style="font-weight:bold;background:#f9f9f9;">'
+            . '<td colspan="3" style="padding:8px;border:1px solid #ddd;">Итого к оплате:</td>'
             . '<td style="padding:8px;border:1px solid #ddd;">'
                 . number_format($totalSum, 2, '.', '') . ' руб.</td>'
             . '</tr></tfoot>';

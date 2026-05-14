@@ -154,8 +154,8 @@ if (isset($_GET['edit'])) {
 
 	.btn-remove-image {
 		position: absolute;
-		top: -10px;
-		right: -10px;
+		top: 0px;
+		right: 0px;
 		background: #dc3545;
 		border: none;
 		border-radius: 50%;
@@ -183,6 +183,8 @@ if (isset($_GET['edit'])) {
 	.btn-remove-image svg {
 		width: 20px;
 		height: 20px;
+		display: block;
+		margin: 0 auto;
 		stroke: white;
 		stroke-width: 2.5;
 		stroke-linecap: round;

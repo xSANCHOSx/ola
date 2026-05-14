@@ -26,6 +26,7 @@ function get_active_coupon(PDO $pdo, string $code): ?array
             AND (valid_from IS NULL OR valid_from <= NOW())
             AND (valid_to IS NULL OR valid_to >= NOW())
             LIMIT 1
+            FOR UPDATE
         ');
         $stmt->execute([strtoupper($code)]);
         $coupon = $stmt->fetch();

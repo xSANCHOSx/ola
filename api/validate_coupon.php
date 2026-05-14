@@ -46,6 +46,12 @@ try {
     $validation = validate_coupon_for_order($pdo, $couponCode, $orderSum);
     
     if (!$validation['valid']) {
+        dev_log_runtime(sprintf(
+            'Coupon REJECTED: code=%s sum=%.2f reason=%s',
+            $couponCode,
+            $orderSum,
+            $validation['error'] ?? 'unknown'
+        ));
         http_response_code(400);
         echo json_encode([
             'valid' => false,

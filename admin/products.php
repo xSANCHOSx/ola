@@ -445,6 +445,14 @@ if (isset($_GET['edit'])) {
 <body>
 	<div class="container">
 		<?php require __DIR__ . '/_nav.php'; ?>
+		<!-- Кнопка добавления нового товара -->
+		<?php if (!$edit): ?>
+		<div style="margin-top: 20px;">
+			<button type="button" class="btn btn-primary btn-lg" onclick="location.href='/admin/products.php?edit=0'">
+				➕ Добавить новый товар
+			</button>
+		</div>
+		<?php endif; ?>
 		<h3>Товары</h3>
 
 		<?php if ($edit): ?>

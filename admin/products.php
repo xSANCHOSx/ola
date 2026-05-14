@@ -116,7 +116,7 @@ if (isset($_GET['edit'])) {
 
 	.image-preview-container {
 		position: relative;
-		display: inline-block;
+		display: block;
 		width: 100%;
 		max-width: 300px;
 		margin: 0 auto;
@@ -136,46 +136,36 @@ if (isset($_GET['edit'])) {
 		color: #999;
 		font-size: 16px;
 		position: relative;
-		overflow: hidden;
+		overflow: visible;
 	}
 
-	.image-placeholder:hover {
-		background: #dee2e6;
-		border-color: #adb5bd;
-	}
-
-	.image-preview-img {
-		width: 100%;
-		height: 100%;
-		object-fit: contain;
-		border-radius: 8px;
-	}
-
-	.image-upload-input {
-		display: none;
+	.image-placeholder:hover .btn-remove-image.show {
+		opacity: 1;
+		visibility: visible;
 	}
 
 	.btn-remove-image {
 		position: absolute;
-		top: 8px;
-		right: 8px;
-		background: rgba(220, 53, 69, 0.9);
+		top: -10px;
+		right: -10px;
+		background: #dc3545;
 		border: none;
 		border-radius: 50%;
-		width: 32px;
-		height: 32px;
+		width: 36px;
+		height: 36px;
 		padding: 0;
 		display: none;
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
 		transition: all 0.2s;
-		z-index: 10;
+		z-index: 20;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 	}
 
 	.btn-remove-image:hover {
-		background: rgba(220, 53, 69, 1);
-		transform: scale(1.1);
+		background: #c82333;
+		transform: scale(1.15);
 	}
 
 	.btn-remove-image.show {
@@ -183,12 +173,17 @@ if (isset($_GET['edit'])) {
 	}
 
 	.btn-remove-image svg {
-		width: 18px;
-		height: 18px;
+		width: 20px;
+		height: 20px;
 		stroke: white;
-		stroke-width: 2;
+		stroke-width: 2.5;
 		stroke-linecap: round;
 		stroke-linejoin: round;
+	}
+
+	.image-upload-input {
+		display: none !important;
+		visibility: hidden !important;
 	}
 
 	.form-group-wrapper {
@@ -230,7 +225,6 @@ if (isset($_GET['edit'])) {
 		background: #f8f9fa;
 		border-radius: 8px;
 		padding: 15px;
-		margin-bottom: 20px;
 	}
 
 	.status-row {
@@ -259,7 +253,6 @@ if (isset($_GET['edit'])) {
 		transition: all 0.3s;
 		border: none;
 		width: 100%;
-		font-size: 0.95rem;
 	}
 
 	.status-badge.active {
@@ -401,7 +394,6 @@ if (isset($_GET['edit'])) {
 									</select>
 								</div>
 								<div class="form-group-wrapper">
-									<label>&nbsp;</label>
 									<button type="button" class="status-badge <?= !empty($edit['in_stock']) ? 'active' : 'inactive' ?>"
 										id="inStockToggle" onclick="toggleInStock()">
 										<?= !empty($edit['in_stock']) ? '✓ В наличии' : '✗ Нет' ?>
@@ -466,24 +458,26 @@ if (isset($_GET['edit'])) {
 						<div class="image-section">
 							<div class="image-preview-container">
 								<div id="imagePreview" class="image-placeholder"
-									onclick="document.getElementById('imageUpload').click();">
+									onclick="document.getElementById('imageUpload').click();" style="cursor: pointer;">
 									<?php if (!empty($edit['image'])): ?>
 									<img src="/<?= admin_h((string)$edit['image']) ?>" alt="Product" class="image-preview-img">
 									<?php else: ?>
 									<span>📷 Нажмите для загрузки</span>
 									<?php endif; ?>
+									<button type="button" class="btn-remove-image <?= !empty($edit['image']) ? 'show' : '' ?>"
+										onclick="removeImage(event)">
+										<svg viewBox="0 0 24 24" fill="none">
+											<line x1="18" y1="6" x2="6" y2="18"></line>
+											<line x1="6" y1="6" x2="18" y2="18"></line>
+										</svg>
+									</button>
 								</div>
-								<button type="button" class="btn-remove-image <?= !empty($edit['image']) ? 'show' : '' ?>"
-									onclick="removeImage(event)">
-									<svg viewBox="0 0 24 24" fill="none">
-										<line x1="18" y1="6" x2="6" y2="18"></line>
-										<line x1="6" y1="6" x2="18" y2="18"></line>
-									</svg>
-								</button>
 							</div>
-							<input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*">
+							<input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*"
+								style="display: none !important;">
 						</div>
 					</div>
+
 				</div>
 
 				<!-- НИЖНЯЯ ЧАСТЬ - Описания на всю ширину -->

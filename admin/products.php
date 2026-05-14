@@ -91,7 +91,7 @@ if (isset($_GET['edit'])) {
 
 	.product-form-top {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1.5fr 1fr;
 		gap: 30px;
 	}
 
@@ -117,14 +117,14 @@ if (isset($_GET['edit'])) {
 	.image-preview-container {
 		position: relative;
 		display: block;
-		width: 280px;
-		height: 280px;
+		width: 100%;
+		height: 100%;
 		margin: 0 auto;
 	}
 
 	.image-placeholder {
-		width: 280px;
-		height: 280px;
+		width: 100%;
+		height: auto;
 		background: #e9ecef;
 		border: 2px dashed #dee2e6;
 		border-radius: 8px;
@@ -362,7 +362,7 @@ if (isset($_GET['edit'])) {
 
 	@media (max-width: 1200px) {
 		.product-form-top {
-			grid-template-columns: 1fr;
+			grid-template-columns: 1.5fr;
 		}
 
 		.descriptions-grid {

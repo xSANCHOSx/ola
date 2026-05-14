@@ -12,7 +12,7 @@ if ($pdo instanceof PDO) {
     $customers = $pdo->query('SELECT * FROM customers ORDER BY last_order_at DESC, id DESC LIMIT 500')->fetchAll();
     if ($customerId > 0) {
         $stmt = $pdo->prepare('
-            SELECT o.id, o.order_number, o.total, o.created_at
+            SELECT o.id, o.order_number, o.total, o.coupon, o.coupon_discount_amount, o.created_at
             FROM orders o
             WHERE o.customer_id = :id
             ORDER BY o.id DESC
@@ -157,7 +157,14 @@ if ($pdo instanceof PDO) {
                                 <?php endforeach; ?>
                             </div>
                         </td>
-                        <td><?= admin_h((string)$o['total']) ?></td>
+                        <td>
+                            <?= admin_h((string)$o['total']) ?> ₽
+                            <?php if (!empty($o['coupon']) && (float)($o['coupon_discount_amount'] ?? 0) > 0): ?>
+                                <br><small class="text-success">🎟 <?= admin_h((string)$o['coupon']) ?> &minus;<?= number_format((float)$o['coupon_discount_amount'], 0, '.', '&thinsp;') ?> ₽</small>
+                            <?php elseif (!empty($o['coupon'])): ?>
+                                <br><small class="text-muted">Купон: <?= admin_h((string)$o['coupon']) ?></small>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

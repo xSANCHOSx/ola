@@ -12,7 +12,9 @@ if ($pdo instanceof PDO) {
             o.customer_name_snapshot, 
             o.customer_phone_snapshot, 
             o.customer_email_snapshot, 
-            o.total, 
+            o.total,
+            o.coupon,
+            o.coupon_discount_amount,
             o.created_at, 
             (SELECT COALESCE(SUM(quantity),0) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
         FROM orders o 
@@ -177,7 +179,14 @@ if ($pdo instanceof PDO) {
                     </div>
                     <small class="text-muted">Всего: <?= admin_h((string)$o['items_count']) ?></small>
                 </td>
-                <td><?= admin_h((string)$o['total']) ?></td>
+                <td>
+                    <?= admin_h((string)$o['total']) ?> ₽
+                    <?php if (!empty($o['coupon']) && (float)($o['coupon_discount_amount'] ?? 0) > 0): ?>
+                        <br><small class="text-success">🎟 <?= admin_h((string)$o['coupon']) ?> &minus;<?= number_format((float)$o['coupon_discount_amount'], 0, '.', '&thinsp;') ?> ₽</small>
+                    <?php elseif (!empty($o['coupon'])): ?>
+                        <br><small class="text-muted">Купон: <?= admin_h((string)$o['coupon']) ?></small>
+                    <?php endif; ?>
+                </td>
             </tr>
         <?php endforeach; ?>
         </tbody>
@@ -358,7 +367,15 @@ if ($pdo instanceof PDO) {
                 <td>
                     <small class="text-muted">Всего: ${order.items_count}</small>
                 </td>
-                <td>${escapeHtml(order.total)}</td>
+                <td>
+                    ${escapeHtml(order.total)} ₽
+                    ${order.coupon && parseFloat(order.coupon_discount_amount) > 0
+                        ? `<br><small class="text-success">🎟 ${escapeHtml(order.coupon)} &minus;${Math.round(parseFloat(order.coupon_discount_amount)).toLocaleString('ru-RU')}&thinsp;₽</small>`
+                        : order.coupon
+                            ? `<br><small class="text-muted">Купон: ${escapeHtml(order.coupon)}</small>`
+                            : ''
+                    }
+                </td>
             `;
             tbody.appendChild(row);
         });

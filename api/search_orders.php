@@ -71,7 +71,8 @@ try {
     // SELECT — ті самі params + limit/offset
     $stmt = $pdo->prepare('
         SELECT o.id, o.order_number, o.customer_name_snapshot, o.customer_phone_snapshot,
-               o.customer_email_snapshot, o.total, o.created_at,
+               o.customer_email_snapshot, o.total, o.coupon, o.coupon_discount_amount,
+               o.created_at,
                (SELECT COALESCE(SUM(quantity),0) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
         FROM orders o' . $where . ' ORDER BY o.id DESC LIMIT :limit OFFSET :offset');
     foreach ($params as $k => $v) { $stmt->bindValue(':' . $k, $v); }

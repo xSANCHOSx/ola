@@ -117,14 +117,14 @@ if (isset($_GET['edit'])) {
 	.image-preview-container {
 		position: relative;
 		display: block;
-		width: 100%;
-		max-width: 300px;
+		width: 280px;
+		height: 280px;
 		margin: 0 auto;
 	}
 
 	.image-placeholder {
-		width: 100%;
-		aspect-ratio: 1;
+		width: 280px;
+		height: 280px;
 		background: #e9ecef;
 		border: 2px dashed #dee2e6;
 		border-radius: 8px;
@@ -136,7 +136,15 @@ if (isset($_GET['edit'])) {
 		color: #999;
 		font-size: 16px;
 		position: relative;
-		overflow: visible;
+		overflow: hidden;
+	}
+
+	.image-preview-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 8px;
+		display: block;
 	}
 
 	.image-placeholder:hover .btn-remove-image.show {

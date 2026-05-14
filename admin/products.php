@@ -65,6 +65,7 @@ if ($pdo instanceof PDO) {
 $edit = null;
 if (isset($_GET['edit'])) {
     $editId = (int)$_GET['edit'];
+    $edit = []; // порожній масив = новий товар; null = список без форми
     foreach ($products as $p) {
         if ((int)$p['id'] === $editId) {
             $edit = $p;
@@ -445,17 +446,9 @@ if (isset($_GET['edit'])) {
 <body>
 	<div class="container">
 		<?php require __DIR__ . '/_nav.php'; ?>
-		<!-- Кнопка добавления нового товара -->
-		<?php if (!$edit): ?>
-		<div style="margin-top: 20px;">
-			<button type="button" class="btn btn-primary btn-lg" onclick="location.href='/admin/products.php?edit=0'">
-				➕ Добавить новый товар
-			</button>
-		</div>
-		<?php endif; ?>
 		<h3>Товары</h3>
 
-		<?php if ($edit): ?>
+		<?php if ($edit !== null): ?>
 		<form method="post" enctype="multipart/form-data">
 			<input type="hidden" name="id" value="<?= admin_h((string)($edit['id'] ?? '')) ?>">
 			<input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
@@ -543,21 +536,20 @@ if (isset($_GET['edit'])) {
 					<div class="product-form-right">
 						<div class="image-section">
 							<div class="image-preview-container">
-								<div id="imagePreview" class="image-placeholder"
-									onclick="document.getElementById('imageUpload').click();" style="cursor: pointer;">
+								<div id="imagePreview" class="image-placeholder">
 									<?php if (!empty($edit['image'])): ?>
 									<img src="/<?= admin_h((string)$edit['image']) ?>" alt="Product" class="image-preview-img">
 									<?php else: ?>
 									<span>📷 Нажмите для загрузки</span>
 									<?php endif; ?>
-									<button type="button" class="btn-remove-image <?= !empty($edit['image']) ? 'show' : '' ?>"
-										onclick="removeImage(event)">
-										<svg viewBox="0 0 24 24" fill="none">
-											<line x1="18" y1="6" x2="6" y2="18"></line>
-											<line x1="6" y1="6" x2="18" y2="18"></line>
-										</svg>
-									</button>
 								</div>
+								<button type="button" class="btn-remove-image <?= !empty($edit['image']) ? 'show' : '' ?>"
+									id="btnRemoveImage" onclick="removeImage(event)">
+									<svg viewBox="0 0 24 24" fill="none">
+										<line x1="18" y1="6" x2="6" y2="18"></line>
+										<line x1="6" y1="6" x2="18" y2="18"></line>
+									</svg>
+								</button>
 							</div>
 							<input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*"
 								style="display: none !important;">
@@ -650,7 +642,7 @@ if (isset($_GET['edit'])) {
 		</div>
 
 		<!-- Кнопка добавления нового товара -->
-		<?php if (!$edit): ?>
+		<?php if ($edit === null): ?>
 		<div style="margin-top: 20px;">
 			<button type="button" class="btn btn-primary btn-lg" onclick="location.href='/admin/products.php?edit=0'">
 				➕ Добавить новый товар
@@ -660,49 +652,52 @@ if (isset($_GET['edit'])) {
 	</div>
 
 	<script>
-	// Обработка загрузки фото
-	document.getElementById('imageUpload').addEventListener('change', function(e) {
-		const file = e.target.files[0];
-		if (file) {
-			const reader = new FileReader();
+	(function() {
+		var imageUpload = document.getElementById('imageUpload');
+		if (!imageUpload) return; // форма відсутня на сторінці
+
+		var imagePreview = document.getElementById('imagePreview');
+		var btnRemove = document.getElementById('btnRemoveImage');
+
+		// Клік на превью — відкрити діалог вибору файлу
+		imagePreview.addEventListener('click', function() {
+			imageUpload.click();
+		});
+
+		// Завантаження фото
+		imageUpload.addEventListener('change', function(e) {
+			var file = e.target.files[0];
+			if (!file) return;
+			var reader = new FileReader();
 			reader.onload = function(event) {
-				const preview = document.getElementById('imagePreview');
-				preview.innerHTML = '<img src="' + event.target.result + '" alt="Preview" class="image-preview-img">';
-				document.querySelector('.btn-remove-image').classList.add('show');
+				imagePreview.innerHTML = '<img src="' + event.target.result +
+					'" alt="Preview" class="image-preview-img">';
+				btnRemove.classList.add('show');
 			};
 			reader.readAsDataURL(file);
-		}
-	});
+		});
 
-	// Удаление фото
-	function removeImage(event) {
-		event.preventDefault();
-		document.getElementById('imageInput').value = '';
-		document.getElementById('imageUpload').value = '';
-		const preview = document.getElementById('imagePreview');
-		preview.innerHTML = '<span>📷 Нажмите для загрузки</span>';
-		document.querySelector('.btn-remove-image').classList.remove('show');
-	}
-
-	// Клик на превью для открытия диалога выбора файла
-	document.getElementById('imagePreview').addEventListener('click', function() {
-		document.getElementById('imageUpload').click();
-	});
+		// Видалення фото
+		window.removeImage = function(event) {
+			event.preventDefault();
+			event.stopPropagation();
+			document.getElementById('imageInput').value = '';
+			imageUpload.value = '';
+			imagePreview.innerHTML = '<span>📷 Нажмите для загрузки</span>';
+			btnRemove.classList.remove('show');
+		};
+	})();
 
 	// Переключение статуса в наличии
 	function toggleInStock() {
-		const toggle = document.getElementById('inStockToggle');
-		const input = document.getElementById('in_stock');
-		const isActive = toggle.classList.contains('active');
-
-		if (isActive) {
-			toggle.classList.remove('active');
-			toggle.classList.add('inactive');
+		var toggle = document.getElementById('inStockToggle');
+		var input = document.getElementById('in_stock');
+		if (toggle.classList.contains('active')) {
+			toggle.classList.replace('active', 'inactive');
 			toggle.textContent = '✗ Нет';
 			input.value = '0';
 		} else {
-			toggle.classList.remove('inactive');
-			toggle.classList.add('active');
+			toggle.classList.replace('inactive', 'active');
 			toggle.textContent = '✓ В наличии';
 			input.value = '1';
 		}

@@ -77,546 +77,557 @@ if (isset($_GET['edit'])) {
 <html lang="ru">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админка - Товары</title>
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <style>
-        .product-form-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Админка - Товары</title>
+	<link rel="stylesheet" href="/css/bootstrap.min.css">
+	<style>
+	.product-form-wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 30px;
+		margin-bottom: 40px;
+	}
 
-        .product-form-top {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
+	.product-form-top {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 30px;
+	}
 
-        .product-form-right {
-            display: flex;
-            flex-direction: column;
-        }
+	.product-form-right {
+		display: flex;
+		flex-direction: column;
+	}
 
-        .product-form-left {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+	.product-form-left {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
 
-        .image-section {
-            position: relative;
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-        }
+	.image-section {
+		position: relative;
+		background: #f8f9fa;
+		border-radius: 8px;
+		padding: 20px;
+		text-align: center;
+	}
 
-        .image-preview-container {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-            max-width: 300px;
-            margin: 0 auto;
-        }
+	.image-preview-container {
+		position: relative;
+		display: inline-block;
+		width: 100%;
+		max-width: 300px;
+		margin: 0 auto;
+	}
 
-        .image-placeholder {
-            width: 100%;
-            aspect-ratio: 1;
-            background: #e9ecef;
-            border: 2px dashed #dee2e6;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: #999;
-            font-size: 16px;
-            position: relative;
-            overflow: hidden;
-        }
+	.image-placeholder {
+		width: 100%;
+		aspect-ratio: 1;
+		background: #e9ecef;
+		border: 2px dashed #dee2e6;
+		border-radius: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.3s;
+		color: #999;
+		font-size: 16px;
+		position: relative;
+		overflow: hidden;
+	}
 
-        .image-placeholder:hover {
-            background: #dee2e6;
-            border-color: #adb5bd;
-        }
+	.image-placeholder:hover {
+		background: #dee2e6;
+		border-color: #adb5bd;
+	}
 
-        .image-preview-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            border-radius: 8px;
-        }
+	.image-preview-img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		border-radius: 8px;
+	}
 
-        .image-upload-input {
-            display: none;
-        }
+	.image-upload-input {
+		display: none;
+	}
 
-        .btn-remove-image {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(220, 53, 69, 0.9);
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 10;
-        }
+	.btn-remove-image {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		background: rgba(220, 53, 69, 0.9);
+		border: none;
+		border-radius: 50%;
+		width: 32px;
+		height: 32px;
+		padding: 0;
+		display: none;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.2s;
+		z-index: 10;
+	}
 
-        .btn-remove-image:hover {
-            background: rgba(220, 53, 69, 1);
-            transform: scale(1.1);
-        }
+	.btn-remove-image:hover {
+		background: rgba(220, 53, 69, 1);
+		transform: scale(1.1);
+	}
 
-        .btn-remove-image.show {
-            display: flex;
-        }
+	.btn-remove-image.show {
+		display: flex;
+	}
 
-        .btn-remove-image svg {
-            width: 18px;
-            height: 18px;
-            stroke: white;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
+	.btn-remove-image svg {
+		width: 18px;
+		height: 18px;
+		stroke: white;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
 
-        .form-group-wrapper {
-            margin-bottom: 15px;
-        }
+	.form-group-wrapper {
+		margin-bottom: 15px;
+	}
 
-        .form-group-wrapper label {
-            font-weight: 600;
-            margin-bottom: 5px;
-            display: block;
-            color: #333;
-        }
+	.form-group-wrapper label {
+		font-weight: 600;
+		margin-bottom: 5px;
+		display: block;
+		color: #333;
+	}
 
-        .form-group-wrapper input,
-        .form-group-wrapper textarea,
-        .form-group-wrapper select {
-            width: 100%;
-        }
+	.form-group-wrapper input,
+	.form-group-wrapper textarea,
+	.form-group-wrapper select {
+		width: 100%;
+	}
 
-        .form-row-inline {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
+	.form-row-inline {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 15px;
+	}
 
-        .form-row-inline.two-cols {
-            grid-template-columns: repeat(2, 1fr);
-        }
+	.form-row-inline.two-cols {
+		grid-template-columns: repeat(2, 1fr);
+	}
 
-        .form-row-inline.three-cols {
-            grid-template-columns: repeat(3, 1fr);
-        }
+	.form-row-inline.three-cols {
+		grid-template-columns: repeat(3, 1fr);
+	}
 
-        .form-row-inline.full {
-            grid-template-columns: 1fr;
-        }
+	.form-row-inline.full {
+		grid-template-columns: 1fr;
+	}
 
-        .status-section {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
+	.status-section {
+		background: #f8f9fa;
+		border-radius: 8px;
+		padding: 15px;
+		margin-bottom: 20px;
+	}
 
-        .status-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            align-items: flex-end;
-        }
+	.status-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 12px;
+		align-items: flex-end;
+	}
 
-        .status-row .form-group-wrapper {
-            margin-bottom: 0;
-        }
+	.status-row .form-group-wrapper {
+		margin-bottom: 0;
+	}
 
-        .status-row .form-group-wrapper label {
-            margin-bottom: 3px;
-            font-size: 0.9rem;
-        }
+	.status-row .form-group-wrapper label {
+		margin-bottom: 3px;
+		font-size: 0.9rem;
+	}
 
-        .status-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-            width: 100%;
-            font-size: 0.95rem;
-        }
+	.status-badge {
+		display: inline-block;
+		padding: 8px 16px;
+		border-radius: 6px;
+		font-weight: 600;
+		text-align: center;
+		cursor: pointer;
+		transition: all 0.3s;
+		border: none;
+		width: 100%;
+		font-size: 0.95rem;
+	}
 
-        .status-badge.active {
-            background: #28a745;
-            color: white;
-        }
+	.status-badge.active {
+		background: #28a745;
+		color: white;
+	}
 
-        .status-badge.inactive {
-            background: #dc3545;
-            color: white;
-        }
+	.status-badge.inactive {
+		background: #dc3545;
+		color: white;
+	}
 
-        .descriptions-section {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
+	.descriptions-section {
+		background: #f8f9fa;
+		border-radius: 8px;
+		padding: 20px;
+		margin-bottom: 20px;
+	}
 
-        .descriptions-section h5 {
-            margin-bottom: 15px;
-            color: #333;
-            font-weight: 600;
-        }
+	.descriptions-section h5 {
+		margin-bottom: 15px;
+		color: #333;
+		font-weight: 600;
+	}
 
-        .descriptions-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
+	.descriptions-grid {
+		display: grid;
+		grid-template-columns: repeat(1, 1fr);
+		gap: 15px;
+	}
 
-        .descriptions-grid .form-group-wrapper {
-            margin-bottom: 0;
-        }
+	.descriptions-grid .form-group-wrapper {
+		margin-bottom: 0;
+	}
 
-        .descriptions-grid .form-group-wrapper label {
-            font-size: 0.9rem;
-            margin-bottom: 3px;
-        }
+	.descriptions-grid .form-group-wrapper label {
+		margin-bottom: 3px;
+	}
 
-        .descriptions-grid .form-group-wrapper textarea {
-            font-size: 0.9rem;
-        }
+	.descriptions-grid textarea {
+		min-height: 100px;
+	}
 
-        .seo-section {
-            background: #e7f3ff;
-            border-left: 4px solid #007bff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
+	.seo-section {
+		background: #e7f3ff;
+		border-left: 4px solid #007bff;
+		border-radius: 8px;
+		padding: 20px;
+		margin-bottom: 20px;
+	}
 
-        .seo-section h5 {
-            margin-bottom: 15px;
-            color: #0056b3;
-            font-weight: 600;
-        }
+	.seo-section h5 {
+		margin-bottom: 15px;
+		color: #0056b3;
+		font-weight: 600;
+	}
 
-        .form-actions {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #dee2e6;
-            display: flex;
-            gap: 10px;
-        }
+	.form-actions {
+		margin-top: 30px;
+		padding-top: 20px;
+		border-top: 1px solid #dee2e6;
+		display: flex;
+		gap: 10px;
+	}
 
-        .form-actions button,
-        .form-actions a {
-            padding: 12px 24px;
-            font-size: 16px;
-        }
 
-        .checkbox-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
 
-        .checkbox-wrapper input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
+	.form-actions button,
+	.form-actions a {
+		padding: 12px 24px;
+		font-size: 16px;
+	}
 
-        .checkbox-wrapper label {
-            margin: 0;
-            font-weight: normal;
-        }
+	.checkbox-wrapper {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-top: 10px;
+	}
 
-        .products-list-section {
-            margin-top: 50px;
-        }
+	.checkbox-wrapper input[type="checkbox"] {
+		width: auto;
+		margin: 0;
+	}
 
-        .products-list-section h4 {
-            margin-bottom: 20px;
-            color: #333;
-        }
+	.checkbox-wrapper label {
+		margin: 0;
+		font-weight: normal;
+	}
 
-        @media (max-width: 1200px) {
-            .product-form-top {
-                grid-template-columns: 1fr;
-            }
+	.products-list-section {
+		margin-top: 50px;
+	}
 
-            .descriptions-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+	.products-list-section h4 {
+		margin-bottom: 20px;
+		color: #333;
+	}
+
+	@media (max-width: 1200px) {
+		.product-form-top {
+			grid-template-columns: 1fr;
+		}
+
+		.descriptions-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+	</style>
 </head>
 
 <body>
-    <div class="container">
-        <?php require __DIR__ . '/_nav.php'; ?>
-        <h3>Товары</h3>
+	<div class="container">
+		<?php require __DIR__ . '/_nav.php'; ?>
+		<h3>Товары</h3>
 
-        <?php if ($edit): ?>
-            <form method="post" enctype="multipart/form-data">
-                <input type="hidden" name="id" value="<?= admin_h((string)($edit['id'] ?? '')) ?>">
-                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                <input type="hidden" name="image" id="imageInput" value="<?= admin_h((string)($edit['image'] ?? '')) ?>">
+		<?php if ($edit): ?>
+		<form method="post" enctype="multipart/form-data">
+			<input type="hidden" name="id" value="<?= admin_h((string)($edit['id'] ?? '')) ?>">
+			<input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+			<input type="hidden" name="image" id="imageInput" value="<?= admin_h((string)($edit['image'] ?? '')) ?>">
 
-                <div class="product-form-wrapper">
-                    <!-- ВЕРХНЯЯ ЧАСТЬ - Две колонки -->
-                    <div class="product-form-top">
-                        <!-- ЛЕВАЯ ЧАСТЬ - Контент -->
-                        <div class="product-form-left">
-                            <!-- Статус и наличие -->
-                            <div class="status-section">
-                                <div class="status-row">
-                                    <div class="form-group-wrapper">
-                                        <label for="status">Статус</label>
-                                        <select class="form-control" id="status" name="status">
-                                            <option value="">Выбрать</option>
-                                            <option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активный</option>
-                                            <option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Предзаказ</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group-wrapper">
-                                        <label>&nbsp;</label>
-                                        <button type="button" class="status-badge <?= !empty($edit['in_stock']) ? 'active' : 'inactive' ?>" id="inStockToggle" onclick="toggleInStock()">
-                                            <?= !empty($edit['in_stock']) ? '✓ В наличии' : '✗ Нет' ?>
-                                        </button>
-                                        <input type="hidden" id="in_stock" name="in_stock" value="<?= !empty($edit['in_stock']) ? '1' : '0' ?>">
-                                    </div>
-                                </div>
-                            </div>
+			<div class="product-form-wrapper">
+				<!-- ВЕРХНЯЯ ЧАСТЬ - Две колонки -->
+				<div class="product-form-top">
+					<!-- ЛЕВАЯ ЧАСТЬ - Контент -->
+					<div class="product-form-left">
+						<!-- Статус и наличие -->
+						<div class="status-section">
+							<div class="status-row">
+								<div class="form-group-wrapper">
+									<label for="status">Статус</label>
+									<select class="form-control" id="status" name="status">
+										<option value="">Выбрать</option>
+										<option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активный
+										</option>
+										<option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Предзаказ
+										</option>
+									</select>
+								</div>
+								<div class="form-group-wrapper">
+									<label>&nbsp;</label>
+									<button type="button" class="status-badge <?= !empty($edit['in_stock']) ? 'active' : 'inactive' ?>"
+										id="inStockToggle" onclick="toggleInStock()">
+										<?= !empty($edit['in_stock']) ? '✓ В наличии' : '✗ Нет' ?>
+									</button>
+									<input type="hidden" id="in_stock" name="in_stock"
+										value="<?= !empty($edit['in_stock']) ? '1' : '0' ?>">
+								</div>
+							</div>
+						</div>
 
-                            <!-- Основные данные товара -->
-                            <div class="form-group-wrapper">
-                                <label for="external_id">ID товара *</label>
-                                <input type="text" class="form-control" id="external_id" name="external_id"
-                                    value="<?= admin_h((string)($edit['external_id'] ?? '')) ?>" required>
-                            </div>
+						<!-- Основные данные товара -->
+						<div class="form-group-wrapper">
+							<label for="external_id">ID товара *</label>
+							<input type="text" class="form-control" id="external_id" name="external_id"
+								value="<?= admin_h((string)($edit['external_id'] ?? '')) ?>" required>
+						</div>
 
-                            <div class="form-row-inline two-cols">
-                                <div class="form-group-wrapper">
-                                    <label for="cat_number">Код каталога</label>
-                                    <input type="text" class="form-control" id="cat_number" name="cat_number"
-                                        value="<?= admin_h((string)($edit['cat_number'] ?? '')) ?>">
-                                </div>
-                                <div class="form-group-wrapper">
-                                    <label for="name">Название *</label>
-                                    <input type="text" class="form-control" id="name" name="name"
-                                        value="<?= admin_h((string)($edit['name'] ?? '')) ?>" required>
-                                </div>
-                            </div>
+						<div class="form-row-inline two-cols">
+							<div class="form-group-wrapper">
+								<label for="cat_number">Код каталога</label>
+								<input type="text" class="form-control" id="cat_number" name="cat_number"
+									value="<?= admin_h((string)($edit['cat_number'] ?? '')) ?>">
+							</div>
+							<div class="form-group-wrapper">
+								<label for="name">Название *</label>
+								<input type="text" class="form-control" id="name" name="name"
+									value="<?= admin_h((string)($edit['name'] ?? '')) ?>" required>
+							</div>
+						</div>
 
-                            <!-- Цены -->
-                            <div class="form-row-inline two-cols">
-                                <div class="form-group-wrapper">
-                                    <label for="price">Текущая цена *</label>
-                                    <input type="number" step="0.01" class="form-control" id="price" name="price"
-                                        value="<?= admin_h((string)($edit['price'] ?? '0')) ?>" required>
-                                </div>
-                                <div class="form-group-wrapper">
-                                    <label for="old_price">Старая цена</label>
-                                    <input type="number" step="0.01" class="form-control" id="old_price" name="old_price"
-                                        value="<?= admin_h((string)($edit['old_price'] ?? '0')) ?>">
-                                </div>
-                            </div>
+						<!-- Цены -->
+						<div class="form-row-inline two-cols">
+							<div class="form-group-wrapper">
+								<label for="price">Текущая цена *</label>
+								<input type="number" step="0.01" class="form-control" id="price" name="price"
+									value="<?= admin_h((string)($edit['price'] ?? '0')) ?>" required>
+							</div>
+							<div class="form-group-wrapper">
+								<label for="old_price">Старая цена</label>
+								<input type="number" step="0.01" class="form-control" id="old_price" name="old_price"
+									value="<?= admin_h((string)($edit['old_price'] ?? '0')) ?>">
+							</div>
+						</div>
 
-                            <!-- URL и Объем -->
-                            <div class="form-row-inline two-cols">
-                                <div class="form-group-wrapper">
-                                    <label for="link">URL (Slug) *</label>
-                                    <input type="text" class="form-control" id="link" name="link"
-                                        value="<?= admin_h((string)($edit['link'] ?? '')) ?>" required>
-                                </div>
-                                <div class="form-group-wrapper">
-                                    <label for="volume">Объем</label>
-                                    <input type="text" class="form-control" id="volume" name="volume"
-                                        value="<?= admin_h((string)($edit['volume'] ?? '')) ?>" placeholder="напр. 500мл, 1л">
-                                </div>
-                            </div>
-                        </div>
+						<!-- URL и Объем -->
+						<div class="form-row-inline two-cols">
+							<div class="form-group-wrapper">
+								<label for="link">URL (Slug) *</label>
+								<input type="text" class="form-control" id="link" name="link"
+									value="<?= admin_h((string)($edit['link'] ?? '')) ?>" required>
+							</div>
+							<div class="form-group-wrapper">
+								<label for="volume">Объем</label>
+								<input type="text" class="form-control" id="volume" name="volume"
+									value="<?= admin_h((string)($edit['volume'] ?? '')) ?>" placeholder="напр. 500мл, 1л">
+							</div>
+						</div>
+					</div>
 
-                        <!-- ПРАВАЯ ЧАСТЬ - Фото -->
-                        <div class="product-form-right">
-                            <div class="image-section">
-                                <div class="image-preview-container">
-                                    <div id="imagePreview" class="image-placeholder" onclick="document.getElementById('imageUpload').click();">
-                                        <?php if (!empty($edit['image'])): ?>
-                                            <img src="/<?= admin_h((string)$edit['image']) ?>" alt="Product" class="image-preview-img">
-                                        <?php else: ?>
-                                            <span>📷 Нажмите для загрузки</span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <button type="button" class="btn-remove-image <?= !empty($edit['image']) ? 'show' : '' ?>" onclick="removeImage(event)">
-                                        <svg viewBox="0 0 24 24" fill="none">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*">
-                            </div>
-                        </div>
-                    </div>
+					<!-- ПРАВАЯ ЧАСТЬ - Фото -->
+					<div class="product-form-right">
+						<div class="image-section">
+							<div class="image-preview-container">
+								<div id="imagePreview" class="image-placeholder"
+									onclick="document.getElementById('imageUpload').click();">
+									<?php if (!empty($edit['image'])): ?>
+									<img src="/<?= admin_h((string)$edit['image']) ?>" alt="Product" class="image-preview-img">
+									<?php else: ?>
+									<span>📷 Нажмите для загрузки</span>
+									<?php endif; ?>
+								</div>
+								<button type="button" class="btn-remove-image <?= !empty($edit['image']) ? 'show' : '' ?>"
+									onclick="removeImage(event)">
+									<svg viewBox="0 0 24 24" fill="none">
+										<line x1="18" y1="6" x2="6" y2="18"></line>
+										<line x1="6" y1="6" x2="18" y2="18"></line>
+									</svg>
+								</button>
+							</div>
+							<input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*">
+						</div>
+					</div>
+				</div>
 
-                    <!-- НИЖНЯЯ ЧАСТЬ - Описания на всю ширину -->
-                    <div class="descriptions-section">
-                        <h5>📝 Описания</h5>
-                        <div class="descriptions-grid">
-                            <div class="form-group-wrapper">
-                                <label for="short_desc">Краткое</label>
-                                <textarea class="form-control" id="short_desc" rows="3" name="short_desc"><?= admin_h((string)($edit['short_desc'] ?? '')) ?></textarea>
-                            </div>
+				<!-- НИЖНЯЯ ЧАСТЬ - Описания на всю ширину -->
+				<div class="descriptions-section">
+					<h5>📝 Описания</h5>
+					<div class="descriptions-grid">
+						<div class="form-group-wrapper">
+							<label for="short_desc">Краткое</label>
+							<textarea class="form-control" id="short_desc" rows="3"
+								name="short_desc"><?= admin_h((string)($edit['short_desc'] ?? '')) ?></textarea>
+						</div>
 
-                            <div class="form-group-wrapper">
-                                <label for="desc">Обычное</label>
-                                <textarea class="form-control" id="desc" rows="3" name="desc"><?= admin_h((string)($edit['desc'] ?? '')) ?></textarea>
-                            </div>
+						<div class="form-group-wrapper">
+							<label for="desc">Обычное</label>
+							<textarea class="form-control" id="desc" rows="3"
+								name="desc"><?= admin_h((string)($edit['desc'] ?? '')) ?></textarea>
+						</div>
 
-                            <div class="form-group-wrapper">
-                                <label for="full_desc">Полное</label>
-                                <textarea class="form-control" id="full_desc" rows="3" name="full_desc"><?= admin_h((string)($edit['full_desc'] ?? '')) ?></textarea>
-                            </div>
-                        </div>
-                    </div>
+						<div class="form-group-wrapper">
+							<label for="full_desc">Полное</label>
+							<textarea class="form-control" id="full_desc" rows="3"
+								name="full_desc"><?= admin_h((string)($edit['full_desc'] ?? '')) ?></textarea>
+						</div>
+					</div>
+				</div>
 
-                    <!-- SEO модуль -->
-                    <div class="seo-section">
-                        <h5>🔍 SEO</h5>
-                        <div class="form-row-inline two-cols">
-                            <div class="form-group-wrapper">
-                                <label for="seo_title">SEO Title</label>
-                                <input type="text" class="form-control" id="seo_title" name="seo_title"
-                                    value="<?= admin_h((string)($edit['seo_title'] ?? '')) ?>">
-                            </div>
-                            <div class="form-group-wrapper">
-                                <label for="seo_description">SEO Description</label>
-                                <textarea class="form-control" id="seo_description" rows="2" name="seo_description"><?= admin_h((string)($edit['seo_description'] ?? '')) ?></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+				<!-- SEO модуль -->
+				<div class="seo-section">
+					<h5>🔍 SEO</h5>
+					<div class="form-row-inline two-cols">
+						<div class="form-group-wrapper">
+							<label for="seo_title">SEO Title</label>
+							<input type="text" class="form-control" id="seo_title" name="seo_title"
+								value="<?= admin_h((string)($edit['seo_title'] ?? '')) ?>">
+						</div>
+						<div class="form-group-wrapper">
+							<label for="seo_description">SEO Description</label>
+							<textarea class="form-control" id="seo_description" rows="2"
+								name="seo_description"><?= admin_h((string)($edit['seo_description'] ?? '')) ?></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
 
-                <!-- Кнопки действия -->
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-success btn-lg">💾 Сохранить</button>
-                    <a href="/admin/products.php" class="btn btn-secondary btn-lg">↩ Отмена</a>
-                </div>
-            </form>
-        <?php endif; ?>
+			<!-- Кнопки действия -->
+			<div class="form-actions">
+				<button type="submit" class="btn btn-success btn-lg">💾 Сохранить</button>
+				<a href="/admin/products.php" class="btn btn-secondary btn-lg">↩ Отмена</a>
+			</div>
+		</form>
+		<?php endif; ?>
 
-        <!-- Таблица товаров -->
-        <div class="products-list-section">
-            <h4>📦 Список товаров</h4>
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Код каталога</th>
-                        <th>Slug</th>
-                        <th>Название</th>
-                        <th>Объем</th>
-                        <th>Цена</th>
-                        <th>SEO</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($products as $p): ?>
-                        <tr>
-                            <td><?= admin_h((string)$p['external_id']) ?></td>
-                            <td><?= admin_h((string)$p['cat_number']) ?></td>
-                            <td><?= admin_h((string)$p['link']) ?></td>
-                            <td><?= admin_h((string)$p['name']) ?></td>
-                            <td><?= admin_h((string)$p['volume']) ?></td>
-                            <td><?= admin_h((string)$p['price']) ?></td>
-                            <td><?= admin_h((string)$p['seo_title']) ?></td>
-                            <td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+		<!-- Таблица товаров -->
+		<div class="products-list-section">
+			<h4>📦 Список товаров</h4>
+			<table class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>Код каталога</th>
+						<th>Slug</th>
+						<th>Название</th>
+						<th>Объем</th>
+						<th>Цена</th>
+						<th>SEO</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ($products as $p): ?>
+					<tr>
+						<td><?= admin_h((string)$p['external_id']) ?></td>
+						<td><?= admin_h((string)$p['cat_number']) ?></td>
+						<td><?= admin_h((string)$p['link']) ?></td>
+						<td><?= admin_h((string)$p['name']) ?></td>
+						<td><?= admin_h((string)$p['volume']) ?></td>
+						<td><?= admin_h((string)$p['price']) ?></td>
+						<td><?= admin_h((string)$p['seo_title']) ?></td>
+						<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
+					</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
 
-        <!-- Кнопка добавления нового товара -->
-        <?php if (!$edit): ?>
-            <div style="margin-top: 20px;">
-                <button type="button" class="btn btn-primary btn-lg" onclick="location.href='/admin/products.php?edit=0'">
-                    ➕ Добавить новый товар
-                </button>
-            </div>
-        <?php endif; ?>
-    </div>
+		<!-- Кнопка добавления нового товара -->
+		<?php if (!$edit): ?>
+		<div style="margin-top: 20px;">
+			<button type="button" class="btn btn-primary btn-lg" onclick="location.href='/admin/products.php?edit=0'">
+				➕ Добавить новый товар
+			</button>
+		</div>
+		<?php endif; ?>
+	</div>
 
-    <script>
-        // Обработка загрузки фото
-        document.getElementById('imageUpload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const preview = document.getElementById('imagePreview');
-                    preview.innerHTML = '<img src="' + event.target.result + '" alt="Preview" class="image-preview-img">';
-                    document.querySelector('.btn-remove-image').classList.add('show');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+	<script>
+	// Обработка загрузки фото
+	document.getElementById('imageUpload').addEventListener('change', function(e) {
+		const file = e.target.files[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = function(event) {
+				const preview = document.getElementById('imagePreview');
+				preview.innerHTML = '<img src="' + event.target.result + '" alt="Preview" class="image-preview-img">';
+				document.querySelector('.btn-remove-image').classList.add('show');
+			};
+			reader.readAsDataURL(file);
+		}
+	});
 
-        // Удаление фото
-        function removeImage(event) {
-            event.preventDefault();
-            document.getElementById('imageInput').value = '';
-            document.getElementById('imageUpload').value = '';
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = '<span>📷 Нажмите для загрузки</span>';
-            document.querySelector('.btn-remove-image').classList.remove('show');
-        }
+	// Удаление фото
+	function removeImage(event) {
+		event.preventDefault();
+		document.getElementById('imageInput').value = '';
+		document.getElementById('imageUpload').value = '';
+		const preview = document.getElementById('imagePreview');
+		preview.innerHTML = '<span>📷 Нажмите для загрузки</span>';
+		document.querySelector('.btn-remove-image').classList.remove('show');
+	}
 
-        // Клик на превью для открытия диалога выбора файла
-        document.getElementById('imagePreview').addEventListener('click', function() {
-            document.getElementById('imageUpload').click();
-        });
+	// Клик на превью для открытия диалога выбора файла
+	document.getElementById('imagePreview').addEventListener('click', function() {
+		document.getElementById('imageUpload').click();
+	});
 
-        // Переключение статуса в наличии
-        function toggleInStock() {
-            const toggle = document.getElementById('inStockToggle');
-            const input = document.getElementById('in_stock');
-            const isActive = toggle.classList.contains('active');
+	// Переключение статуса в наличии
+	function toggleInStock() {
+		const toggle = document.getElementById('inStockToggle');
+		const input = document.getElementById('in_stock');
+		const isActive = toggle.classList.contains('active');
 
-            if (isActive) {
-                toggle.classList.remove('active');
-                toggle.classList.add('inactive');
-                toggle.textContent = '✗ Нет';
-                input.value = '0';
-            } else {
-                toggle.classList.remove('inactive');
-                toggle.classList.add('active');
-                toggle.textContent = '✓ В наличии';
-                input.value = '1';
-            }
-        }
-    </script>
+		if (isActive) {
+			toggle.classList.remove('active');
+			toggle.classList.add('inactive');
+			toggle.textContent = '✗ Нет';
+			input.value = '0';
+		} else {
+			toggle.classList.remove('inactive');
+			toggle.classList.add('active');
+			toggle.textContent = '✓ В наличии';
+			input.value = '1';
+		}
+	}
+	</script>
 </body>
 
 </html>

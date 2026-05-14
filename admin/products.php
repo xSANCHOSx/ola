@@ -124,7 +124,7 @@ if (isset($_GET['edit'])) {
 
 	.image-placeholder {
 		width: 100%;
-		height: auto;
+		aspect-ratio: 1 / 1;
 		background: #e9ecef;
 		border: 2px dashed #dee2e6;
 		border-radius: 8px;
@@ -362,11 +362,79 @@ if (isset($_GET['edit'])) {
 
 	@media (max-width: 1200px) {
 		.product-form-top {
-			grid-template-columns: 1.5fr;
+			grid-template-columns: 1fr;
 		}
 
 		.descriptions-grid {
 			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.product-form-top {
+			grid-template-columns: 1fr;
+		}
+
+		.image-preview-container {
+			max-width: 100%;
+			width: 100%;
+		}
+
+		.image-placeholder {
+			aspect-ratio: 1 / 1;
+			max-height: 350px;
+		}
+
+		.image-section {
+			padding: 15px;
+		}
+
+		.form-row-inline.two-cols {
+			grid-template-columns: 1fr;
+		}
+
+		.form-row-inline.three-cols {
+			grid-template-columns: 1fr;
+		}
+
+		.status-row {
+			grid-template-columns: 1fr;
+		}
+
+		.form-actions {
+			flex-direction: column;
+		}
+
+		.form-actions button,
+		.form-actions a {
+			width: 100%;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.image-placeholder {
+			aspect-ratio: 1 / 1;
+			max-height: 280px;
+		}
+
+		.product-form-wrapper {
+			gap: 20px;
+		}
+
+		.status-section {
+			padding: 12px;
+		}
+
+		.descriptions-section {
+			padding: 15px;
+		}
+
+		.seo-section {
+			padding: 15px;
+		}
+
+		.form-group-wrapper label {
+			font-size: 0.9rem;
 		}
 	}
 	</style>

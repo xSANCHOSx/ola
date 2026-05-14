@@ -82,11 +82,17 @@ if (isset($_GET['edit'])) {
     <title>Админка - Товары</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <style>
-        .product-form-container {
+        .product-form-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .product-form-top {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
-            margin-bottom: 40px;
         }
 
         .product-form-right {
@@ -113,6 +119,7 @@ if (isset($_GET['edit'])) {
             display: inline-block;
             width: 100%;
             max-width: 300px;
+            margin: 0 auto;
         }
 
         .image-placeholder {
@@ -128,6 +135,8 @@ if (isset($_GET['edit'])) {
             transition: all 0.3s;
             color: #999;
             font-size: 16px;
+            position: relative;
+            overflow: hidden;
         }
 
         .image-placeholder:hover {
@@ -148,16 +157,38 @@ if (isset($_GET['edit'])) {
 
         .btn-remove-image {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 8px;
+            right: 8px;
+            background: rgba(220, 53, 69, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            padding: 0;
             display: none;
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 4px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .btn-remove-image:hover {
+            background: rgba(220, 53, 69, 1);
+            transform: scale(1.1);
         }
 
         .btn-remove-image.show {
-            display: block;
+            display: flex;
+        }
+
+        .btn-remove-image svg {
+            width: 18px;
+            height: 18px;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
         .form-group-wrapper {
@@ -198,20 +229,29 @@ if (isset($_GET['edit'])) {
         .status-section {
             background: #f8f9fa;
             border-radius: 8px;
-            padding: 20px;
+            padding: 15px;
             margin-bottom: 20px;
         }
 
         .status-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 12px;
             align-items: flex-end;
+        }
+
+        .status-row .form-group-wrapper {
+            margin-bottom: 0;
+        }
+
+        .status-row .form-group-wrapper label {
+            margin-bottom: 3px;
+            font-size: 0.9rem;
         }
 
         .status-badge {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 6px;
             font-weight: 600;
             text-align: center;
@@ -219,6 +259,7 @@ if (isset($_GET['edit'])) {
             transition: all 0.3s;
             border: none;
             width: 100%;
+            font-size: 0.95rem;
         }
 
         .status-badge.active {
@@ -242,6 +283,25 @@ if (isset($_GET['edit'])) {
             margin-bottom: 15px;
             color: #333;
             font-weight: 600;
+        }
+
+        .descriptions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .descriptions-grid .form-group-wrapper {
+            margin-bottom: 0;
+        }
+
+        .descriptions-grid .form-group-wrapper label {
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+
+        .descriptions-grid .form-group-wrapper textarea {
+            font-size: 0.9rem;
         }
 
         .seo-section {
@@ -299,7 +359,11 @@ if (isset($_GET['edit'])) {
         }
 
         @media (max-width: 1200px) {
-            .product-form-container {
+            .product-form-top {
+                grid-template-columns: 1fr;
+            }
+
+            .descriptions-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -317,100 +381,129 @@ if (isset($_GET['edit'])) {
                 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <input type="hidden" name="image" id="imageInput" value="<?= admin_h((string)($edit['image'] ?? '')) ?>">
 
-                <div class="product-form-container">
-                    <!-- ЛЕВАЯ ЧАСТЬ - Контент -->
-                    <div class="product-form-left">
-                        <!-- Статус и наличие -->
-                        <div class="status-section">
-                            <div class="status-row">
+                <div class="product-form-wrapper">
+                    <!-- ВЕРХНЯЯ ЧАСТЬ - Две колонки -->
+                    <div class="product-form-top">
+                        <!-- ЛЕВАЯ ЧАСТЬ - Контент -->
+                        <div class="product-form-left">
+                            <!-- Статус и наличие -->
+                            <div class="status-section">
+                                <div class="status-row">
+                                    <div class="form-group-wrapper">
+                                        <label for="status">Статус</label>
+                                        <select class="form-control" id="status" name="status">
+                                            <option value="">Выбрать</option>
+                                            <option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активный</option>
+                                            <option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Предзаказ</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group-wrapper">
+                                        <label>&nbsp;</label>
+                                        <button type="button" class="status-badge <?= !empty($edit['in_stock']) ? 'active' : 'inactive' ?>" id="inStockToggle" onclick="toggleInStock()">
+                                            <?= !empty($edit['in_stock']) ? '✓ В наличии' : '✗ Нет' ?>
+                                        </button>
+                                        <input type="hidden" id="in_stock" name="in_stock" value="<?= !empty($edit['in_stock']) ? '1' : '0' ?>">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Основные данные товара -->
+                            <div class="form-group-wrapper">
+                                <label for="external_id">ID товара *</label>
+                                <input type="text" class="form-control" id="external_id" name="external_id"
+                                    value="<?= admin_h((string)($edit['external_id'] ?? '')) ?>" required>
+                            </div>
+
+                            <div class="form-row-inline two-cols">
                                 <div class="form-group-wrapper">
-                                    <label for="status">Статус товара</label>
-                                    <select class="form-control" id="status" name="status">
-                                        <option value="">Выбрать статус</option>
-                                        <option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активный</option>
-                                        <option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Предзаказ</option>
-                                    </select>
+                                    <label for="cat_number">Код каталога</label>
+                                    <input type="text" class="form-control" id="cat_number" name="cat_number"
+                                        value="<?= admin_h((string)($edit['cat_number'] ?? '')) ?>">
                                 </div>
                                 <div class="form-group-wrapper">
-                                    <label>&nbsp;</label>
-                                    <button type="button" class="status-badge <?= !empty($edit['in_stock']) ? 'active' : 'inactive' ?>" id="inStockToggle" onclick="toggleInStock()">
-                                        <?= !empty($edit['in_stock']) ? '✓ В наличии' : '✗ Нет в наличии' ?>
+                                    <label for="name">Название *</label>
+                                    <input type="text" class="form-control" id="name" name="name"
+                                        value="<?= admin_h((string)($edit['name'] ?? '')) ?>" required>
+                                </div>
+                            </div>
+
+                            <!-- Цены -->
+                            <div class="form-row-inline two-cols">
+                                <div class="form-group-wrapper">
+                                    <label for="price">Текущая цена *</label>
+                                    <input type="number" step="0.01" class="form-control" id="price" name="price"
+                                        value="<?= admin_h((string)($edit['price'] ?? '0')) ?>" required>
+                                </div>
+                                <div class="form-group-wrapper">
+                                    <label for="old_price">Старая цена</label>
+                                    <input type="number" step="0.01" class="form-control" id="old_price" name="old_price"
+                                        value="<?= admin_h((string)($edit['old_price'] ?? '0')) ?>">
+                                </div>
+                            </div>
+
+                            <!-- URL и Объем -->
+                            <div class="form-row-inline two-cols">
+                                <div class="form-group-wrapper">
+                                    <label for="link">URL (Slug) *</label>
+                                    <input type="text" class="form-control" id="link" name="link"
+                                        value="<?= admin_h((string)($edit['link'] ?? '')) ?>" required>
+                                </div>
+                                <div class="form-group-wrapper">
+                                    <label for="volume">Объем</label>
+                                    <input type="text" class="form-control" id="volume" name="volume"
+                                        value="<?= admin_h((string)($edit['volume'] ?? '')) ?>" placeholder="напр. 500мл, 1л">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ПРАВАЯ ЧАСТЬ - Фото -->
+                        <div class="product-form-right">
+                            <div class="image-section">
+                                <div class="image-preview-container">
+                                    <div id="imagePreview" class="image-placeholder" onclick="document.getElementById('imageUpload').click();">
+                                        <?php if (!empty($edit['image'])): ?>
+                                            <img src="/<?= admin_h((string)$edit['image']) ?>" alt="Product" class="image-preview-img">
+                                        <?php else: ?>
+                                            <span>📷 Нажмите для загрузки</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <button type="button" class="btn-remove-image <?= !empty($edit['image']) ? 'show' : '' ?>" onclick="removeImage(event)">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
                                     </button>
-                                    <input type="hidden" id="in_stock" name="in_stock" value="<?= !empty($edit['in_stock']) ? '1' : '0' ?>">
                                 </div>
+                                <input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*">
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Основные данные товара -->
-                        <div class="form-group-wrapper">
-                            <label for="external_id">ID товара *</label>
-                            <input type="text" class="form-control" id="external_id" name="external_id"
-                                value="<?= admin_h((string)($edit['external_id'] ?? '')) ?>" required>
-                        </div>
-
-                        <div class="form-row-inline two-cols">
+                    <!-- НИЖНЯЯ ЧАСТЬ - Описания на всю ширину -->
+                    <div class="descriptions-section">
+                        <h5>📝 Описания</h5>
+                        <div class="descriptions-grid">
                             <div class="form-group-wrapper">
-                                <label for="cat_number">Код в каталоге</label>
-                                <input type="text" class="form-control" id="cat_number" name="cat_number"
-                                    value="<?= admin_h((string)($edit['cat_number'] ?? '')) ?>">
-                            </div>
-                            <div class="form-group-wrapper">
-                                <label for="name">Название товара *</label>
-                                <input type="text" class="form-control" id="name" name="name"
-                                    value="<?= admin_h((string)($edit['name'] ?? '')) ?>" required>
-                            </div>
-                        </div>
-
-                        <!-- Цены -->
-                        <div class="form-row-inline two-cols">
-                            <div class="form-group-wrapper">
-                                <label for="price">Текущая цена *</label>
-                                <input type="number" step="0.01" class="form-control" id="price" name="price"
-                                    value="<?= admin_h((string)($edit['price'] ?? '0')) ?>" required>
-                            </div>
-                            <div class="form-group-wrapper">
-                                <label for="old_price">Старая цена</label>
-                                <input type="number" step="0.01" class="form-control" id="old_price" name="old_price"
-                                    value="<?= admin_h((string)($edit['old_price'] ?? '0')) ?>">
-                            </div>
-                        </div>
-
-                        <!-- URL и Объем -->
-                        <div class="form-row-inline two-cols">
-                            <div class="form-group-wrapper">
-                                <label for="link">URL (Slug) *</label>
-                                <input type="text" class="form-control" id="link" name="link"
-                                    value="<?= admin_h((string)($edit['link'] ?? '')) ?>" required>
-                            </div>
-                            <div class="form-group-wrapper">
-                                <label for="volume">Объем</label>
-                                <input type="text" class="form-control" id="volume" name="volume"
-                                    value="<?= admin_h((string)($edit['volume'] ?? '')) ?>" placeholder="напр. 500мл, 1л">
-                            </div>
-                        </div>
-
-                        <!-- Описания -->
-                        <div class="descriptions-section">
-                            <h5>📝 Описания</h5>
-                            <div class="form-group-wrapper">
-                                <label for="short_desc">Краткое описание</label>
-                                <textarea class="form-control" id="short_desc" rows="2" name="short_desc"><?= admin_h((string)($edit['short_desc'] ?? '')) ?></textarea>
+                                <label for="short_desc">Краткое</label>
+                                <textarea class="form-control" id="short_desc" rows="3" name="short_desc"><?= admin_h((string)($edit['short_desc'] ?? '')) ?></textarea>
                             </div>
 
                             <div class="form-group-wrapper">
-                                <label for="desc">Обычное описание</label>
+                                <label for="desc">Обычное</label>
                                 <textarea class="form-control" id="desc" rows="3" name="desc"><?= admin_h((string)($edit['desc'] ?? '')) ?></textarea>
                             </div>
 
                             <div class="form-group-wrapper">
-                                <label for="full_desc">Полное описание</label>
+                                <label for="full_desc">Полное</label>
                                 <textarea class="form-control" id="full_desc" rows="3" name="full_desc"><?= admin_h((string)($edit['full_desc'] ?? '')) ?></textarea>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- SEO модуль -->
-                        <div class="seo-section">
-                            <h5>🔍 SEO</h5>
+                    <!-- SEO модуль -->
+                    <div class="seo-section">
+                        <h5>🔍 SEO</h5>
+                        <div class="form-row-inline two-cols">
                             <div class="form-group-wrapper">
                                 <label for="seo_title">SEO Title</label>
                                 <input type="text" class="form-control" id="seo_title" name="seo_title"
@@ -422,30 +515,11 @@ if (isset($_GET['edit'])) {
                             </div>
                         </div>
                     </div>
-
-                    <!-- ПРАВАЯ ЧАСТЬ - Фото -->
-                    <div class="product-form-right">
-                        <div class="image-section">
-                            <div class="image-preview-container">
-                                <div id="imagePreview" class="image-placeholder" onclick="document.getElementById('imageUpload').click();">
-                                    <?php if (!empty($edit['image'])): ?>
-                                        <img src="/<?= admin_h((string)$edit['image']) ?>" alt="Product" class="image-preview-img">
-                                    <?php else: ?>
-                                        <span>📷 Нажмите для загрузки</span>
-                                    <?php endif; ?>
-                                </div>
-                                <button type="button" class="btn btn-danger btn-remove-image <?= !empty($edit['image']) ? 'show' : '' ?>" onclick="removeImage()">
-                                    🗑 Удалить
-                                </button>
-                            </div>
-                            <input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*">
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Кнопки действия -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-success btn-lg">💾 Сохранить изменения</button>
+                    <button type="submit" class="btn btn-success btn-lg">💾 Сохранить</button>
                     <a href="/admin/products.php" class="btn btn-secondary btn-lg">↩ Отмена</a>
                 </div>
             </form>
@@ -510,7 +584,8 @@ if (isset($_GET['edit'])) {
         });
 
         // Удаление фото
-        function removeImage() {
+        function removeImage(event) {
+            event.preventDefault();
             document.getElementById('imageInput').value = '';
             document.getElementById('imageUpload').value = '';
             const preview = document.getElementById('imagePreview');
@@ -532,7 +607,7 @@ if (isset($_GET['edit'])) {
             if (isActive) {
                 toggle.classList.remove('active');
                 toggle.classList.add('inactive');
-                toggle.textContent = '✗ Нет в наличии';
+                toggle.textContent = '✗ Нет';
                 input.value = '0';
             } else {
                 toggle.classList.remove('inactive');

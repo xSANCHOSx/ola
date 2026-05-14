@@ -293,57 +293,122 @@ function generateSlug(string $text): string
 	<!-- CKEditor 5 -->
 	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 	<style>
-	.form-group {
-		margin-bottom: 15px;
+	/* ── Alerts ── */
+	.alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+	.alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+	.alert-error   { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+
+	table { word-break: break-word; }
+
+	/* ── Blog form wrapper ── */
+	.blog-form-wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+		margin-bottom: 40px;
 	}
 
-	.form-group label {
-		font-weight: bold;
-		margin-bottom: 5px;
-		display: block;
+	/* ── Top: two-column grid (left info | right image) ── */
+	.blog-form-top {
+		display: grid;
+		grid-template-columns: 1.5fr 1fr;
+		gap: 30px;
+		background: #f9f9f9;
+		border: 1px solid #ddd;
+		border-radius: 8px;
+		padding: 24px;
 	}
 
-	.ck-content {
-		min-height: 300px;
+	.blog-form-left {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
 	}
 
-	.alert {
-		padding: 10px;
-		margin-bottom: 15px;
-		border-radius: 4px;
+	.blog-form-right {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 	}
 
-	.alert-success {
-		background: #d4edda;
-		color: #155724;
-		border: 1px solid #c3e6cb;
+	/* ── Shared form-group style ── */
+	.form-group-wrapper { display: flex; flex-direction: column; gap: 4px; }
+	.form-group-wrapper label { font-weight: 600; font-size: 13px; color: #444; }
+	.form-group-wrapper input,
+	.form-group-wrapper select,
+	.form-group-wrapper textarea {
+		width: 100%;
+		padding: 8px 10px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		font-size: 14px;
+		box-sizing: border-box;
 	}
 
-	.alert-error {
-		background: #f8d7da;
-		color: #721c24;
-		border: 1px solid #f5c6cb;
+	.status-slug-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
 	}
 
-	table {
-		word-break: break-word;
+	/* ── Descriptions (excerpt + content) ── */
+	.descriptions-section {
+		background: #f9f9f9;
+		border: 1px solid #ddd;
+		border-radius: 8px;
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+	.descriptions-section h5 {
+		margin: 0 0 12px;
+		font-size: 15px;
+		font-weight: 700;
+		color: #333;
+		border-bottom: 2px solid #3e7ab6;
+		padding-bottom: 6px;
+	}
+	.descriptions-section textarea { width: 100%; box-sizing: border-box; }
+
+	/* ── SEO block ── */
+	.seo-section {
+		background: #f0f4fa;
+		border: 1px solid #c5d6ec;
+		border-radius: 8px;
+		padding: 24px;
+	}
+	.seo-section h5 {
+		margin: 0 0 16px;
+		font-size: 15px;
+		font-weight: 700;
+		color: #2c5fa0;
+		border-bottom: 2px solid #3e7ab6;
+		padding-bottom: 6px;
+	}
+	.seo-two-cols {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
 	}
 
-	.slug-input {
-		font-family: monospace;
-		font-size: 12px;
+	/* ── Image widget ── */
+	.image-section {
+		background: #fff;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		padding: 16px;
+		text-align: center;
 	}
-
-	/* Image upload widget */
 	.image-preview-container {
 		position: relative;
-		display: inline-block;
-		width: 200px;
+		display: block;
+		width: 100%;
+		margin: 0 auto;
 	}
-
 	.image-placeholder {
-		width: 200px;
-		height: 200px;
+		width: 100%;
+		aspect-ratio: 16 / 9;
 		background: #e9ecef;
 		border: 2px dashed #dee2e6;
 		border-radius: 8px;
@@ -353,32 +418,18 @@ function generateSlug(string $text): string
 		cursor: pointer;
 		transition: all 0.3s;
 		color: #999;
-		font-size: 14px;
+		font-size: 15px;
 		overflow: hidden;
 	}
-
-	.image-placeholder:hover {
-		border-color: #adb5bd;
-		background: #dee2e6;
-	}
-
-	.image-preview-img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		border-radius: 6px;
-		display: block;
-	}
-
+	.image-placeholder:hover { border-color: #adb5bd; background: #dee2e6; }
+	.image-preview-img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
 	.btn-remove-image {
 		position: absolute;
-		top: 4px;
-		right: 4px;
+		top: 6px; right: 6px;
 		background: #dc3545;
 		border: none;
 		border-radius: 50%;
-		width: 28px;
-		height: 28px;
+		width: 32px; height: 32px;
 		padding: 0;
 		display: none;
 		align-items: center;
@@ -386,30 +437,28 @@ function generateSlug(string $text): string
 		cursor: pointer;
 		transition: all 0.2s;
 		z-index: 20;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 2px 8px rgba(0,0,0,.2);
 	}
-
-	.btn-remove-image:hover {
-		background: #c82333;
-		transform: scale(1.1);
-	}
-
-	.btn-remove-image.show {
-		display: flex;
-	}
-
+	.btn-remove-image:hover { background: #c82333; transform: scale(1.1); }
+	.btn-remove-image.show { display: flex; }
 	.btn-remove-image svg {
-		width: 16px;
-		height: 16px;
+		width: 18px; height: 18px;
 		display: block;
 		stroke: white;
 		stroke-width: 2.5;
 		stroke-linecap: round;
 		stroke-linejoin: round;
 	}
+	.image-upload-input { display: none !important; }
 
-	.image-upload-input {
-		display: none !important;
+	/* ── CKEditor ── */
+	.ck-content { min-height: 300px; }
+
+	/* ── Responsive ── */
+	@media (max-width: 768px) {
+		.blog-form-top { grid-template-columns: 1fr; }
+		.status-slug-row { grid-template-columns: 1fr; }
+		.seo-two-cols { grid-template-columns: 1fr; }
 	}
 	</style>
 </head>
@@ -426,198 +475,158 @@ function generateSlug(string $text): string
 		</div>
 		<?php endif; ?>
 
-		<form method="post" enctype="multipart/form-data"
-			style="background:#f9f9f9; padding:20px; border:1px solid #ddd; margin-bottom:30px;">
+		<form method="post" enctype="multipart/form-data">
 			<input type="hidden" name="id" value="<?= admin_h((string)($edit['id'] ?? '')) ?>">
 			<input type="hidden" name="action" value="save">
 			<input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
 
-			<div class="form-group">
-				<label>Заголовок *</label>
-				<input class="form-control" name="title" placeholder="Заголовок поста"
-					value="<?= admin_h((string)($edit['title'] ?? '')) ?>" required maxlength="255">
-			</div>
+			<div class="blog-form-wrapper">
 
-			<div class="row">
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>URL Slug *</label>
-						<input class="form-control slug-input" name="slug" placeholder="url-slug (автогенерируется)"
-							value="<?= admin_h((string)($edit['slug'] ?? '')) ?>">
-						<small style="color:#666;">Если пусто, автоматически генерируется из заголовка</small>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>Статус</label>
-						<select class="form-control" name="status">
-							<option value="draft" <?= ($edit['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Черновик</option>
-							<option value="published" <?= ($edit['status'] ?? 'draft') === 'published' ? 'selected' : '' ?>>
-								Опубликовано</option>
-						</select>
-					</div>
-				</div>
-			</div>
-
-			<div class="form-group">
-				<label>Анонс (выписка для списка)</label>
-				<textarea class="form-control" rows="3" name="excerpt" placeholder="Короткое описание для страницы блога"
-					maxlength="500"><?= admin_h((string)($edit['excerpt'] ?? '')) ?></textarea>
-			</div>
-
-			<div class="form-group">
-				<label>Содержимое *</label>
-				<textarea id="content" name="content"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
-			</div>
-
-			<script>
-			ClassicEditor
-				.create(document.querySelector('#content'), {
-					toolbar: {
-						items: [
-							'undo', 'redo',
-							'|',
-							'heading',
-							'|',
-							'bold', 'italic', 'underline', 'strikethrough',
-							'|',
-							'alignment',
-							'|',
-							'bulletedList', 'numberedList',
-							'|',
-							'link', 'imageUpload', 'blockQuote', 'insertTable',
-							'|',
-							'removeFormat', 'sourceEditing'
-						],
-						shouldNotGroupWhenFull: true
-					},
-					heading: {
-						options: [{
-								model: 'paragraph',
-								title: 'Параграф',
-								class: 'ck-heading_paragraph'
-							},
-							{
-								model: 'heading1',
-								view: 'h1',
-								title: 'Заголовок 1',
-								class: 'ck-heading_heading1'
-							},
-							{
-								model: 'heading2',
-								view: 'h2',
-								title: 'Заголовок 2',
-								class: 'ck-heading_heading2'
-							},
-							{
-								model: 'heading3',
-								view: 'h3',
-								title: 'Заголовок 3',
-								class: 'ck-heading_heading3'
-							}
-						]
-					},
-					image: {
-						upload: {
-							types: ['jpeg', 'png', 'gif', 'webp']
-						},
-						resizeOptions: [{
-								name: 'imageResizePercentages',
-								values: ['25', '50', '75', '100']
-							},
-							{
-								name: 'imageResizeByWidth',
-								values: ['200', '300', '400', '500', '600', '800']
-							}
-						],
-						styles: [
-							'full',
-							'alignLeft',
-							'alignRight',
-							'alignCenter'
-						]
-					},
-					simpleUpload: {
-						uploadUrl: '/admin/blog-upload.php'
-					},
-					table: {
-						contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
-					},
-					language: 'uk',
-					autosave: {
-						save(editor) {
-							console.log('Content autosaved');
-						},
-						waitingTime: 3000,
-						backoffDelay: 5000
-					}
-				})
-				.catch(error => {
-					console.error(error);
-				});
-			</script>
-
-			<div class="row">
-				<div class="col-md-8">
-					<div class="form-group">
-						<label>Изображение обложки</label>
-						<input type="hidden" name="featured_image" id="featuredImageInput"
-							value="<?= admin_h((string)($edit['featured_image'] ?? '')) ?>">
-						<div class="image-preview-container">
-							<div id="blogImagePreview" class="image-placeholder">
-								<?php if (!empty($edit['featured_image'])): ?>
-								<img src="/<?= admin_h((string)$edit['featured_image']) ?>" alt="Cover" class="image-preview-img">
-								<?php else: ?>
-								<span>📷 Обкладинка</span>
-								<?php endif; ?>
-							</div>
-							<button type="button" class="btn-remove-image <?= !empty($edit['featured_image']) ? 'show' : '' ?>"
-								id="blogBtnRemove" onclick="blogRemoveImage(event)">
-								<svg viewBox="0 0 24 24" fill="none">
-									<line x1="18" y1="6" x2="6" y2="18"></line>
-									<line x1="6" y1="6" x2="18" y2="18"></line>
-								</svg>
-							</button>
+				<!-- ── TOP: LEFT info + RIGHT image ── -->
+				<div class="blog-form-top">
+					<!-- LEFT: заголовок, статус, slug, теги -->
+					<div class="blog-form-left">
+						<div class="form-group-wrapper">
+							<label>Заголовок *</label>
+							<input name="title" placeholder="Заголовок поста"
+								value="<?= admin_h((string)($edit['title'] ?? '')) ?>" required maxlength="255">
 						</div>
-						<input type="file" id="blogImageUpload" class="image-upload-input" name="image_upload" accept="image/*">
-						<small class="text-muted" style="display:block; margin-top:6px;">Клацніть на превью для вибору файлу</small>
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="form-group">
-						<label>Теги (через запятую)</label>
-						<input class="form-control" name="tags" placeholder="тег1, тег2, тег3"
-							value="<?= admin_h((string)($edit['tags'] ?? '')) ?>">
-					</div>
-				</div>
-			</div>
 
-			<div class="row">
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>SEO Заголовок</label>
-						<input class="form-control" name="seo_title" placeholder="META title для поиска"
-							value="<?= admin_h((string)($edit['seo_title'] ?? '')) ?>" maxlength="255">
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label>SEO Описание</label>
-						<input class="form-control" name="seo_description" placeholder="META description"
-							value="<?= admin_h((string)($edit['seo_description'] ?? '')) ?>" maxlength="255">
-					</div>
-				</div>
-			</div>
+						<div class="status-slug-row">
+							<div class="form-group-wrapper">
+								<label>Статус</label>
+								<select name="status">
+									<option value="draft" <?= ($edit['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Черновик</option>
+									<option value="published" <?= ($edit['status'] ?? 'draft') === 'published' ? 'selected' : '' ?>>Опубликовано</option>
+								</select>
+							</div>
+							<div class="form-group-wrapper">
+								<label>URL Slug</label>
+								<input name="slug" placeholder="url-slug (автогенерируется)"
+									value="<?= admin_h((string)($edit['slug'] ?? '')) ?>"
+									style="font-family:monospace; font-size:12px;">
+								<small style="color:#888; font-size:11px;">Если пусто — генерируется из заголовка</small>
+							</div>
+						</div>
 
-			<div style="margin-top:20px;">
-				<button type="submit" class="btn btn-success btn-lg" style="margin-right:10px;">
-					<?= !empty($edit['id']) ? '💾 Сохранить' : '➕ Создать пост' ?>
-				</button>
-				<?php if ($edit !== null): ?>
-				<a href="/admin/blog.php" class="btn btn-secondary btn-lg">↩ Отменить</a>
-				<?php endif; ?>
-			</div>
+						<div class="form-group-wrapper">
+							<label>Теги (через запятую)</label>
+							<input name="tags" placeholder="тег1, тег2, тег3"
+								value="<?= admin_h((string)($edit['tags'] ?? '')) ?>">
+						</div>
+					</div>
+
+					<!-- RIGHT: изображение обложки -->
+					<div class="blog-form-right">
+						<div class="image-section">
+							<label style="font-weight:600; font-size:13px; color:#444; display:block; margin-bottom:10px;">Изображение обложки</label>
+							<input type="hidden" name="featured_image" id="featuredImageInput"
+								value="<?= admin_h((string)($edit['featured_image'] ?? '')) ?>">
+							<div class="image-preview-container">
+								<div id="blogImagePreview" class="image-placeholder">
+									<?php if (!empty($edit['featured_image'])): ?>
+									<img src="/<?= admin_h((string)$edit['featured_image']) ?>" alt="Cover" class="image-preview-img">
+									<?php else: ?>
+									<span>📷 Клацніть для вибору</span>
+									<?php endif; ?>
+								</div>
+								<button type="button" class="btn-remove-image <?= !empty($edit['featured_image']) ? 'show' : '' ?>"
+									id="blogBtnRemove" onclick="blogRemoveImage(event)">
+									<svg viewBox="0 0 24 24" fill="none">
+										<line x1="18" y1="6" x2="6" y2="18"></line>
+										<line x1="6" y1="6" x2="18" y2="18"></line>
+									</svg>
+								</button>
+							</div>
+							<input type="file" id="blogImageUpload" class="image-upload-input" name="image_upload" accept="image/*">
+							<small style="color:#888; display:block; margin-top:8px; font-size:11px;">JPG, PNG, WEBP · до 10 МБ</small>
+						</div>
+					</div>
+				</div>
+
+				<!-- ── MIDDLE: Анонс + Содержимое (на всю ширину) ── -->
+				<div class="descriptions-section">
+					<h5>📝 Контент</h5>
+
+					<div class="form-group-wrapper">
+						<label>Анонс (выписка для страницы блога)</label>
+						<textarea name="excerpt" rows="3" placeholder="Короткое описание для карточки поста"
+							maxlength="500"><?= admin_h((string)($edit['excerpt'] ?? '')) ?></textarea>
+					</div>
+
+					<div class="form-group-wrapper">
+						<label>Полное содержимое *</label>
+						<textarea id="content" name="content"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
+					</div>
+				</div>
+
+				<!-- ── BOTTOM: SEO отдельным блоком ── -->
+				<div class="seo-section">
+					<h5>🔍 SEO</h5>
+					<div class="seo-two-cols">
+						<div class="form-group-wrapper">
+							<label>SEO Заголовок (META title)</label>
+							<input name="seo_title" placeholder="META title для поиска"
+								value="<?= admin_h((string)($edit['seo_title'] ?? '')) ?>" maxlength="255">
+						</div>
+						<div class="form-group-wrapper">
+							<label>SEO Описание (META description)</label>
+							<input name="seo_description" placeholder="META description"
+								value="<?= admin_h((string)($edit['seo_description'] ?? '')) ?>" maxlength="255">
+						</div>
+					</div>
+				</div>
+
+				<!-- ── Кнопки ── -->
+				<div style="display:flex; gap:12px; align-items:center;">
+					<button type="submit" class="btn btn-success btn-lg">
+						<?= !empty($edit['id']) ? '💾 Сохранить' : '➕ Создать пост' ?>
+					</button>
+					<?php if ($edit !== null): ?>
+					<a href="/admin/blog.php" class="btn btn-secondary btn-lg">↩ Отменить</a>
+					<?php endif; ?>
+				</div>
+
+			</div><!-- /.blog-form-wrapper -->
 		</form>
+
+		<script>
+		ClassicEditor
+			.create(document.querySelector('#content'), {
+				toolbar: {
+					items: [
+						'undo', 'redo', '|',
+						'heading', '|',
+						'bold', 'italic', 'underline', 'strikethrough', '|',
+						'alignment', '|',
+						'bulletedList', 'numberedList', '|',
+						'link', 'imageUpload', 'blockQuote', 'insertTable', '|',
+						'removeFormat', 'sourceEditing'
+					],
+					shouldNotGroupWhenFull: true
+				},
+				heading: {
+					options: [
+						{ model: 'paragraph', title: 'Параграф', class: 'ck-heading_paragraph' },
+						{ model: 'heading1', view: 'h1', title: 'Заголовок 1', class: 'ck-heading_heading1' },
+						{ model: 'heading2', view: 'h2', title: 'Заголовок 2', class: 'ck-heading_heading2' },
+						{ model: 'heading3', view: 'h3', title: 'Заголовок 3', class: 'ck-heading_heading3' }
+					]
+				},
+				image: {
+					upload: { types: ['jpeg', 'png', 'gif', 'webp'] },
+					resizeOptions: [
+						{ name: 'imageResizePercentages', values: ['25', '50', '75', '100'] },
+						{ name: 'imageResizeByWidth', values: ['200', '300', '400', '500', '600', '800'] }
+					],
+					styles: ['full', 'alignLeft', 'alignRight', 'alignCenter']
+				},
+				simpleUpload: { uploadUrl: '/admin/blog-upload.php' },
+				table: { contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'] },
+				language: 'uk'
+			})
+			.catch(error => { console.error(error); });
+		</script>
 
 		<h3>Все посты (<?= count($posts) ?>)</h3>
 		<table class="table table-bordered table-striped table-sm">

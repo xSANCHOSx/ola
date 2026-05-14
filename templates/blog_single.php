@@ -116,140 +116,193 @@ function getSafeImagePath(string $path): ?string
 
 <?php require __DIR__ . '/head.php'; ?>
 
+<style>
+/* Відступ для фіксованої шапки (header.sticky = 50px) */
+.blog-single-wrap {
+	padding-top: 80px;
+	padding-bottom: 60px;
+}
+
+.blog-article {
+	max-width: 860px;
+	margin: 0 auto;
+}
+
+.blog-breadcrumb {
+	margin-bottom: 20px;
+	font-size: 13px;
+	color: #999;
+}
+.blog-breadcrumb a { color: #3e7ab6; text-decoration: none; }
+.blog-breadcrumb a:hover { text-decoration: underline; }
+
+.blog-title {
+	font-size: 2rem;
+	font-weight: 700;
+	color: #222;
+	margin-bottom: 12px;
+	line-height: 1.3;
+}
+
+.blog-meta {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	font-size: 13px;
+	color: #888;
+	margin-bottom: 24px;
+	padding-bottom: 18px;
+	border-bottom: 1px solid #eee;
+}
+
+/* Обкладинка — перший елемент після мета, на всю ширину */
+.blog-featured-image {
+	width: 100%;
+	max-height: 480px;
+	object-fit: cover;
+	border-radius: 8px;
+	margin-bottom: 32px;
+	display: block;
+}
+
+.blog-content {
+	font-size: 16px;
+	line-height: 1.85;
+	color: #333;
+	margin-bottom: 40px;
+}
+.blog-content img { max-width: 100%; height: auto; border-radius: 5px; }
+.blog-content h2 { margin-top: 2em; }
+.blog-content h3 { margin-top: 1.5em; }
+
+.blog-tags {
+	padding: 20px 0;
+	border-top: 1px solid #eee;
+	border-bottom: 1px solid #eee;
+	margin-bottom: 30px;
+}
+.blog-tags__label { font-size: 13px; color: #999; margin-bottom: 10px; }
+.blog-tags__list { display: flex; flex-wrap: wrap; gap: 8px; }
+.blog-tags__item {
+	background: #f0f0f0;
+	padding: 6px 14px;
+	border-radius: 20px;
+	font-size: 13px;
+	text-decoration: none;
+	color: #3e7ab6;
+	transition: background .2s;
+}
+.blog-tags__item:hover { background: #dde8f5; }
+
+.blog-nav {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 0;
+	border-top: 1px solid #eee;
+	gap: 20px;
+}
+.blog-nav a { color: #3e7ab6; text-decoration: none; max-width: 42%; }
+.blog-nav a:hover { text-decoration: underline; }
+.blog-nav__center { white-space: nowrap; }
+
+@media (max-width: 576px) {
+	.blog-single-wrap { padding-top: 70px; }
+	.blog-title { font-size: 1.5rem; }
+	.blog-nav { flex-direction: column; gap: 10px; text-align: center; }
+	.blog-nav a { max-width: 100%; }
+}
+</style>
+
 <body>
 	<?php require __DIR__ . '/header.php'; ?>
 
-	<div class="container" style="padding-top: 40px; padding-bottom: 60px;">
+	<div class="container blog-single-wrap">
 		<div class="row">
-			<div class="col-md-8">
-				<!-- Хлебная крошка -->
-				<nav style="margin-bottom: 20px;">
-					<a href="/" style="color: #3e7ab6; text-decoration: none;">Главная</a> →
-					<a href="/blog" style="color: #3e7ab6; text-decoration: none;">Блог</a> →
-					<span style="color: #999;"><?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?></span>
-				</nav>
+			<!-- col-12 — без сайдбара, на всю ширину -->
+			<div class="col-12">
+				<div class="blog-article">
 
-				<article>
-					<h1 style="margin-bottom: 15px; color: #333;">
-						<?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?>
-					</h1>
+					<!-- Хлебная крошка -->
+					<nav class="blog-breadcrumb">
+						<a href="/">Главная</a> →
+						<a href="/blog">Блог</a> →
+						<span><?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?></span>
+					</nav>
 
-					<div
-						style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; font-size: 14px; color: #999;">
-						<span>📅 <?php
-											$dateField = !empty($post['published_at']) ? $post['published_at'] : $post['created_at'];
-											$ts = strtotime((string)$dateField); ?>
-							<span style="margin-left: 20px;">👁 <?= (int)$post['views'] ?> просмотров</span>
-					</div>
+					<article>
+						<h1 class="blog-title">
+							<?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?>
+						</h1>
 
-					<!-- Главное изображение -->
-					<?php
-					if (!empty($post['featured_image'])) {
-						$imagePath = getSafeImagePath((string)$post['featured_image']);
-						if ($imagePath):
-					?>
-					<img src="<?= $imagePath ?>" alt="<?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?>"
-						style="width: 100%; max-height: 500px; object-fit: cover; border-radius: 5px; margin-bottom: 30px;">
-					<?php
-						endif;
-					}
-					?>
+						<!-- Мета: дата + перегляди -->
+						<div class="blog-meta">
+							<?php
+							$dateField = !empty($post['published_at']) ? $post['published_at'] : $post['created_at'];
+							$ts = strtotime((string)$dateField);
+							?>
+							<span>📅 <?= $ts ? htmlspecialchars(date('d.m.Y', $ts), ENT_QUOTES, 'UTF-8') : '' ?></span>
+							<span>👁 <?= (int)$post['views'] ?> просмотров</span>
+						</div>
 
-					<!-- Содержание статьи (уже HTML из TinyMCE) -->
-					<div style="font-size: 16px; line-height: 1.8; color: #333; margin-bottom: 40px;">
+						<!-- Обкладинка — одразу після заголовка та мета -->
 						<?php
-						// TinyMCE генерирует HTML, поэтому не экранируем, но убеждаемся что нет потенциально вредоносного
-						// В production нужен HTML purifier (HTMLPurifier lib)
-						echo $post['content'];
+						$imagePath = null;
+						if (!empty($post['featured_image'])) {
+							$imagePath = getSafeImagePath((string)$post['featured_image']);
+						}
+						if ($imagePath):
 						?>
-					</div>
+						<img
+							src="<?= $imagePath ?>"
+							alt="<?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?>"
+							class="blog-featured-image"
+						>
+						<?php endif; ?>
 
-					<!-- Теги -->
-					<?php if (!empty($tags)): ?>
-					<div
-						style="padding-top: 20px; padding-bottom: 30px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 30px;">
-						<div style="margin-bottom: 10px; color: #999; font-size: 14px;">Теги:</div>
-						<div style="display: flex; flex-wrap: wrap; gap: 8px;">
-							<?php foreach ($tags as $tag): ?>
-							<a href="/blog?tag=<?= htmlspecialchars((string)$tag['slug'], ENT_QUOTES, 'UTF-8') ?>"
-								style="background: #f0f0f0; padding: 6px 12px; border-radius: 20px; font-size: 13px; text-decoration: none; color: #3e7ab6;">
-								#<?= htmlspecialchars((string)$tag['name'], ENT_QUOTES, 'UTF-8') ?>
+						<!-- Зміст статті -->
+						<div class="blog-content">
+							<?= $post['content'] ?>
+						</div>
+
+						<!-- Теги -->
+						<?php if (!empty($tags)): ?>
+						<div class="blog-tags">
+							<div class="blog-tags__label">Теги:</div>
+							<div class="blog-tags__list">
+								<?php foreach ($tags as $tag): ?>
+								<a href="/blog?tag=<?= htmlspecialchars((string)$tag['slug'], ENT_QUOTES, 'UTF-8') ?>"
+									class="blog-tags__item">
+									#<?= htmlspecialchars((string)$tag['name'], ENT_QUOTES, 'UTF-8') ?>
+								</a>
+								<?php endforeach; ?>
+							</div>
+						</div>
+						<?php endif; ?>
+
+						<!-- Навигация між постами -->
+						<div class="blog-nav">
+							<?php if ($prevPost): ?>
+							<a href="/blog/<?= htmlspecialchars((string)$prevPost['slug'], ENT_QUOTES, 'UTF-8') ?>">
+								← <?= htmlspecialchars((string)$prevPost['title'], ENT_QUOTES, 'UTF-8') ?>
 							</a>
-							<?php endforeach; ?>
+							<?php else: ?><span></span><?php endif; ?>
+
+							<a href="/blog" class="blog-nav__center">Все посты</a>
+
+							<?php if ($nextPost): ?>
+							<a href="/blog/<?= htmlspecialchars((string)$nextPost['slug'], ENT_QUOTES, 'UTF-8') ?>"
+								style="text-align:right;">
+								<?= htmlspecialchars((string)$nextPost['title'], ENT_QUOTES, 'UTF-8') ?> →
+							</a>
+							<?php else: ?><span></span><?php endif; ?>
 						</div>
-					</div>
-					<?php endif; ?>
+					</article>
 
-					<!-- Навигация между постами -->
-					<div
-						style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-top: 1px solid #eee;">
-						<?php if ($prevPost): ?>
-						<a href="/blog/<?= htmlspecialchars((string)$prevPost['slug'], ENT_QUOTES, 'UTF-8') ?>"
-							style="color: #3e7ab6; text-decoration: none; max-width: 45%;">
-							← <?= htmlspecialchars((string)$prevPost['title'], ENT_QUOTES, 'UTF-8') ?>
-						</a>
-						<?php else: ?>
-						<span></span>
-						<?php endif; ?>
-
-						<a href="/blog" style="color: #3e7ab6; text-decoration: none;">Все посты</a>
-
-						<?php if ($nextPost): ?>
-						<a href="/blog/<?= htmlspecialchars((string)$nextPost['slug'], ENT_QUOTES, 'UTF-8') ?>"
-							style="color: #3e7ab6; text-decoration: none; max-width: 45%; text-align: right;">
-							<?= htmlspecialchars((string)$nextPost['title'], ENT_QUOTES, 'UTF-8') ?> →
-						</a>
-						<?php else: ?>
-						<span></span>
-						<?php endif; ?>
-					</div>
-				</article>
-			</div>
-
-			<div class="col-md-4">
-				<!-- Боковая панель з іншими постами -->
-				<div style="background: #f9f9f9; padding: 20px; border-radius: 5px;">
-					<h3 style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3e7ab6;">Другие посты</h3>
-					<?php
-					if ($pdo instanceof PDO) {
-						$related = $pdo->prepare('
-                        SELECT id, title, slug, published_at FROM blog_posts 
-                        WHERE status = "published" AND id != :id 
-                        ORDER BY published_at DESC LIMIT 5
-                    ');
-						$related->execute(['id' => $post['id']]);
-						$relatedPosts = $related->fetchAll();
-
-						if (!empty($relatedPosts)):
-							foreach ($relatedPosts as $rel):
-					?>
-					<div style="padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #ddd;">
-						<a href="/blog/<?= htmlspecialchars((string)$rel['slug'], ENT_QUOTES, 'UTF-8') ?>"
-							style="color: #3e7ab6; text-decoration: none; font-weight: 500;">
-							<?= htmlspecialchars((string)$rel['title'], ENT_QUOTES, 'UTF-8') ?>
-						</a>
-						<div style="color: #999; font-size: 12px; margin-top: 5px;">
-							<?= htmlspecialchars(date('d.m.Y', strtotime((string)$rel['published_at'])), ENT_QUOTES, 'UTF-8') ?>
-						</div>
-					</div>
-					<?php
-							endforeach;
-						endif;
-					}
-					?>
-				</div>
-
-				<!-- About блога -->
-				<div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px;">
-					<h3 style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #3e7ab6;">О Блоге</h3>
-					<p style="color: #666; line-height: 1.6; font-size: 14px;">
-						Статьи про восстановление и правильный уход за волосами с инновационными средствами Olaplex.
-					</p>
-					<a href="/blog" style="color: #3e7ab6; text-decoration: none; font-weight: bold;">Все посты →</a>
-				</div>
-			</div>
-		</div>
-	</div>
+				</div><!-- /.blog-article -->
+			</div><!-- /.col-12 -->
+		</div><!-- /.row -->
+	</div><!-- /.container -->
 
 	<?php require __DIR__ . '/footer.php'; ?>
 

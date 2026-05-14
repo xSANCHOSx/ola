@@ -78,6 +78,13 @@
 			this.coupon_discount = 0
 			localStorage.removeItem('cart_coupon')
 		}
+		baseTotalPrice() {
+			return Object.values(this.items).reduce(
+				(s, item) =>
+					s + (parseFloat(item.price) || 0) * (parseInt(item.num, 10) || 0),
+				0,
+			)
+		}
 		totalItems() {
 			return Object.values(this.items).reduce(
 				(sum, item) => sum + (parseInt(item.num, 10) || 0),
@@ -290,7 +297,8 @@
 			this.renderTotals()
 		}
 		renderTotals() {
-			const sum = this.store.totalPrice()
+			const sum     = this.store.totalPrice()
+			const baseSum = this.store.baseTotalPrice() // сума БЕЗ знижки купона
 
 			// Старый #bsum — сохраняем для обратной совместимости
 			$('#bsum')
@@ -300,8 +308,8 @@
 			// Обновляем итоговую сумму
 			$('#minicart-total-display').text(sum.toFixed(2) + ' ₽')
 
-			// Логика доставки
-			if (sum >= 5000) {
+			// Логика доставки — порог проверяем по базовой сумме (до скидки)
+			if (baseSum >= 5000) {
 				$('#minicart-delivery-banner .delivery-text').text(
 					'Москва: бесплатно Регионы: Уточняйте у оператора'
 				)
@@ -309,6 +317,11 @@
 				$('#minicart-delivery-banner .delivery-text').text(
 					'Москва: +250 руб Регионы: Уточняйте у оператора'
 				)
+			}
+
+			// Відновити відображення купона якщо він активний
+			if (this.store.coupon) {
+				this.showCoupon(this.store.coupon)
 			}
 		}
 		showCoupon(code) {

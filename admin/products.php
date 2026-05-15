@@ -620,8 +620,8 @@ if (isset($_GET['edit'])) {
 			<table class="table table-bordered table-striped">
 				<thead>
 					<tr>
-						<th>Порядок сортировки</th>
-						<th>ID</th>
+						<th>ID Sort</th>
+						<th>ID AMO</th>
 						<th>Код каталога</th>
 						<th>Slug</th>
 						<th>Название</th>

@@ -691,7 +691,7 @@ if (isset($_GET['msg'])) {
 					<div class="form-group-wrapper">
 						<label>Полное содержимое *</label>
 						<textarea id="content" name="content"
-							style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none;"></textarea>
+							style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none;"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
 						<div id="contentError" style="color: #dc3545; font-size: 13px; margin-top: 6px; display: none;"></div>
 					</div>
 				</div>
@@ -770,11 +770,10 @@ if (isset($_GET['msg'])) {
 					items: [
 						'undo', 'redo', '|',
 						'heading', '|',
-						'bold', 'italic', 'underline', 'strikethrough', '|',
-						'alignment', '|',
+						'bold', 'italic', '|',
 						'bulletedList', 'numberedList', '|',
-						'link', 'imageUpload', 'blockQuote', 'insertTable', '|',
-						'removeFormat', 'sourceEditing'
+						'link', 'blockQuote', 'insertTable', '|',
+						'removeFormat'
 					],
 					shouldNotGroupWhenFull: true
 				},
@@ -804,24 +803,6 @@ if (isset($_GET['msg'])) {
 						}
 					]
 				},
-				image: {
-					upload: {
-						types: ['jpeg', 'png', 'gif', 'webp']
-					},
-					resizeOptions: [{
-							name: 'imageResizePercentages',
-							values: ['25', '50', '75', '100']
-						},
-						{
-							name: 'imageResizeByWidth',
-							values: ['200', '300', '400', '500', '600', '800']
-						}
-					],
-					styles: ['full', 'alignLeft', 'alignRight', 'alignCenter']
-				},
-				simpleUpload: {
-					uploadUrl: '/admin/blog-upload.php'
-				},
 				table: {
 					contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
 				},
@@ -831,15 +812,8 @@ if (isset($_GET['msg'])) {
 				blogEditor = editor;
 				window.blogEditor = editor;
 
-				// ===== ИСПРАВЛЕНИЕ: ИНИЦИАЛИЗАЦИЯ КОНТЕНТА ИЗ БД =====
-				// Если редактируем существующий пост, загружаем контент в CKEditor
-				const contentTextarea = document.getElementById('content');
-				if (contentTextarea && contentTextarea.value) {
-					editor.setData(contentTextarea.value);
-				}
-				// ===== КОНЕЦ ИСПРАВЛЕНИЯ =====
-
 				const form = document.getElementById('blogForm');
+				const contentTextarea = document.getElementById('content');
 				const contentError = document.getElementById('contentError');
 
 				form.addEventListener('submit', function(e) {

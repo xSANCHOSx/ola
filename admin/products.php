@@ -620,6 +620,7 @@ if (isset($_GET['edit'])) {
 			<table class="table table-bordered table-striped">
 				<thead>
 					<tr>
+						<th>Порядок сортировки</th>
 						<th>ID</th>
 						<th>Код каталога</th>
 						<th>Slug</th>
@@ -633,6 +634,7 @@ if (isset($_GET['edit'])) {
 				<tbody>
 					<?php foreach ($products as $p): ?>
 					<tr>
+						<td><?= admin_h((string)$p['sort_order']) ?></td>
 						<td><?= admin_h((string)$p['external_id']) ?></td>
 						<td><?= admin_h((string)$p['cat_number']) ?></td>
 						<td><?= admin_h((string)$p['link']) ?></td>

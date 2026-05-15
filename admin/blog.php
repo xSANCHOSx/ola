@@ -890,7 +890,7 @@ if (isset($_GET['msg'])) {
 						<td>
 							<span
 								style="background:<?= $p['status'] === 'published' ? '#d4edda' : '#fff3cd' ?>; padding:3px 8px; border-radius:3px; font-size:12px;">
-								<?= admin_h((string)$p['status']) ?>
+								<?= $p['status'] === 'published' ? 'Опубликовано' : 'Черновик' ?>
 							</span>
 						</td>
 						<td><?= admin_h(date('d.m.Y H:i', strtotime((string)$p['created_at']))) ?></td>

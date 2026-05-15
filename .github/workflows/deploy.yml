@@ -50,6 +50,10 @@ jobs:
               --exclude='.gitattributes' \
               --exclude='db.php' \
               --exclude='log/' \
+              --exclude='images/' \
+              --exclude='data/images/' \
+               --exclude='data/uploads/' \
+               
               ./ ../
 
             echo "Деплой выполнен успешно."

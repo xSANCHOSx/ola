@@ -383,6 +383,7 @@ div#max-feature-para {
 #max-work-container p,
 #max-work-container ul {
   font-size: 17px;
+  font-weight: 400;
 }
 
 #max-work-container {
@@ -475,12 +476,15 @@ div#max-team {
   width: 200px !important;
   margin: 0 auto;
 }
+
 .stars-rating {
-    width: 110px;               /* трохи більше якщо відступи між зірками */
-    height: 18px;
-    background-image: url('/images/star.png');
-    background-repeat: repeat-x;
-    background-size: 20px 18px; /* 20px по ширині = 2px відступ між зірками */
+  width: 110px;
+  /* трохи більше якщо відступи між зірками */
+  height: 18px;
+  background-image: url('/images/star.png');
+  background-repeat: repeat-x;
+  background-size: 20px 18px;
+  /* 20px по ширині = 2px відступ між зірками */
 }
 
 .member-profile .member-name,

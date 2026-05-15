@@ -96,9 +96,24 @@
   font-size: 13px;
   color: #1a1a2e;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.delivery-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.delivery-text {
+  display: block;
+  line-height: 1.4;
+}
+
+.delivery-regions {
+  opacity: 0.75;
 }
 
 .minicart-delivery-banner svg,

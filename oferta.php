@@ -8,50 +8,7 @@ require __DIR__ . '/templates/head.php';
 ?>
 
 <body>
-	<header id="header" class="sticky">
-		<div class="container-fluid">
-			<nav class="navbar navbar-default ">
-
-				<!-- Brand and toggle get grouped for better mobile display -->
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-						data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-						<span class="sr-only">Toggle navigation</span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					<a class="navbar-brand" href="/">
-						<img id="logo" src="/images/logo.png" alt="Olaplex Logo" fetchpriority="high">
-					</a>
-
-				</div>
-
-				<!-- Collect the nav links, forms, and other content for toggling -->
-				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-					<ul class="nav navbar-nav main">
-						<li><a href="/#max-aboutus-section">Что это?</a></li>
-						<li><a href="/#max-featured-section">Продукция</a></li>
-						<li><a href="/#max-work-section">Как использовать</a></li>
-						<li><a href="/#max-purchase-section">Доставка</a></li>
-						<li><a href="/info">Справка</a></li>
-					</ul>
-					<div class="number navbar-brand hidden-sm hidden-xs">+7 (495) 135-28-44</div>
-					<div class="cart visible-lg visible-md cart_full" onclick="cart.showWinow('bcontainer', 1)">
-						<img src="/images/basket.png" alt="basket" loading="lazy">
-						<span id="basketwidjet"></span>
-					</div>
-				</div>
-				<div class="number navbar-brand hidden-md hidden-lg">+7 (495) 135-28-44</div>
-				<div class="cart visible-sm visible-xs cart_mobile" onclick="cart.showWinow('bcontainer', 1)">
-					<img src="/images/basket.png" alt="basket" loading="lazy"><span id="basketwidjet"></span>
-				</div>
-				<!-- /.navbar-collapse -->
-			</nav>
-		</div>
-		<!-- /.container-fluid -->
-
-	</header>
+	<?php include 'templates/header.php'; ?>
 
 
 	<!-- About us section -->
@@ -121,6 +78,7 @@ require __DIR__ . '/templates/head.php';
 	<script defer src="/js/bootstrap.min.js"></script>
 	<script defer src="/js/cart.js"></script>
 	<script defer src="/js/cart-init.js"></script>
+	<?php include 'templates/order_form.php'; ?>
 
 	<!-- Custom JavaScript -->
 	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>

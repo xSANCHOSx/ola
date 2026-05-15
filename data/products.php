@@ -36,7 +36,7 @@ function get_products(): array
     $pdo = dev_db_connection();
     if ($pdo instanceof PDO) {
         try {
-            $stmt = $pdo->query('SELECT external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description FROM products WHERE status = "active" ORDER BY id ASC');
+            $stmt = $pdo->query('SELECT external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description sort_order FROM products WHERE status = "active" ORDER BY sort_order ASC');
             foreach ($stmt->fetchAll() as $row) {
                 $cache[] = [
                     'id'              => (string)$row['external_id'],

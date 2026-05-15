@@ -174,10 +174,10 @@
 							<circle cx="5.5" cy="18.5" r="2.5"/>
 							<circle cx="18.5" cy="18.5" r="2.5"/>
 						</svg>
-
-						<span class="delivery-text">
-							Москва: +250 руб Регионы: Уточняйте у оператора
-						</span>
+						<div class="delivery-lines">
+							<span class="delivery-text delivery-moscow">Москва: +250 руб &nbsp;|&nbsp; От 5000 — бесплатная</span>
+							<span class="delivery-text delivery-regions">Регионы: Уточняйте у оператора</span>
+						</div>
 					</div>
 						<!-- FOOTER -->
 						<div id="bfooter">
@@ -300,22 +300,28 @@
 			const sum     = this.store.totalPrice()
 			const baseSum = this.store.baseTotalPrice() // сума БЕЗ знижки купона
 
+			// Доставка: +250 если меньше порога
+			const DELIVERY_COST = 250
+			const DELIVERY_THRESHOLD = 5000
+			const delivery = baseSum >= DELIVERY_THRESHOLD ? 0 : DELIVERY_COST
+			const total = sum + delivery
+
 			// Старый #bsum — сохраняем для обратной совместимости
 			$('#bsum')
-				.attr('data-price', sum.toFixed(2))
-				.html('Сумма: <span class="price_value">' + sum.toFixed(2) + '</span> ₽.')
+				.attr('data-price', total.toFixed(2))
+				.html('Сумма: <span class="price_value">' + total.toFixed(2) + '</span> ₽.')
 
-			// Обновляем итоговую сумму
-			$('#minicart-total-display').text(sum.toFixed(2) + ' ₽')
+			// Обновляем итоговую сумму (с доставкой)
+			$('#minicart-total-display').text(total.toFixed(2) + ' ₽')
 
 			// Логика доставки — порог проверяем по базовой сумме (до скидки)
-			if (baseSum >= 5000) {
-				$('#minicart-delivery-banner .delivery-text').text(
-					'Москва: бесплатно Регионы: Уточняйте у оператора'
+			if (baseSum >= DELIVERY_THRESHOLD) {
+				$('#minicart-delivery-banner .delivery-moscow').text(
+					'Москва: бесплатно  |  От 5000 — бесплатная'
 				)
 			} else {
-				$('#minicart-delivery-banner .delivery-text').text(
-					'Москва: +250 руб Регионы: Уточняйте у оператора'
+				$('#minicart-delivery-banner .delivery-moscow').text(
+					'Москва: +250 руб  |  От 5000 — бесплатная'
 				)
 			}
 

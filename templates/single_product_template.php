@@ -38,68 +38,71 @@ require __DIR__ . '/head.php'; ?>
 			<h1><?= htmlspecialchars($currentProduct['cat_number'], ENT_QUOTES, 'UTF-8') ?>
 				<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?></h1>
 		</div>
-		<div class="max-feature-section-list" class="container-fluid even3">
+		<div class="max-feature-section-list container-fluid even3">
 			<div class="row">
-				<div class="col-sm-12 col-md-5 offset-md-1 visible-md visible-lg ">
+				<!-- Фото: desktop -->
+				<div class="col-sm-12 col-md-5 offset-md-1 hidden-xs hidden-sm">
 					<div class="img animated fadeInDown">
 						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
 					</div>
-					<div class="col-sm-12 col-md-5 offset-md-1 visible-xs visible-sm">
-						<div class="image">
-							<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
-						</div>
-					</div>
-					<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
-						<span></span>
-						<div class="col-xs-12 buy">
-							<?php if (product_is_buyable($currentProduct)) { ?>
-								<?php include 'single_special.php'; ?>
-								<div class="price_inner">
-									<p>Цена: <span
-											class="price_old"><?= htmlspecialchars($currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?></span>
-										<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
-									</p>
-									<div class="stars">
-										<div class="stars-rating"></div>
-										<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
-											itemtype="http://schema.org/AggregateRating">
-											<meta itemprop="bestRating" content="5">
-											<meta itemprop="ratingValue" content="5">
-											<span class="ratingCount" itemprop="ratingCount">30</span>
-										</div>
-										<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-											<meta itemprop="priceCurrency" content="RUB" />
-											<meta itemprop="price"
-												content="<?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?>" />
-										</div>
-									</div>
-								</div>
-							<?php } elseif (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
-								<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
-								<p><strong>Срок доставки: 7-14 дней</strong></p>
-							<?php } else { ?>
-								<p><span class="regular_price"><strong>Нет в наличии</strong></span></p>
-
-							<?php } ?>
-							<p><?php echo nl2br($currentProduct['short_desc']); ?></p>
-							<button class="b1c"
-								<?php if (!empty($currentProduct['in_stock']) || (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder')) { ?>
-								onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id']) ?>')"
-								<?php } else { ?> disabled <?php } ?>>
-								<?php echo product_button_label($currentProduct); ?>
-							</button>
-						</div>
-						<noindex>
-							<div style="text-align: justify;" class="product-description">
-								<?php
-								$description = !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'];
-								echo $description;
-								?>
-							</div>
-						</noindex>
+				</div>
+				<!-- Фото: mobile -->
+				<div class="col-sm-12 hidden-md hidden-lg">
+					<div class="image">
+						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
 					</div>
 				</div>
+				<!-- Інфо про товар -->
+				<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
+					<span></span>
+					<div class="col-xs-12 buy">
+						<?php if (product_is_buyable($currentProduct)) { ?>
+							<?php include 'single_special.php'; ?>
+							<div class="price_inner">
+								<p>Цена: <span
+										class="price_old"><?= htmlspecialchars($currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?></span>
+									<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
+								</p>
+								<div class="stars">
+									<div class="stars-rating"></div>
+									<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
+										itemtype="http://schema.org/AggregateRating">
+										<meta itemprop="bestRating" content="5">
+										<meta itemprop="ratingValue" content="5">
+										<span class="ratingCount" itemprop="ratingCount">30</span>
+									</div>
+									<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+										<meta itemprop="priceCurrency" content="RUB" />
+										<meta itemprop="price"
+											content="<?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?>" />
+									</div>
+								</div>
+							</div>
+						<?php } elseif (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
+							<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
+							<p><strong>Срок доставки: 7-14 дней</strong></p>
+						<?php } else { ?>
+							<p><span class="regular_price"><strong>Нет в наличии</strong></span></p>
+						<?php } ?>
+						<p><?php echo nl2br($currentProduct['short_desc']); ?></p>
+						<button class="b1c"
+							<?php if (!empty($currentProduct['in_stock']) || (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder')) { ?>
+							onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id']) ?>')" <?php } else { ?>
+							disabled <?php } ?>>
+							<?php echo product_button_label($currentProduct); ?>
+						</button>
+					</div>
+					<noindex>
+						<div style="text-align: justify;" class="product-description">
+							<?php
+							$description = !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'];
+							echo $description;
+							?>
+						</div>
+					</noindex>
+				</div>
 			</div>
+		</div>
 	</section>
 	<!-- ./ Feature Section Ends -->
 	<?php include 'slider_in_card.php'; ?>
@@ -110,6 +113,17 @@ require __DIR__ . '/head.php'; ?>
 	<!-- All JavaScript libraries -->
 	<script defer src="/js/jquery-3.7.1.min.js"></script>
 	<script defer src="/js/bootstrap.min.js"></script>
+	<script>
+		<?php
+		$_numKey = (int)$currentProduct['id'];
+		$_productMap = [];
+		$_productMap[$_numKey] = $currentProduct;
+		if ((string)$_numKey !== (string)$currentProduct['id']) {
+			$_productMap[(string)$currentProduct['id']] = $currentProduct;
+		}
+		?>
+		window.PRODUCTS = <?= json_encode($_productMap, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
+	</script>
 	<script defer src="/js/cart.js"></script>
 	<script defer src="/js/cart-init.js"></script>
 	<script defer src="/js/jquery.flexslider-min.js"></script>

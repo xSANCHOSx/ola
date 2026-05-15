@@ -20,12 +20,12 @@
 		<textarea name="comments" id="question" placeholder="Адрес"></textarea>
 		<input type="hidden" id="id_product" value="">
 		<?php if (!empty($currentProduct['status'])) { ?>
-			<input type="hidden" id="status" value="Предзаказ"> <?php } ?>
+		<input type="hidden" id="status" value="Предзаказ"> <?php } ?>
 		<input type="hidden" class="valTrFal" value="valTrFal_disabled">
 		<input type="checkbox" id="checkBoxId" style="margin: 2px;"> <label class="font-geometria-light">Я согласен с <a
 				href="/oferta" class="oferta" target="_blank">обработкой персональных данных</a> и с <a href="/policy"
 				class="oferta" target="_blank">политикой конфиденциальности</a></label>
-		<input class="bbutton checkout send" id="send" type="submit" value="Відправити" disabled="disabled" />
+		<input class="bbutton checkout send" id="send" type="submit" value="Отправить" disabled="disabled" />
 	</form>
 </div>
 <!----------------------------------------------------->

@@ -27,6 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
         'seo_title' => trim((string)($_POST['seo_title'] ?? '')),
         'seo_description' => trim((string)($_POST['seo_description'] ?? '')),
         'volume' => trim((string)($_POST['volume'] ?? '')),
+				'sort_order' => trim((string)($_POST['sort_order'] ?? '')),
+				
     ];
 
     if (!empty($_FILES['image_upload']['tmp_name']) && is_uploaded_file($_FILES['image_upload']['tmp_name'])) {
@@ -48,9 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 
     if ($id > 0) {
         $data['id'] = $id;
-        $sql = 'UPDATE products SET external_id=:external_id, cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, image=:image, link=:link, short_desc=:short_desc, `desc`=:desc, full_desc=:full_desc, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume WHERE id=:id';
+        $sql = 'UPDATE products SET external_id=:external_id, cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, image=:image, link=:link, short_desc=:short_desc, `desc`=:desc, full_desc=:full_desc, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume, sort_order=:sort_order WHERE id=:id';
     } else {
-        $sql = 'INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description, volume) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:status,:seo_title,:seo_description,:volume)';
+        $sql = 'INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:status,:seo_title,:seo_description,:volume,:sort_order)';
     }
     $stmt = $pdo->prepare($sql);
     $stmt->execute($data);
@@ -482,7 +484,11 @@ if (isset($_GET['edit'])) {
 								</div>
 							</div>
 						</div>
-
+						<div class="form-group-wrapper">
+							<label for="sort_order">Порядок сортировки</label>
+							<input type="number" class="form-control" id="sort_order" name="sort_order"
+								value="<?= admin_h((string)($edit['sort_order'] ?? '0')) ?>">
+						</div>
 						<!-- Основные данные товара -->
 						<div class="form-group-wrapper">
 							<label for="external_id">ID товара *</label>

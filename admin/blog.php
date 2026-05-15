@@ -106,8 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$slug = strtolower(trim($slug, '-'));
 		}
 
+		// If slug is still empty after generation/cleanup, create fallback
 		if (empty($slug)) {
-			$errors[] = 'slug_empty';
+			$slug = 'post-' . time();
 		}
 
 		// Validate image path - prevent path traversal
@@ -740,6 +741,29 @@ if (isset($_GET['msg'])) {
 			function editorHasContent(html) {
 				return stripHtml(html).length > 0;
 			}
+
+			function generateClientSlug(text) {
+				return text
+					.toLowerCase()
+					.replace(/[^a-z0-9\s\-]/g, '')
+					.replace(/\s+/g, '-')
+					.replace(/\-+/g, '-')
+					.replace(/^\-+|\-+$/g, '');
+			}
+
+			// Auto-generate slug when title changes
+			document.addEventListener('DOMContentLoaded', function() {
+				const titleInput = document.querySelector('input[name="title"]');
+				const slugInput = document.querySelector('input[name="slug"]');
+
+				if (titleInput && slugInput) {
+					titleInput.addEventListener('input', function() {
+						if (!slugInput.value || slugInput.value === '') {
+							slugInput.value = generateClientSlug(titleInput.value) || '';
+						}
+					});
+				}
+			});
 
 			ClassicEditor
 				.create(document.querySelector('#content'), {

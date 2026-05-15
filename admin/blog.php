@@ -294,11 +294,27 @@ function generateSlug(string $text): string
 	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 	<style>
 	/* ── Alerts ── */
-	.alert { padding: 10px; margin-bottom: 15px; border-radius: 4px; }
-	.alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
-	.alert-error   { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+	.alert {
+		padding: 10px;
+		margin-bottom: 15px;
+		border-radius: 4px;
+	}
 
-	table { word-break: break-word; }
+	.alert-success {
+		background: #d4edda;
+		color: #155724;
+		border: 1px solid #c3e6cb;
+	}
+
+	.alert-error {
+		background: #f8d7da;
+		color: #721c24;
+		border: 1px solid #f5c6cb;
+	}
+
+	table {
+		word-break: break-word;
+	}
 
 	/* ── Blog form wrapper ── */
 	.blog-form-wrapper {
@@ -332,8 +348,18 @@ function generateSlug(string $text): string
 	}
 
 	/* ── Shared form-group style ── */
-	.form-group-wrapper { display: flex; flex-direction: column; gap: 4px; }
-	.form-group-wrapper label { font-weight: 600; font-size: 13px; color: #444; }
+	.form-group-wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.form-group-wrapper label {
+		font-weight: 600;
+		font-size: 13px;
+		color: #444;
+	}
+
 	.form-group-wrapper input,
 	.form-group-wrapper select,
 	.form-group-wrapper textarea {
@@ -361,6 +387,7 @@ function generateSlug(string $text): string
 		flex-direction: column;
 		gap: 20px;
 	}
+
 	.descriptions-section h5 {
 		margin: 0 0 12px;
 		font-size: 15px;
@@ -369,7 +396,11 @@ function generateSlug(string $text): string
 		border-bottom: 2px solid #3e7ab6;
 		padding-bottom: 6px;
 	}
-	.descriptions-section textarea { width: 100%; box-sizing: border-box; }
+
+	.descriptions-section textarea {
+		width: 100%;
+		box-sizing: border-box;
+	}
 
 	/* ── SEO block ── */
 	.seo-section {
@@ -378,6 +409,7 @@ function generateSlug(string $text): string
 		border-radius: 8px;
 		padding: 24px;
 	}
+
 	.seo-section h5 {
 		margin: 0 0 16px;
 		font-size: 15px;
@@ -386,6 +418,7 @@ function generateSlug(string $text): string
 		border-bottom: 2px solid #3e7ab6;
 		padding-bottom: 6px;
 	}
+
 	.seo-two-cols {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
@@ -400,12 +433,14 @@ function generateSlug(string $text): string
 		padding: 16px;
 		text-align: center;
 	}
+
 	.image-preview-container {
 		position: relative;
 		display: block;
 		width: 100%;
 		margin: 0 auto;
 	}
+
 	.image-placeholder {
 		width: 100%;
 		aspect-ratio: 16 / 9;
@@ -421,15 +456,29 @@ function generateSlug(string $text): string
 		font-size: 15px;
 		overflow: hidden;
 	}
-	.image-placeholder:hover { border-color: #adb5bd; background: #dee2e6; }
-	.image-preview-img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
+
+	.image-placeholder:hover {
+		border-color: #adb5bd;
+		background: #dee2e6;
+	}
+
+	.image-preview-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 6px;
+		display: block;
+	}
+
 	.btn-remove-image {
 		position: absolute;
-		top: 6px; right: 6px;
+		top: 6px;
+		right: 6px;
 		background: #dc3545;
 		border: none;
 		border-radius: 50%;
-		width: 32px; height: 32px;
+		width: 32px;
+		height: 32px;
 		padding: 0;
 		display: none;
 		align-items: center;
@@ -437,28 +486,50 @@ function generateSlug(string $text): string
 		cursor: pointer;
 		transition: all 0.2s;
 		z-index: 20;
-		box-shadow: 0 2px 8px rgba(0,0,0,.2);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
 	}
-	.btn-remove-image:hover { background: #c82333; transform: scale(1.1); }
-	.btn-remove-image.show { display: flex; }
+
+	.btn-remove-image:hover {
+		background: #c82333;
+		transform: scale(1.1);
+	}
+
+	.btn-remove-image.show {
+		display: flex;
+	}
+
 	.btn-remove-image svg {
-		width: 18px; height: 18px;
+		width: 18px;
+		height: 18px;
 		display: block;
 		stroke: white;
 		stroke-width: 2.5;
 		stroke-linecap: round;
 		stroke-linejoin: round;
 	}
-	.image-upload-input { display: none !important; }
+
+	.image-upload-input {
+		display: none !important;
+	}
 
 	/* ── CKEditor ── */
-	.ck-content { min-height: 300px; }
+	.ck-content {
+		min-height: 300px;
+	}
 
 	/* ── Responsive ── */
 	@media (max-width: 768px) {
-		.blog-form-top { grid-template-columns: 1fr; }
-		.status-slug-row { grid-template-columns: 1fr; }
-		.seo-two-cols { grid-template-columns: 1fr; }
+		.blog-form-top {
+			grid-template-columns: 1fr;
+		}
+
+		.status-slug-row {
+			grid-template-columns: 1fr;
+		}
+
+		.seo-two-cols {
+			grid-template-columns: 1fr;
+		}
 	}
 	</style>
 </head>
@@ -488,38 +559,39 @@ function generateSlug(string $text): string
 					<div class="blog-form-left">
 						<div class="form-group-wrapper">
 							<label>Заголовок *</label>
-							<input name="title" placeholder="Заголовок поста"
-								value="<?= admin_h((string)($edit['title'] ?? '')) ?>" required maxlength="255">
+							<input name="title" placeholder="Заголовок поста" value="<?= admin_h((string)($edit['title'] ?? '')) ?>"
+								required maxlength="255">
 						</div>
 
 						<div class="status-slug-row">
 							<div class="form-group-wrapper">
 								<label>Статус</label>
 								<select name="status">
-									<option value="draft" <?= ($edit['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Черновик</option>
-									<option value="published" <?= ($edit['status'] ?? 'draft') === 'published' ? 'selected' : '' ?>>Опубликовано</option>
+									<option value="draft" <?= ($edit['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Черновик
+									</option>
+									<option value="published" <?= ($edit['status'] ?? 'draft') === 'published' ? 'selected' : '' ?>>
+										Опубликовано</option>
 								</select>
 							</div>
 							<div class="form-group-wrapper">
 								<label>URL Slug</label>
 								<input name="slug" placeholder="url-slug (автогенерируется)"
-									value="<?= admin_h((string)($edit['slug'] ?? '')) ?>"
-									style="font-family:monospace; font-size:12px;">
+									value="<?= admin_h((string)($edit['slug'] ?? '')) ?>" style="font-family:monospace; font-size:12px;">
 								<small style="color:#888; font-size:11px;">Если пусто — генерируется из заголовка</small>
 							</div>
 						</div>
 
 						<div class="form-group-wrapper">
 							<label>Теги (через запятую)</label>
-							<input name="tags" placeholder="тег1, тег2, тег3"
-								value="<?= admin_h((string)($edit['tags'] ?? '')) ?>">
+							<input name="tags" placeholder="тег1, тег2, тег3" value="<?= admin_h((string)($edit['tags'] ?? '')) ?>">
 						</div>
 					</div>
 
 					<!-- RIGHT: изображение обложки -->
 					<div class="blog-form-right">
 						<div class="image-section">
-							<label style="font-weight:600; font-size:13px; color:#444; display:block; margin-bottom:10px;">Изображение обложки</label>
+							<label style="font-weight:600; font-size:13px; color:#444; display:block; margin-bottom:10px;">Изображение
+								обложки</label>
 							<input type="hidden" name="featured_image" id="featuredImageInput"
 								value="<?= admin_h((string)($edit['featured_image'] ?? '')) ?>">
 							<div class="image-preview-container">
@@ -527,7 +599,7 @@ function generateSlug(string $text): string
 									<?php if (!empty($edit['featured_image'])): ?>
 									<img src="/<?= admin_h((string)$edit['featured_image']) ?>" alt="Cover" class="image-preview-img">
 									<?php else: ?>
-									<span>📷 Клацніть для вибору</span>
+									<span>📷 Нажмите для выбора</span>
 									<?php endif; ?>
 								</div>
 								<button type="button" class="btn-remove-image <?= !empty($edit['featured_image']) ? 'show' : '' ?>"
@@ -539,7 +611,8 @@ function generateSlug(string $text): string
 								</button>
 							</div>
 							<input type="file" id="blogImageUpload" class="image-upload-input" name="image_upload" accept="image/*">
-							<small style="color:#888; display:block; margin-top:8px; font-size:11px;">JPG, PNG, WEBP · до 10 МБ</small>
+							<small style="color:#888; display:block; margin-top:8px; font-size:11px;">JPG, PNG, WEBP · до 10
+								МБ</small>
 						</div>
 					</div>
 				</div>
@@ -606,26 +679,57 @@ function generateSlug(string $text): string
 					shouldNotGroupWhenFull: true
 				},
 				heading: {
-					options: [
-						{ model: 'paragraph', title: 'Параграф', class: 'ck-heading_paragraph' },
-						{ model: 'heading1', view: 'h1', title: 'Заголовок 1', class: 'ck-heading_heading1' },
-						{ model: 'heading2', view: 'h2', title: 'Заголовок 2', class: 'ck-heading_heading2' },
-						{ model: 'heading3', view: 'h3', title: 'Заголовок 3', class: 'ck-heading_heading3' }
+					options: [{
+							model: 'paragraph',
+							title: 'Параграф',
+							class: 'ck-heading_paragraph'
+						},
+						{
+							model: 'heading1',
+							view: 'h1',
+							title: 'Заголовок 1',
+							class: 'ck-heading_heading1'
+						},
+						{
+							model: 'heading2',
+							view: 'h2',
+							title: 'Заголовок 2',
+							class: 'ck-heading_heading2'
+						},
+						{
+							model: 'heading3',
+							view: 'h3',
+							title: 'Заголовок 3',
+							class: 'ck-heading_heading3'
+						}
 					]
 				},
 				image: {
-					upload: { types: ['jpeg', 'png', 'gif', 'webp'] },
-					resizeOptions: [
-						{ name: 'imageResizePercentages', values: ['25', '50', '75', '100'] },
-						{ name: 'imageResizeByWidth', values: ['200', '300', '400', '500', '600', '800'] }
+					upload: {
+						types: ['jpeg', 'png', 'gif', 'webp']
+					},
+					resizeOptions: [{
+							name: 'imageResizePercentages',
+							values: ['25', '50', '75', '100']
+						},
+						{
+							name: 'imageResizeByWidth',
+							values: ['200', '300', '400', '500', '600', '800']
+						}
 					],
 					styles: ['full', 'alignLeft', 'alignRight', 'alignCenter']
 				},
-				simpleUpload: { uploadUrl: '/admin/blog-upload.php' },
-				table: { contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'] },
+				simpleUpload: {
+					uploadUrl: '/admin/blog-upload.php'
+				},
+				table: {
+					contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+				},
 				language: 'uk'
 			})
-			.catch(error => { console.error(error); });
+			.catch(error => {
+				console.error(error);
+			});
 		</script>
 
 		<h3>Все посты (<?= count($posts) ?>)</h3>
@@ -678,12 +782,12 @@ function generateSlug(string $text): string
 		var imagePreview = document.getElementById('blogImagePreview');
 		var btnRemove = document.getElementById('blogBtnRemove');
 
-		// Клік на превью — відкрити діалог вибору файлу
+		// Открыть диалог выбора файла при клике на превью
 		imagePreview.addEventListener('click', function() {
 			imageUpload.click();
 		});
 
-		// Завантаження фото
+		// Загрузка и отображение превью
 		imageUpload.addEventListener('change', function(e) {
 			var file = e.target.files[0];
 			if (!file) return;
@@ -696,13 +800,13 @@ function generateSlug(string $text): string
 			reader.readAsDataURL(file);
 		});
 
-		// Видалення фото
+		// Удаление фото
 		window.blogRemoveImage = function(event) {
 			event.preventDefault();
 			event.stopPropagation();
 			document.getElementById('featuredImageInput').value = '';
 			imageUpload.value = '';
-			imagePreview.innerHTML = '<span>📷 Обкладинка</span>';
+			imagePreview.innerHTML = '<span>📷 Обложка</span>';
 			btnRemove.classList.remove('show');
 		};
 	})();

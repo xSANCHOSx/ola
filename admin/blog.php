@@ -690,7 +690,7 @@ if (isset($_GET['msg'])) {
 
 					<div class="form-group-wrapper">
 						<label>Полное содержимое *</label>
-						<textarea id="content" name="content" required><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
+						<textarea id="content" name="content"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
 					</div>
 				</div>
 

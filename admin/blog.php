@@ -691,8 +691,8 @@ if (isset($_GET['msg'])) {
 					<div class="form-group-wrapper">
 						<label>Полное содержимое *</label>
 						<textarea id="content" name="content"
-							style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none;"
-							required><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
+							style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none;"></textarea>
+						<div id="contentError" style="color: #dc3545; font-size: 13px; margin-top: 6px; display: none;"></div>
 					</div>
 				</div>
 
@@ -810,6 +810,7 @@ if (isset($_GET['msg'])) {
 
 					const form = document.getElementById('blogForm');
 					const contentTextarea = document.getElementById('content');
+					const contentError = document.getElementById('contentError');
 
 					form.addEventListener('submit', function(e) {
 						// Sync CKEditor data back to textarea before validation/submission
@@ -817,16 +818,16 @@ if (isset($_GET['msg'])) {
 							contentTextarea.value = blogEditor.getData();
 						}
 
-						// Clear custom validity
-						contentTextarea.setCustomValidity('');
-
 						// Check if content is empty
 						if (!editorHasContent(contentTextarea.value)) {
-							contentTextarea.setCustomValidity('Поле "Полное содержимое" обязательно');
+							contentError.textContent = 'Поле "Полное содержимое" обязательно';
+							contentError.style.display = 'block';
 							e.preventDefault();
-							form.reportValidity();
 							return false;
 						}
+
+						// Hide error if content is valid
+						contentError.style.display = 'none';
 
 						// Native validation for regular fields
 						if (!form.checkValidity()) {

@@ -36,7 +36,17 @@ function get_products(): array
     $pdo = dev_db_connection();
     if ($pdo instanceof PDO) {
         try {
-            $stmt = $pdo->query('SELECT external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description sort_order FROM products WHERE status = "active" ORDER BY sort_order ASC');
+            // ИСПРАВЛЕНО: добавлена запятая перед sort_order
+            // ИСПРАВЛЕНО: ORDER BY p.sort_order — явная ссылка на колонку таблицы,
+            //             а не на алиас из SELECT (MySQL иначе сортирует по алиасу)
+            $stmt = $pdo->query(
+                'SELECT p.external_id, p.cat_number, p.name, p.old_price, p.price,
+                        p.image, p.link, p.short_desc, p.`desc`, p.full_desc,
+                        p.in_stock, p.status, p.seo_title, p.seo_description, p.sort_order
+                 FROM products p
+                 WHERE p.status = "active"
+                 ORDER BY p.sort_order ASC'
+            );
             foreach ($stmt->fetchAll() as $row) {
                 $cache[] = [
                     'id'              => (string)$row['external_id'],
@@ -50,7 +60,7 @@ function get_products(): array
                     'desc'            => (string)($row['desc'] ?? ''),
                     'full_desc'       => (string)($row['full_desc'] ?? ''),
                     'in_stock'        => (bool)$row['in_stock'],
-                    'sort_order'        => (int)$row['sort_order'],
+                    'sort_order'      => (int)$row['sort_order'],
                     'status'          => $row['status'] !== null ? (string)$row['status'] : null,
                     'seo_title'       => $row['seo_title'] !== null ? (string)$row['seo_title'] : '',
                     'seo_description' => $row['seo_description'] !== null ? (string)$row['seo_description'] : '',

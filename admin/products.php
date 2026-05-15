@@ -623,8 +623,8 @@ if (isset($_GET['edit'])) {
 						<th>ID Sort</th>
 						<th>ID AMO</th>
 						<th>Код каталога</th>
-						<th>Slug</th>
 						<th>Название</th>
+						<th>Slug</th>
 						<th>Объем</th>
 						<th>Цена</th>
 						<th>SEO</th>
@@ -637,8 +637,8 @@ if (isset($_GET['edit'])) {
 						<td><?= admin_h((string)$p['sort_order']) ?></td>
 						<td><?= admin_h((string)$p['external_id']) ?></td>
 						<td><?= admin_h((string)$p['cat_number']) ?></td>
-						<td><?= admin_h((string)$p['link']) ?></td>
 						<td><?= admin_h((string)$p['name']) ?></td>
+						<td><?= admin_h((string)$p['link']) ?></td>
 						<td><?= admin_h((string)$p['volume']) ?></td>
 						<td><?= admin_h((string)$p['price']) ?></td>
 						<td><?= admin_h((string)$p['seo_title']) ?></td>

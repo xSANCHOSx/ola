@@ -3,11 +3,26 @@
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
 admin_require_auth();
+
 $pdo = dev_db_connection();
 $user = admin_current_user();
 
 if (!$pdo instanceof PDO) {
 	die('Database connection failed');
+}
+
+$msg = '';
+$reason = '';
+$edit = null;
+$formHasErrors = false;
+
+// Helper function for generating slug
+function generateSlug(string $text): string
+{
+	$text = strtolower($text);
+	$text = preg_replace('/[^a-z0-9\s\-]/u', '', $text);
+	$text = preg_replace('/\s+/', '-', $text);
+	return trim($text, '-');
 }
 
 // POST handler
@@ -46,179 +61,234 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$status = trim((string)($_POST['status'] ?? 'draft'));
 		$seo_title = trim((string)($_POST['seo_title'] ?? ''));
 		$seo_description = trim((string)($_POST['seo_description'] ?? ''));
+		$tagsRaw = (string)($_POST['tags'] ?? '');
 
-		// Валидация
-		if (empty($title) || empty($content)) {
-			dev_log_security('BLOG_VALIDATION_FAILED', ['reason' => 'empty_required_fields']);
-			header('Location: /admin/blog.php?msg=error&edit=' . $id);
-			exit;
+		// Keep form values if validation fails
+		$edit = [
+			'id' => $id > 0 ? $id : null,
+			'title' => $title,
+			'slug' => $slug,
+			'content' => $content,
+			'excerpt' => $excerpt,
+			'featured_image' => $featured_image,
+			'status' => $status,
+			'seo_title' => $seo_title,
+			'seo_description' => $seo_description,
+			'tags' => $tagsRaw,
+		];
+
+		// Server-side validation
+		$errors = [];
+
+		if ($title === '') {
+			$errors[] = 'title_empty';
+		}
+
+		if ($content === '') {
+			$errors[] = 'content_empty';
 		}
 
 		// Title max length
 		if (strlen($title) > 255) {
-			header('Location: /admin/blog.php?msg=error&edit=' . $id);
-			exit;
+			$errors[] = 'title_too_long';
 		}
 
 		// Auto-generate slug if empty
 		if (empty($slug)) {
 			$slug = generateSlug($title);
 		} else {
-			// Очистить slug - только буквы, цифры, дефис
+			// Clean slug - only letters, numbers, hyphen
 			$slug = preg_replace('/[^a-z0-9\-]/i', '', $slug);
 			$slug = preg_replace('/\-+/', '-', $slug);
 			$slug = strtolower(trim($slug, '-'));
 		}
 
 		if (empty($slug)) {
-			header('Location: /admin/blog.php?msg=error&edit=' . $id);
-			exit;
+			$errors[] = 'slug_empty';
 		}
 
-		// Проверка дублей slug (кроме текущего поста)
-		$slugCheck = $pdo->prepare('SELECT id FROM blog_posts WHERE slug = :slug AND id != :id');
-		$slugCheck->execute(['slug' => $slug, 'id' => $id ?: 0]);
-		if ($slugCheck->rowCount() > 0) {
-			dev_log_security('BLOG_SLUG_DUPLICATE', ['slug' => $slug]);
-			header('Location: /admin/blog.php?msg=error&edit=' . $id . '&reason=slug_exists');
-			exit;
-		}
-
-		// Валидация image path -防止 path traversal
+		// Validate image path - prevent path traversal
 		if (!empty($featured_image)) {
 			if (strpos($featured_image, '..') !== false || strpos($featured_image, '/') === 0) {
 				$featured_image = '';
+				$edit['featured_image'] = '';
 			}
 		}
 
-		// Валидация status
+		// Validate status
 		if (!in_array($status, ['draft', 'published'], true)) {
 			$status = 'draft';
+			$edit['status'] = 'draft';
 		}
 
-		// Handle image upload
-		if (!empty($_FILES['image_upload']['tmp_name']) && is_uploaded_file($_FILES['image_upload']['tmp_name'])) {
-			$ext = strtolower(pathinfo((string)$_FILES['image_upload']['name'], PATHINFO_EXTENSION));
-			$allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+		// If validation failed, stay on page and keep data
+		if (!empty($errors)) {
+			$formHasErrors = true;
+			dev_log_security('BLOG_VALIDATION_FAILED', [
+				'reason' => implode(',', $errors),
+				'user' => $user['username'] ?? 'unknown',
+			]);
 
-			if (!in_array($ext, $allowed, true)) {
-				dev_log_security('BLOG_INVALID_IMAGE_TYPE', ['ext' => $ext]);
-				header('Location: /admin/blog.php?msg=error&edit=' . $id . '&reason=invalid_image');
-				exit;
+			$msg = 'Ошибка при сохранении';
+			$reasonMap = [
+				'title_empty' => ' (заголовок обязателен)',
+				'content_empty' => ' (контент обязателен)',
+				'title_too_long' => ' (заголовок слишком длинный)',
+				'slug_empty' => ' (slug не может быть пустым)',
+			];
+			foreach ($errors as $err) {
+				if (isset($reasonMap[$err])) {
+					$reason = $reasonMap[$err];
+					break;
+				}
 			}
+		} else {
+			// Check duplicate slug (except current post)
+			$slugCheck = $pdo->prepare('SELECT id FROM blog_posts WHERE slug = :slug AND id != :id');
+			$slugCheck->execute(['slug' => $slug, 'id' => $id ?: 0]);
+			if ($slugCheck->rowCount() > 0) {
+				dev_log_security('BLOG_SLUG_DUPLICATE', ['slug' => $slug]);
 
-			if ((int)$_FILES['image_upload']['size'] > 10 * 1024 * 1024) {
-				header('Location: /admin/blog.php?msg=error&edit=' . $id . '&reason=image_too_large');
-				exit;
-			}
-
-			// Дополнительная проверка - это реально изображение
-			$finfo = getimagesize($_FILES['image_upload']['tmp_name']);
-			if ($finfo === false) {
-				dev_log_security('BLOG_INVALID_IMAGE_FILE', []);
-				header('Location: /admin/blog.php?msg=error&edit=' . $id);
-				exit;
-			}
-
-			$dir = __DIR__ . '/../data/uploads/blog';
-			if (!is_dir($dir)) {
-				mkdir($dir, 0755, true);
-			}
-
-			$fileName = bin2hex(random_bytes(12)) . '.' . $ext;
-			$target = $dir . '/' . $fileName;
-			if (move_uploaded_file($_FILES['image_upload']['tmp_name'], $target)) {
-				$featured_image = 'data/uploads/blog/' . $fileName;
-			}
-		}
-
-		try {
-			if ($id > 0) {
-				// Update
-				$sql = 'UPDATE blog_posts SET 
-                    title=:title, 
-                    slug=:slug, 
-                    content=:content, 
-                    excerpt=:excerpt, 
-                    featured_image=:featured_image, 
-                    status=:status, 
-                    seo_title=:seo_title, 
-                    seo_description=:seo_description 
-                    WHERE id=:id';
-
-				$pdo->prepare($sql)->execute([
-					'id' => $id,
-					'title' => $title,
-					'slug' => $slug,
-					'content' => $content,
-					'excerpt' => $excerpt,
-					'featured_image' => $featured_image,
-					'status' => $status,
-					'seo_title' => $seo_title,
-					'seo_description' => $seo_description,
-				]);
-
-				dev_log_security('BLOG_POST_UPDATED', ['id' => $id, 'user' => $user['username'] ?? 'unknown']);
+				$formHasErrors = true;
+				$msg = 'Ошибка при сохранении';
+				$reason = ' (slug уже существует)';
 			} else {
-				// Insert
-				$published_at = null;
-				if ($status === 'published') {
-					$published_at = date('Y-m-d H:i:s');
+				// Handle image upload
+				if (!empty($_FILES['image_upload']['tmp_name']) && is_uploaded_file($_FILES['image_upload']['tmp_name'])) {
+					$ext = strtolower(pathinfo((string)$_FILES['image_upload']['name'], PATHINFO_EXTENSION));
+					$allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+					if (!in_array($ext, $allowed, true)) {
+						dev_log_security('BLOG_INVALID_IMAGE_TYPE', ['ext' => $ext]);
+						$formHasErrors = true;
+						$msg = 'Ошибка при сохранении';
+						$reason = ' (неверный тип изображения)';
+					} elseif ((int)$_FILES['image_upload']['size'] > 10 * 1024 * 1024) {
+						$formHasErrors = true;
+						$msg = 'Ошибка при сохранении';
+						$reason = ' (изображение слишком большое)';
+					} else {
+						// Additional check - real image
+						$finfo = getimagesize($_FILES['image_upload']['tmp_name']);
+						if ($finfo === false) {
+							dev_log_security('BLOG_INVALID_IMAGE_FILE', []);
+							$formHasErrors = true;
+							$msg = 'Ошибка при сохранении';
+							$reason = ' (неверный файл изображения)';
+						} else {
+							$dir = __DIR__ . '/../data/uploads/blog';
+							if (!is_dir($dir)) {
+								mkdir($dir, 0755, true);
+							}
+
+							$fileName = bin2hex(random_bytes(12)) . '.' . $ext;
+							$target = $dir . '/' . $fileName;
+							if (move_uploaded_file($_FILES['image_upload']['tmp_name'], $target)) {
+								$featured_image = 'data/uploads/blog/' . $fileName;
+								$edit['featured_image'] = $featured_image;
+							}
+						}
+					}
 				}
 
-				$sql = 'INSERT INTO blog_posts 
-                    (title, slug, content, excerpt, featured_image, author_id, status, seo_title, seo_description, published_at) 
-                    VALUES (:title, :slug, :content, :excerpt, :featured_image, :author_id, :status, :seo_title, :seo_description, :published_at)';
+				// Save only if still no errors
+				if (!$formHasErrors) {
+					try {
+						if ($id > 0) {
+							// Update
+							$sql = 'UPDATE blog_posts SET 
+								title=:title, 
+								slug=:slug, 
+								content=:content, 
+								excerpt=:excerpt, 
+								featured_image=:featured_image, 
+								status=:status, 
+								seo_title=:seo_title, 
+								seo_description=:seo_description 
+								WHERE id=:id';
 
-				$pdo->prepare($sql)->execute([
-					'title' => $title,
-					'slug' => $slug,
-					'content' => $content,
-					'excerpt' => $excerpt,
-					'featured_image' => $featured_image,
-					'author_id' => $user['id'] ?? null,
-					'status' => $status,
-					'seo_title' => $seo_title,
-					'seo_description' => $seo_description,
-					'published_at' => $published_at,
-				]);
+							$pdo->prepare($sql)->execute([
+								'id' => $id,
+								'title' => $title,
+								'slug' => $slug,
+								'content' => $content,
+								'excerpt' => $excerpt,
+								'featured_image' => $featured_image,
+								'status' => $status,
+								'seo_title' => $seo_title,
+								'seo_description' => $seo_description,
+							]);
 
-				$id = (int)$pdo->lastInsertId();
-				dev_log_security('BLOG_POST_CREATED', ['id' => $id, 'user' => $user['username'] ?? 'unknown']);
-			}
+							dev_log_security('BLOG_POST_UPDATED', ['id' => $id, 'user' => $user['username'] ?? 'unknown']);
+						} else {
+							// Insert
+							$published_at = null;
+							if ($status === 'published') {
+								$published_at = date('Y-m-d H:i:s');
+							}
 
-			// Handle tags
-			$tags = array_filter(array_map('trim', explode(',', (string)($_POST['tags'] ?? ''))));
-			if (!empty($tags)) {
-				$pdo->prepare('DELETE FROM blog_post_tags WHERE post_id = :id')->execute(['id' => $id]);
+							$sql = 'INSERT INTO blog_posts 
+								(title, slug, content, excerpt, featured_image, author_id, status, seo_title, seo_description, published_at) 
+								VALUES (:title, :slug, :content, :excerpt, :featured_image, :author_id, :status, :seo_title, :seo_description, :published_at)';
 
-				foreach ($tags as $tag) {
-					if (strlen($tag) > 100) continue; // Skip too long tags
+							$pdo->prepare($sql)->execute([
+								'title' => $title,
+								'slug' => $slug,
+								'content' => $content,
+								'excerpt' => $excerpt,
+								'featured_image' => $featured_image,
+								'author_id' => $user['id'] ?? null,
+								'status' => $status,
+								'seo_title' => $seo_title,
+								'seo_description' => $seo_description,
+								'published_at' => $published_at,
+							]);
 
-					$slug = preg_replace('/[^a-z0-9\s\-]/i', '', $tag);
-					$slug = preg_replace('/\s+/', '-', strtolower($slug));
+							$id = (int)$pdo->lastInsertId();
+							$edit['id'] = $id;
+							dev_log_security('BLOG_POST_CREATED', ['id' => $id, 'user' => $user['username'] ?? 'unknown']);
+						}
 
-					// Insert or get existing tag
-					$tagStmt = $pdo->prepare('INSERT IGNORE INTO blog_tags (name, slug) VALUES (:name, :slug)');
-					$tagStmt->execute(['name' => $tag, 'slug' => $slug]);
+						// Handle tags
+						$tags = array_filter(array_map('trim', explode(',', $tagsRaw)));
+						if (!empty($tags)) {
+							$pdo->prepare('DELETE FROM blog_post_tags WHERE post_id = :id')->execute(['id' => $id]);
 
-					$getTag = $pdo->prepare('SELECT id FROM blog_tags WHERE slug = :slug');
-					$getTag->execute(['slug' => $slug]);
-					$tagId = (int)$getTag->fetch()['id'];
+							foreach ($tags as $tag) {
+								if (strlen($tag) > 100) {
+									continue;
+								}
 
-					if ($tagId > 0) {
-						$pdo->prepare('INSERT IGNORE INTO blog_post_tags (post_id, tag_id) VALUES (:post_id, :tag_id)')
-							->execute(['post_id' => $id, 'tag_id' => $tagId]);
+								$tagSlug = preg_replace('/[^a-z0-9\s\-]/i', '', $tag);
+								$tagSlug = preg_replace('/\s+/', '-', strtolower($tagSlug));
+
+								// Insert or get existing tag
+								$tagStmt = $pdo->prepare('INSERT IGNORE INTO blog_tags (name, slug) VALUES (:name, :slug)');
+								$tagStmt->execute(['name' => $tag, 'slug' => $tagSlug]);
+
+								$getTag = $pdo->prepare('SELECT id FROM blog_tags WHERE slug = :slug');
+								$getTag->execute(['slug' => $tagSlug]);
+								$tagRow = $getTag->fetch();
+
+								$tagId = $tagRow !== false ? (int)$tagRow['id'] : 0;
+
+								if ($tagId > 0) {
+									$pdo->prepare('INSERT IGNORE INTO blog_post_tags (post_id, tag_id) VALUES (:post_id, :tag_id)')
+										->execute(['post_id' => $id, 'tag_id' => $tagId]);
+								}
+							}
+						}
+
+						header('Location: /admin/blog.php?msg=saved');
+						exit;
+					} catch (Exception $e) {
+						dev_log_runtime('Blog save error: ' . $e->getMessage());
+						$formHasErrors = true;
+						$msg = 'Ошибка при сохранении';
+						$reason = '';
 					}
 				}
 			}
-
-			header('Location: /admin/blog.php?msg=saved');
-			exit;
-		} catch (Exception $e) {
-			dev_log_runtime('Blog save error: ' . $e->getMessage());
-			header('Location: /admin/blog.php?msg=error&edit=' . $id);
-			exit;
 		}
 	}
 }
@@ -230,11 +300,10 @@ if ($stmt instanceof PDOStatement) {
 	$posts = $stmt->fetchAll();
 }
 
-// Fetch single post for editing
-$edit = null;
-if (isset($_GET['edit'])) {
+// Fetch single post for editing only if there was no failed POST validation
+if (!$formHasErrors && isset($_GET['edit'])) {
 	$editId = (int)$_GET['edit'];
-	$edit = []; // порожній масив = новий пост; null = список без форми
+	$edit = []; // empty array = new post; null = list without form
 	if ($editId > 0) {
 		$editStmt = $pdo->prepare('SELECT * FROM blog_posts WHERE id = :id');
 		$editStmt->execute(['id' => $editId]);
@@ -252,8 +321,6 @@ if (isset($_GET['edit'])) {
 	}
 }
 
-$msg = '';
-$reason = '';
 if (isset($_GET['msg'])) {
 	$msgCode = (string)$_GET['msg'];
 	$messages = [
@@ -261,7 +328,7 @@ if (isset($_GET['msg'])) {
 		'deleted' => 'Пост удалён',
 		'error' => 'Ошибка при сохранении'
 	];
-	$msg = $messages[$msgCode] ?? '';
+	$msg = $messages[$msgCode] ?? $msg;
 
 	if (isset($_GET['reason'])) {
 		$reasons = [
@@ -269,17 +336,8 @@ if (isset($_GET['msg'])) {
 			'invalid_image' => ' (неверный тип изображения)',
 			'image_too_large' => ' (изображение слишком большое)',
 		];
-		$reason = $reasons[(string)$_GET['reason']] ?? '';
+		$reason = $reasons[(string)$_GET['reason']] ?? $reason;
 	}
-}
-
-// Helper function для генерации slug
-function generateSlug(string $text): string
-{
-	$text = strtolower($text);
-	$text = preg_replace('/[^a-z0-9\s\-]/u', '', $text);
-	$text = preg_replace('/\s+/', '-', $text);
-	return trim($text, '-');
 }
 ?>
 <!doctype html>
@@ -546,7 +604,7 @@ function generateSlug(string $text): string
 		</div>
 		<?php endif; ?>
 
-		<form method="post" enctype="multipart/form-data">
+		<form method="post" enctype="multipart/form-data" id="blogForm">
 			<input type="hidden" name="id" value="<?= admin_h((string)($edit['id'] ?? '')) ?>">
 			<input type="hidden" name="action" value="save">
 			<input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
@@ -629,7 +687,7 @@ function generateSlug(string $text): string
 
 					<div class="form-group-wrapper">
 						<label>Полное содержимое *</label>
-						<textarea id="content" name="content"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
+						<textarea id="content" name="content" required><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
 					</div>
 				</div>
 
@@ -664,6 +722,20 @@ function generateSlug(string $text): string
 		</form>
 
 		<script>
+		let blogEditor = null;
+
+		function stripHtml(html) {
+			return (html || '')
+				.replace(/<[^>]*>/g, ' ')
+				.replace(/&nbsp;/g, ' ')
+				.replace(/\s+/g, ' ')
+				.trim();
+		}
+
+		function editorHasContent(html) {
+			return stripHtml(html).length > 0;
+		}
+
 		ClassicEditor
 			.create(document.querySelector('#content'), {
 				toolbar: {
@@ -727,6 +799,32 @@ function generateSlug(string $text): string
 				},
 				language: 'uk'
 			})
+			.then(editor => {
+				blogEditor = editor;
+
+				const form = document.getElementById('blogForm');
+				const contentTextarea = document.getElementById('content');
+
+				form.addEventListener('submit', function(e) {
+					// Sync CKEditor data back to textarea before validation/submission
+					contentTextarea.value = blogEditor.getData();
+
+					// Required validation for CKEditor content
+					contentTextarea.setCustomValidity('');
+					if (!editorHasContent(contentTextarea.value)) {
+						contentTextarea.setCustomValidity('Поле "Полное содержимое" обязательно');
+					}
+
+					// Native validation for regular fields + custom one for editor
+					if (!form.checkValidity()) {
+						e.preventDefault();
+						form.reportValidity();
+						return false;
+					}
+
+					return true;
+				});
+			})
 			.catch(error => {
 				console.error(error);
 			});
@@ -782,12 +880,12 @@ function generateSlug(string $text): string
 		var imagePreview = document.getElementById('blogImagePreview');
 		var btnRemove = document.getElementById('blogBtnRemove');
 
-		// Открыть диалог выбора файла при клике на превью
+		// Open file picker when clicking preview
 		imagePreview.addEventListener('click', function() {
 			imageUpload.click();
 		});
 
-		// Загрузка и отображение превью
+		// Preview selected file
 		imageUpload.addEventListener('change', function(e) {
 			var file = e.target.files[0];
 			if (!file) return;
@@ -800,7 +898,7 @@ function generateSlug(string $text): string
 			reader.readAsDataURL(file);
 		});
 
-		// Удаление фото
+		// Remove image
 		window.blogRemoveImage = function(event) {
 			event.preventDefault();
 			event.stopPropagation();

@@ -41,6 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		try {
 			$pdo->prepare('DELETE FROM blog_post_tags WHERE post_id = :id')->execute(['id' => $id]);
 			$pdo->prepare('DELETE FROM blog_posts WHERE id = :id')->execute(['id' => $id]);
+			// Удалить теги без постов
+		$pdo->query('DELETE bt FROM blog_tags bt LEFT JOIN blog_post_tags bpt ON bt.id = bpt.tag_id 
+		WHERE bpt.tag_id IS NULL');
 			dev_log_security('BLOG_POST_DELETED', ['id' => $id, 'user' => $user['username'] ?? 'unknown']);
 			header('Location: /admin/blog.php?msg=deleted');
 			exit;

@@ -50,6 +50,7 @@ function get_products(): array
                     'desc'            => (string)($row['desc'] ?? ''),
                     'full_desc'       => (string)($row['full_desc'] ?? ''),
                     'in_stock'        => (bool)$row['in_stock'],
+                    'sort_order'        => (int)$row['sort_order'],
                     'status'          => $row['status'] !== null ? (string)$row['status'] : null,
                     'seo_title'       => $row['seo_title'] !== null ? (string)$row['seo_title'] : '',
                     'seo_description' => $row['seo_description'] !== null ? (string)$row['seo_description'] : '',

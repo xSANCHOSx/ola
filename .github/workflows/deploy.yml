@@ -49,6 +49,7 @@ jobs:
               --exclude='.gitignore' \
               --exclude='.gitattributes' \
               --exclude='db.php' \
+              --exclude='log/' \
               ./ ../
 
             echo "Деплой выполнен успешно."

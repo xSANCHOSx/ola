@@ -52,8 +52,6 @@ jobs:
               --exclude='log/' \
               --exclude='images/' \
               --exclude='data/images/' \
-               --exclude='data/uploads/' \
-               
-              ./ ../
+              --exclude='data/uploads/' ./ ../
 
             echo "Деплой выполнен успешно."

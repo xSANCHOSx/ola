@@ -690,7 +690,9 @@ if (isset($_GET['msg'])) {
 
 					<div class="form-group-wrapper">
 						<label>Полное содержимое *</label>
-						<textarea id="content" name="content"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
+						<textarea id="content" name="content"
+							style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none;"
+							required><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
 					</div>
 				</div>
 
@@ -804,21 +806,29 @@ if (isset($_GET['msg'])) {
 				})
 				.then(editor => {
 					blogEditor = editor;
+					window.blogEditor = editor;
 
 					const form = document.getElementById('blogForm');
 					const contentTextarea = document.getElementById('content');
 
 					form.addEventListener('submit', function(e) {
 						// Sync CKEditor data back to textarea before validation/submission
-						contentTextarea.value = blogEditor.getData();
-
-						// Required validation for CKEditor content
-						contentTextarea.setCustomValidity('');
-						if (!editorHasContent(contentTextarea.value)) {
-							contentTextarea.setCustomValidity('Поле "Полное содержимое" обязательно');
+						if (blogEditor) {
+							contentTextarea.value = blogEditor.getData();
 						}
 
-						// Native validation for regular fields + custom one for editor
+						// Clear custom validity
+						contentTextarea.setCustomValidity('');
+
+						// Check if content is empty
+						if (!editorHasContent(contentTextarea.value)) {
+							contentTextarea.setCustomValidity('Поле "Полное содержимое" обязательно');
+							e.preventDefault();
+							form.reportValidity();
+							return false;
+						}
+
+						// Native validation for regular fields
 						if (!form.checkValidity()) {
 							e.preventDefault();
 							form.reportValidity();

@@ -133,8 +133,15 @@ function getSafeImagePath(string $path): ?string
 	font-size: 13px;
 	color: #999;
 }
-.blog-breadcrumb a { color: #3e7ab6; text-decoration: none; }
-.blog-breadcrumb a:hover { text-decoration: underline; }
+
+.blog-breadcrumb a {
+	color: #3e7ab6;
+	text-decoration: none;
+}
+
+.blog-breadcrumb a:hover {
+	text-decoration: underline;
+}
 
 .blog-title {
 	font-size: 2rem;
@@ -171,9 +178,20 @@ function getSafeImagePath(string $path): ?string
 	color: #333;
 	margin-bottom: 40px;
 }
-.blog-content img { max-width: 100%; height: auto; border-radius: 5px; }
-.blog-content h2 { margin-top: 2em; }
-.blog-content h3 { margin-top: 1.5em; }
+
+.blog-content img {
+	max-width: 100%;
+	height: auto;
+	border-radius: 5px;
+}
+
+.blog-content h2 {
+	margin-top: 2em;
+}
+
+.blog-content h3 {
+	margin-top: 1.5em;
+}
 
 .blog-tags {
 	padding: 20px 0;
@@ -181,8 +199,19 @@ function getSafeImagePath(string $path): ?string
 	border-bottom: 1px solid #eee;
 	margin-bottom: 30px;
 }
-.blog-tags__label { font-size: 13px; color: #999; margin-bottom: 10px; }
-.blog-tags__list { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.blog-tags__label {
+	font-size: 13px;
+	color: #999;
+	margin-bottom: 10px;
+}
+
+.blog-tags__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
 .blog-tags__item {
 	background: #f0f0f0;
 	padding: 6px 14px;
@@ -192,7 +221,10 @@ function getSafeImagePath(string $path): ?string
 	color: #3e7ab6;
 	transition: background .2s;
 }
-.blog-tags__item:hover { background: #dde8f5; }
+
+.blog-tags__item:hover {
+	background: #dde8f5;
+}
 
 .blog-nav {
 	display: flex;
@@ -202,15 +234,39 @@ function getSafeImagePath(string $path): ?string
 	border-top: 1px solid #eee;
 	gap: 20px;
 }
-.blog-nav a { color: #3e7ab6; text-decoration: none; max-width: 42%; }
-.blog-nav a:hover { text-decoration: underline; }
-.blog-nav__center { white-space: nowrap; }
+
+.blog-nav a {
+	color: #3e7ab6;
+	text-decoration: none;
+	max-width: 42%;
+}
+
+.blog-nav a:hover {
+	text-decoration: underline;
+}
+
+.blog-nav__center {
+	white-space: nowrap;
+}
 
 @media (max-width: 576px) {
-	.blog-single-wrap { padding-top: 70px; }
-	.blog-title { font-size: 1.5rem; }
-	.blog-nav { flex-direction: column; gap: 10px; text-align: center; }
-	.blog-nav a { max-width: 100%; }
+	.blog-single-wrap {
+		padding-top: 70px;
+	}
+
+	.blog-title {
+		font-size: 1.5rem;
+	}
+
+	.blog-nav {
+		flex-direction: column;
+		gap: 10px;
+		text-align: center;
+	}
+
+	.blog-nav a {
+		max-width: 100%;
+	}
 }
 </style>
 
@@ -237,12 +293,7 @@ function getSafeImagePath(string $path): ?string
 
 						<!-- Мета: дата + перегляди -->
 						<div class="blog-meta">
-							<?php
-							$dateField = !empty($post['published_at']) ? $post['published_at'] : $post['created_at'];
-							$ts = strtotime((string)$dateField);
-							?>
-							<span>📅 <?= $ts ? htmlspecialchars(date('d.m.Y', $ts), ENT_QUOTES, 'UTF-8') : '' ?></span>
-							<span>👁 <?= (int)$post['views'] ?> просмотров</span>
+
 						</div>
 
 						<!-- Обкладинка — одразу після заголовка та мета -->
@@ -253,11 +304,8 @@ function getSafeImagePath(string $path): ?string
 						}
 						if ($imagePath):
 						?>
-						<img
-							src="<?= $imagePath ?>"
-							alt="<?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?>"
-							class="blog-featured-image"
-						>
+						<img src="<?= $imagePath ?>" alt="<?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?>"
+							class="blog-featured-image">
 						<?php endif; ?>
 
 						<!-- Зміст статті -->

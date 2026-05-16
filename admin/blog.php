@@ -767,14 +767,14 @@ if (isset($_GET['msg'])) {
 		display: none !important;
 	}
 
-	/* ── CKEditor ── */
+
 	.ck-content {
-		m min-height: 300px;
+		min-height: 300px;
 	}
 
 	/* ══════════════════════════════════════════════════════════
 		   Tag widget
-		══════════════════════════════════════════════════════════ */
+		═══════════════════════════════════════════════════════ */
 	.tag-widget {
 		position: relative;
 		border: 1px solid #ccc;

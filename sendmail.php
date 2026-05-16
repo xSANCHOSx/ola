@@ -16,6 +16,7 @@ require_once __DIR__ . '/app/Model/CustomerModel.php';
 require_once __DIR__ . '/app/Model/OrderModel.php';
 require_once __DIR__ . '/app/Controller/OrderController.php';
 require_once __DIR__ . '/config/coupons.php';
+require_once __DIR__ . '/config/coupons_optimized.php'; // BUG-09 fix: атомарні функції купонів
 
 OlaLogger::info('---- SENDMAIL START ----', [
     'ip'     => $_SERVER['REMOTE_ADDR']    ?? '?',

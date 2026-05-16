@@ -23,14 +23,15 @@ class OrderController
         $priceService = new PriceService();
         [$baseTotal, $priceVerified] = $priceService->verify($this->pdo, $orderResult);
 
-        // Застосування купона через БД
+        // Попередня валідація купона (без FOR UPDATE — просто перевірка)
         $couponData     = null;
         $discountAmount = 0.0;
         $totalSum       = $baseTotal;
         $couponCode     = $payload['coupon'];
 
         if ($couponCode !== '' && $this->pdo instanceof PDO) {
-            $validation = validate_coupon_for_order($this->pdo, $couponCode, $baseTotal);
+            // $forUpdate = false: тут транзакції ще немає, просто перевіряємо
+            $validation = validate_coupon_for_order($this->pdo, $couponCode, $baseTotal, false);
             if ($validation['valid']) {
                 $couponData     = $validation['coupon'];
                 $discountAmount = calculate_discount_amount($couponData, $baseTotal);
@@ -92,7 +93,7 @@ class OrderController
                 $payload, $orderResult, $orderNumber,
                 $totalSum, $priceVerified, $couponData, $discountAmount
             );
-            $dbSaved   = $dbOrderId !== null;
+            $dbSaved = $dbOrderId !== null;
             OlaLogger::info('DB_SAVE_DONE', ['db_order_id' => $dbOrderId, 'saved' => $dbSaved]);
         } else {
             OlaLogger::warn('DB_SAVE_SKIP', ['reason' => 'pdo_is_null']);
@@ -160,23 +161,49 @@ class OrderController
 
             $idempotency = $payload['client_order_uuid'] !== '' ? $payload['client_order_uuid'] : null;
 
-            if ($idempotency && OrderModel::findByIdempotencyKey($this->pdo, $idempotency)) {
+            // BUG-05 fix: замість echo+exit — повертаємо наявний ID замовлення.
+            // Транзакцію відкочуємо, але flow не перериваємо — логування і
+            // нотифікації у handle() продовжуються нормально.
+            if ($idempotency && $existing = OrderModel::findByIdempotencyKey($this->pdo, $idempotency)) {
                 OlaLogger::warn('IDEMPOTENCY_DUPLICATE', ['key' => $idempotency]);
                 $this->pdo->rollBack();
-                echo 'ok';
-                exit;
+                return (int)$existing['id'];
+            }
+
+            // BUG-03 fix: перевіряємо купон знову всередині транзакції з FOR UPDATE.
+            // Тепер блокування реально спрацьовує — race condition усунута.
+            $finalCouponData     = $couponData;
+            $finalDiscountAmount = $discountAmount;
+            $finalTotalSum       = $totalSum;
+
+            if ($couponData !== null && isset($couponData['code'])) {
+                $baseTotal  = (float)($_SESSION['base_total'] ?? $totalSum + $discountAmount);
+                $validation = validate_coupon_for_order($this->pdo, $couponData['code'], $baseTotal, true);
+
+                if (!$validation['valid']) {
+                    // Купон вже використаний поки ми рахували — скидаємо знижку
+                    OlaLogger::warn('COUPON_RACE_CONDITION', [
+                        'code'  => $couponData['code'],
+                        'error' => $validation['error'],
+                    ]);
+                    $finalCouponData     = null;
+                    $finalDiscountAmount = 0.0;
+                    $finalTotalSum       = $baseTotal;
+                } else {
+                    $finalCouponData = $validation['coupon'];
+                }
             }
 
             OlaLogger::debug('CUSTOMER_UPSERT_START', ['email' => $payload['email'], 'phone' => $payload['phone']]);
-            $customerId = CustomerModel::upsert($this->pdo, $payload, $orderNumber, $totalSum);
+            $customerId = CustomerModel::upsert($this->pdo, $payload, $orderNumber, $finalTotalSum);
             OlaLogger::debug('CUSTOMER_UPSERT_DONE', ['customer_id' => $customerId]);
 
-            OlaLogger::debug('ORDER_INSERT_START', ['order_number' => $orderNumber, 'total' => $totalSum]);
+            OlaLogger::debug('ORDER_INSERT_START', ['order_number' => $orderNumber, 'total' => $finalTotalSum]);
             $dbOrderId = OrderModel::save(
                 $this->pdo, $orderNumber, $customerId,
-                $payload, $totalSum, $priceVerified, $idempotency,
-                $couponData ? (int) $couponData['id'] : null,
-                $discountAmount
+                $payload, $finalTotalSum, $priceVerified, $idempotency,
+                $finalCouponData ? (int)$finalCouponData['id'] : null,
+                $finalDiscountAmount
             );
             OlaLogger::debug('ORDER_INSERT_DONE', ['db_order_id' => $dbOrderId]);
 
@@ -188,19 +215,21 @@ class OrderController
             $this->pdo->commit();
             OlaLogger::info('TRANSACTION_COMMITTED', ['db_order_id' => $dbOrderId]);
 
-            // Логуємо використання купона після успішного commit
-            if ($couponData !== null && $discountAmount > 0.0) {
-                log_coupon_usage(
+            // BUG-04 fix: атомарний запис використання купона після commit основної транзакції.
+            // log_coupon_usage_atomic() відкриває власну транзакцію: BEGIN → INSERT → UPDATE → COMMIT
+            if ($finalCouponData !== null && $finalDiscountAmount > 0.0) {
+                $atomicOk = log_coupon_usage_atomic(
                     $this->pdo,
-                    (int) $couponData['id'],
+                    (int)$finalCouponData['id'],
                     $dbOrderId,
-                    $discountAmount,
+                    $finalDiscountAmount,
                     $customerId
                 );
                 OlaLogger::info('COUPON_USAGE_LOGGED', [
-                    'coupon_id'       => $couponData['id'],
+                    'coupon_id'       => $finalCouponData['id'],
                     'order_id'        => $dbOrderId,
-                    'discount_amount' => $discountAmount,
+                    'discount_amount' => $finalDiscountAmount,
+                    'atomic_ok'       => $atomicOk,
                 ]);
             }
 

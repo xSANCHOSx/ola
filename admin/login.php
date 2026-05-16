@@ -8,10 +8,16 @@ if (admin_is_auth()) {
     exit;
 }
 
+// BUG-06 fix: ініціалізуємо CSRF токен ДО обробки POST
+$csrf = csrf_token();
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $loginKey = 'admin_login_' . md5($_SERVER['REMOTE_ADDR'] ?? '');
-    if (!check_rate_limit($loginKey, 10, 300)) {
+    // Перевірка CSRF токена
+    $postedCsrf = (string)($_POST['csrf_token'] ?? '');
+    if (empty($postedCsrf) || !hash_equals($csrf, $postedCsrf)) {
+        $error = 'Security error. Please reload the page.';
+    } elseif (!check_rate_limit('admin_login_' . md5($_SERVER['REMOTE_ADDR'] ?? ''), 10, 300)) {
         $error = 'Слишком много попыток входа. Попробуйте через 5 минут.';
     } else {
         $username = trim((string)($_POST['username'] ?? ''));
@@ -55,13 +61,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h3>Вход в админку</h3>
         <?php if ($error): ?><div class="alert alert-danger"><?= admin_h($error) ?></div><?php endif; ?>
         <form method="post">
+            <input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>">
             <div class="form-group">
                 <label>Логин</label>
-                <input class="form-control" name="username" required>
+                <input class="form-control" name="username" required autocomplete="username">
             </div>
             <div class="form-group">
                 <label>Пароль</label>
-                <input class="form-control" type="password" name="password" required>
+                <input class="form-control" type="password" name="password" required autocomplete="current-password">
             </div>
             <button class="btn btn-primary">Войти</button>
         </form>

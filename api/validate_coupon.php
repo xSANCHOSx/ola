@@ -18,6 +18,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
+// ═══ BUG-07 fix: Rate limiting ════════════════════════════════════════════
+// Обмеження: 10 запитів на хвилину з однієї IP
+
+$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+if (!check_rate_limit('coupon_api_' . $ip, 10, 60)) {
+    log_security_event('COUPON_API_RATE_LIMIT', ['ip' => $ip]);
+    http_response_code(429);
+    echo json_encode(['error' => 'Too many requests. Please wait.']);
+    exit;
+}
+
 // ═══ Валідація параметрів ═════════════════════════════════════════════════
 
 $couponCode = strtoupper(trim($_GET['code'] ?? ''));
@@ -42,15 +53,16 @@ try {
     if (!$pdo instanceof PDO) {
         throw new Exception('DB connection failed');
     }
-    
+
     $validation = validate_coupon_for_order($pdo, $couponCode, $orderSum);
-    
+
     if (!$validation['valid']) {
         dev_log_runtime(sprintf(
-            'Coupon REJECTED: code=%s sum=%.2f reason=%s',
+            'Coupon REJECTED: code=%s sum=%.2f reason=%s ip=%s',
             $couponCode,
             $orderSum,
-            $validation['error'] ?? 'unknown'
+            $validation['error'] ?? 'unknown',
+            $ip
         ));
         http_response_code(400);
         echo json_encode([
@@ -59,11 +71,11 @@ try {
         ]);
         exit;
     }
-    
+
     $coupon = $validation['coupon'];
     $discount = calculate_discount_amount($coupon, $orderSum);
     $finalSum = max(0, $orderSum - $discount);
-    
+
     // ✅ Купон валідний
     http_response_code(200);
     echo json_encode([
@@ -82,7 +94,7 @@ try {
         ],
     ]);
     exit;
-    
+
 } catch (Throwable $e) {
     dev_log_runtime('Coupon validation API error: ' . $e->getMessage());
     http_response_code(500);

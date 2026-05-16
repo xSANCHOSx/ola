@@ -306,7 +306,7 @@
 			const DELIVERY_COST = 250
 			const DELIVERY_THRESHOLD = 5000
 			const delivery = (!isEmpty && baseSum < DELIVERY_THRESHOLD) ? DELIVERY_COST : 0
-			const total = sum + delivery
+			const total = sum 
 
 			// Старый #bsum — сохраняем для обратной совместимости
 			$('#bsum')

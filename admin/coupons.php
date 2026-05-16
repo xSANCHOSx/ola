@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-// admin/coupons.php — Управління купонами в адмін-панелі
-// Функціональність: CREATE, READ, UPDATE, DELETE, активація/деактивація
+// admin/coupons.php — Управление купонами в админ-панели
+// Функциональность: CREATE, READ, UPDATE, DELETE, активация/деактивация
 
 require __DIR__ . '/_bootstrap.php';
 admin_require_auth();
 
-// ═══ Функції CRUD ═══════════════════════════════════════════════════════════
+// ═══ Функции CRUD ═══════════════════════════════════════════════════════════
 
 /**
- * Отримати список купонів з фільтрацією
+ * Получить список купонов с фильтрацией
  */
 function get_coupons_list(PDO $pdo, ?bool $active = null, ?string $search = null): array
 {
@@ -38,7 +38,7 @@ function get_coupons_list(PDO $pdo, ?bool $active = null, ?string $search = null
 }
 
 /**
- * Отримати купон за ID
+ * Получить купон по ID
  */
 function get_coupon_by_id(PDO $pdo, int $coupon_id): ?array
 {
@@ -60,7 +60,7 @@ function get_coupon_by_code(PDO $pdo, string $code): ?array
 }
 
 /**
- * Валідувати дані купона перед збереженням
+ * Валидировать данные купона перед сохранением
  */
 function validate_coupon_data(array $data): array
 {
@@ -114,11 +114,11 @@ function validate_coupon_data(array $data): array
 }
 
 /**
- * Створити новий купон
+ * Создать новый купон
  */
 /**
- * Нормалізувати дату з datetime-local (2026-05-13T00:00) → MySQL DATETIME (2026-05-13 00:00:00)
- * Для valid_to додатково виставляємо кінець дня (23:59:59) щоб купон працював весь день
+ * Нормализовать дату из datetime-local (2026-05-13T00:00) → MySQL DATETIME (2026-05-13 00:00:00)
+ * Для valid_to дополнительно выставляем конец дня (23:59:59) чтобы купон работал весь день
  */
 function normalize_datetime(?string $val, bool $endOfDay = false): ?string
 {
@@ -126,7 +126,7 @@ function normalize_datetime(?string $val, bool $endOfDay = false): ?string
     $ts = strtotime($val);
     if (!$ts) return null;
     if ($endOfDay) {
-        // Якщо час не вказаний явно (00:00) — ставимо кінець дня
+        // Если время не указано явно (00:00) — ставим конец дня
         $hasTime = preg_match('/T\d{2}:\d{2}(?::\d{2})?$/', $val) && !str_ends_with($val, 'T00:00') && !str_ends_with($val, 'T00:00:00');
         if (!$hasTime) {
             return date('Y-m-d', $ts) . ' 23:59:59';
@@ -178,7 +178,7 @@ function create_coupon(PDO $pdo, array $data): array
 }
 
 /**
- * Оновити існуючий купон
+ * Обновить существующий купон
  */
 function update_coupon(PDO $pdo, int $coupon_id, array $data): array
 {
@@ -231,7 +231,7 @@ function update_coupon(PDO $pdo, int $coupon_id, array $data): array
 }
 
 /**
- * Видалити купон
+ * Удалить купон
  */
 function delete_coupon(PDO $pdo, int $coupon_id): array
 {
@@ -258,7 +258,7 @@ function delete_coupon(PDO $pdo, int $coupon_id): array
 }
 
 /**
- * Переключити статус активності купона
+ * Переключить статус активности купона
  */
 function toggle_coupon_status(PDO $pdo, int $coupon_id): array
 {
@@ -286,7 +286,7 @@ function toggle_coupon_status(PDO $pdo, int $coupon_id): array
     }
 }
 
-// ═══ Обробка AJAX запитів ═══════════════════════════════════════════════════
+// ═══ Обработка AJAX запросов ═══════════════════════════════════════════════════
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_GET['ajax'])) {
     header('Content-Type: application/json');
@@ -320,7 +320,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_GET['ajax'])) {
     exit;
 }
 
-// ═══ Відображення сторінки ══════════════════════════════════════════════════
+// ═══ Отображение страницы ══════════════════════════════════════════════════
 
 $pdo     = dev_db_connection();
 $coupons = get_coupons_list($pdo);

@@ -45,19 +45,19 @@ function getDiscountTimer(string $uniqueId): string
 
 
 /**
- * Генерує <picture> з WebP якщо файл існує, інакше — звичайний <img>
+ * Генерирует <picture> с WebP если файл существует, иначе — обычный <img>
  *
- * @param string $src    Шлях до зображення (відносно кореня сайту)
+ * @param string $src    Путь к изображению (относительно корня сайта)
  * @param string $alt    Alt текст
- * @param string $class  CSS класи
- * @param array  $attrs  Додаткові атрибути ['loading' => 'lazy', 'width' => 400, ...]
+ * @param string $class  CSS классы
+ * @param array  $attrs  Дополнительные атрибуты ['loading' => 'lazy', 'width' => 400, ...]
  */
 function webp_img(string $src, string $alt = '', string $class = '', array $attrs = []): string
 {
     $webpSrc  = preg_replace('/\.(jpe?g|png)$/i', '.webp', $src);
     $webpPath = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . ltrim($webpSrc, '/');
 
-    // Збираємо рядок атрибутів
+    // Собираем строку атрибутов
     $attrStr = '';
     if ($class) $attrs['class'] = $class;
     foreach ($attrs as $k => $v) {

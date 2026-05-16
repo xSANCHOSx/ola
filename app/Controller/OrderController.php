@@ -17,20 +17,20 @@ class OrderController
     {
         $counterFile = $this->cfg['fallback_counter_file'] ?? (__DIR__ . '/../../counter.txt');
 
-        // ── 1. Верифікація цін + купон ────────────────────────────────────────
+        // ── 1. Верификация цен + купон ────────────────────────────────────────
 
         OlaLogger::debug('PRICE_VERIFY_START', ['items' => count($orderResult)]);
         $priceService = new PriceService();
         [$baseTotal, $priceVerified] = $priceService->verify($this->pdo, $orderResult);
 
-        // Попередня валідація купона (без FOR UPDATE — просто перевірка)
+        // Предварительная валидация купона (без FOR UPDATE — просто проверка)
         $couponData     = null;
         $discountAmount = 0.0;
         $totalSum       = $baseTotal;
         $couponCode     = $payload['coupon'];
 
         if ($couponCode !== '' && $this->pdo instanceof PDO) {
-            // $forUpdate = false: тут транзакції ще немає, просто перевіряємо
+            // $forUpdate = false: здесь транзакции еще нет, просто проверяем
             $validation = validate_coupon_for_order($this->pdo, $couponCode, $baseTotal, false);
             if ($validation['valid']) {
                 $couponData     = $validation['coupon'];
@@ -60,7 +60,7 @@ class OrderController
             'coupon'         => $couponCode ?: '(none)',
         ]);
 
-        // ── 2. Номер замовлення ───────────────────────────────────────────────
+        // ── 2. Номер заказа ───────────────────────────────────────────────
 
         OlaLogger::debug('ORDER_NUMBER_START');
         $orderNumberService = new OrderNumberService();
@@ -70,19 +70,19 @@ class OrderController
             OlaLogger::error('ORDER_NUMBER_FAIL', ['counter_file' => $counterFile]);
             dev_log_runtime('Order number generation fully failed');
             http_response_code(500);
-            echo json_encode(['error' => 'Не вдалося згенерувати номер замовлення']);
+            echo json_encode(['error' => 'Не удалось сгенерировать номер заказа']);
             exit;
         }
 
         OlaLogger::info('ORDER_NUMBER_OK', ['order_number' => $orderNumber]);
         $_POST['ORDER_ID']    = $orderNumber;
         $_SESSION['order_id'] = $orderNumber;
-        // Зберігаємо дані купона в сесії для success.php
+        // Сохраняем данные купона в сессии для success.php
         $_SESSION['coupon_code']     = $couponCode;
         $_SESSION['discount_amount'] = $discountAmount;
         $_SESSION['base_total']      = $baseTotal;
 
-        // ── 3. Збереження в БД ────────────────────────────────────────────────
+        // ── 3. Сохранение в БД ────────────────────────────────────────────────
 
         $dbSaved   = false;
         $dbOrderId = null;
@@ -99,7 +99,7 @@ class OrderController
             OlaLogger::warn('DB_SAVE_SKIP', ['reason' => 'pdo_is_null']);
         }
 
-        // ── 4. Відправка сповіщень ────────────────────────────────────────────
+        // ── 4. Отправка уведомлений ────────────────────────────────────────────
 
         $subject = EmailView::buildSubject($orderNumber);
         OlaLogger::debug('NOTIFICATION_START', ['subject' => $subject]);
@@ -116,7 +116,7 @@ class OrderController
             'amo'   => $sent['amo'],
         ]);
 
-        // ── 5. Оновлення статусів відправки в БД ─────────────────────────────
+        // ── 5. Обновление статусов отправки в БД ─────────────────────────────
 
         if ($this->pdo instanceof PDO && $dbSaved && $dbOrderId) {
             OlaLogger::debug('OUTBOUND_STATUS_UPDATE', ['db_order_id' => $dbOrderId]);
@@ -161,17 +161,17 @@ class OrderController
 
             $idempotency = $payload['client_order_uuid'] !== '' ? $payload['client_order_uuid'] : null;
 
-            // BUG-05 fix: замість echo+exit — повертаємо наявний ID замовлення.
-            // Транзакцію відкочуємо, але flow не перериваємо — логування і
-            // нотифікації у handle() продовжуються нормально.
+            // Возвращаем существующий ID заказа.
+            // Откатываем транзакцию, но flow не прерываем — логирование и
+            // уведомления в handle() продолжаются нормально.
             if ($idempotency && $existing = OrderModel::findByIdempotencyKey($this->pdo, $idempotency)) {
                 OlaLogger::warn('IDEMPOTENCY_DUPLICATE', ['key' => $idempotency]);
                 $this->pdo->rollBack();
                 return (int)$existing['id'];
             }
 
-            // BUG-03 fix: перевіряємо купон знову всередині транзакції з FOR UPDATE.
-            // Тепер блокування реально спрацьовує — race condition усунута.
+            // Проверяем купон снова внутри транзакции с FOR UPDATE.
+            // Теперь блокировка действительно срабатывает — race condition устранена.
             $finalCouponData     = $couponData;
             $finalDiscountAmount = $discountAmount;
             $finalTotalSum       = $totalSum;
@@ -181,7 +181,7 @@ class OrderController
                 $validation = validate_coupon_for_order($this->pdo, $couponData['code'], $baseTotal, true);
 
                 if (!$validation['valid']) {
-                    // Купон вже використаний поки ми рахували — скидаємо знижку
+                    // Купон уже использован пока мы считали — сбрасываем скидку
                     OlaLogger::warn('COUPON_RACE_CONDITION', [
                         'code'  => $couponData['code'],
                         'error' => $validation['error'],
@@ -215,8 +215,8 @@ class OrderController
             $this->pdo->commit();
             OlaLogger::info('TRANSACTION_COMMITTED', ['db_order_id' => $dbOrderId]);
 
-            // BUG-04 fix: атомарний запис використання купона після commit основної транзакції.
-            // log_coupon_usage_atomic() відкриває власну транзакцію: BEGIN → INSERT → UPDATE → COMMIT
+            // Атомарная запись использования купона после commit основной транзакции.
+            // log_coupon_usage_atomic() открывает собственную транзакцию: BEGIN → INSERT → UPDATE → COMMIT
             if ($finalCouponData !== null && $finalDiscountAmount > 0.0) {
                 $atomicOk = log_coupon_usage_atomic(
                     $this->pdo,

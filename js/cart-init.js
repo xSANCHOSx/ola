@@ -5,10 +5,10 @@ var config = {
 };
 
 (function() {
-    // Черга викликів, що надійшли до ініціалізації
+    // Очередь вызовов, поступивших до инициализации
     var queue = [];
 
-    // Тимчасовий Proxy — перехоплює виклики і ставить у чергу
+    // Временный Proxy — перехватывает вызовы и ставит в очередь
     window.cart = new Proxy({}, {
         get: function(target, prop) {
             return function() {
@@ -26,9 +26,9 @@ var config = {
             var instance = new WICard('cart');
             instance.init('basketwidjet', config);
             cart = instance;
-            window.cart = instance; // замінюємо Proxy реальним об'єктом
+            window.cart = instance; // заменяем Proxy реальным объектом
 
-            // Відтворюємо відкладені виклики
+            // Воспроизводим отложенные вызовы
             queue.forEach(function(item) {
                 if (typeof instance[item.prop] === 'function') {
                     instance[item.prop].apply(instance, item.args);

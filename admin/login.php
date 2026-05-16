@@ -8,12 +8,12 @@ if (admin_is_auth()) {
     exit;
 }
 
-// BUG-06 fix: ініціалізуємо CSRF токен ДО обробки POST
+// Инициализируем CSRF токен ДО обработки POST
 $csrf = csrf_token();
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Перевірка CSRF токена
+    // Проверка CSRF токена
     $postedCsrf = (string)($_POST['csrf_token'] ?? '');
     if (empty($postedCsrf) || !hash_equals($csrf, $postedCsrf)) {
         $error = 'Security error. Please reload the page.';

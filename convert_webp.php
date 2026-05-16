@@ -1,5 +1,5 @@
 <?php
-// Захист — запускати тільки з командного рядка або з паролем
+// Защита — запускать только из командной строки или с паролем
 if (!isset($_GET['key']) || $_GET['key'] !== 'sanchos12345!') {
 	die('Forbidden');
 }
@@ -9,7 +9,7 @@ function convertToWebp(string $source, int $quality = 82): string
 	$ext  = strtolower(pathinfo($source, PATHINFO_EXTENSION));
 	$dest = preg_replace('/\.(jpe?g|png)$/i', '.webp', $source);
 
-	if (file_exists($dest)) return "пропущено (вже є): $dest";
+	if (file_exists($dest)) return "пропущено (уже есть): $dest";
 
 	$image = match ($ext) {
 		'jpg', 'jpeg' => imagecreatefromjpeg($source),
@@ -17,9 +17,9 @@ function convertToWebp(string $source, int $quality = 82): string
 		default       => null
 	};
 
-	if (!$image) return "❌ помилка читання: $source";
+	if (!$image) return "❌ ошибка чтения: $source";
 
-	// Для PNG зберігаємо прозорість
+	// Для PNG сохраняем прозрачность
 	if ($ext === 'png') {
 		imagepalettetotruecolor($image);
 		imagealphablending($image, true);
@@ -31,9 +31,9 @@ function convertToWebp(string $source, int $quality = 82): string
 
 	if ($ok) {
 		$saved = round((filesize($source) - filesize($dest)) / 1024);
-		return "✅ $dest (зекономлено {$saved} KB)";
+		return "✅ $dest (сэкономлено {$saved} KB)";
 	}
-	return "❌ помилка запису: $dest";
+	return "❌ ошибка записи: $dest";
 }
 
 $imageDirs = [
@@ -47,7 +47,7 @@ echo "<pre>\n";
 $count = 0;
 foreach ($imageDirs as $imagesDir) {
 	if (!is_dir($imagesDir)) {
-		echo "⚠️ Папка не існує: $imagesDir\n";
+		echo "⚠️ Папка не существует: $imagesDir\n";
 		continue;
 	}
 	echo "\n📁 $imagesDir\n";
@@ -63,4 +63,4 @@ foreach ($imageDirs as $imagesDir) {
 		$count++;
 	}
 }
-echo "\nГотово. Оброблено файлів: $count\n</pre>";
+echo "\nГотово. Обработано файлов: $count\n</pre>";

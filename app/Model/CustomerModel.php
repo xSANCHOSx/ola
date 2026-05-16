@@ -3,20 +3,20 @@
 declare(strict_types=1);
 
 /**
- * CustomerModel — безпечний upsert клієнта
+ * CustomerModel — безопасный upsert клиента
  *
- * BUG-14 fix: два окремих підзадачі:
+ * Две отдельные подзадачи:
  *
- *   A) Пошук: замість одного SELECT з OR використовуємо два окремих SELECT
- *      з явним пріоритетом: телефон > email.
- *      Причина: OR з LIMIT 1 у MySQL вибирає першу знайдену строку без гарантії,
- *      який саме клієнт буде обраний — залежить від internal storage порядку.
- *      Якщо телефон відповідає клієнту А, а email — клієнту Б (data drift),
- *      старий код міг оновити випадкового клієнта.
+ *   A) Поиск: вместо одного SELECT с OR используем два отдельных SELECT
+ *      с явным приоритетом: телефон > email.
+ *      Причина: OR с LIMIT 1 в MySQL выбирает первую найденную строку без гарантии,
+ *      какой именно клиент будет выбран — зависит от порядка internal storage.
+ *      Если телефон соответствует клиенту А, а email — клиенту Б (data drift),
+ *      старый код мог обновить случайного клиента.
  *
- *   B) UPDATE: замість WHERE phone OR email (LIMIT 1) — UPDATE WHERE id = :id.
- *      Оновлення завжди б'є конкретний рядок знайденого клієнта.
- *      Виключає сценарій "оновив не того".
+ *   B) UPDATE: вместо WHERE phone OR email (LIMIT 1) — UPDATE WHERE id = :id.
+ *      Обновление всегда бьет конкретную строку найденного клиента.
+ *      Исключает сценарий "обновил не того".
  */
 class CustomerModel
 {
@@ -30,27 +30,27 @@ class CustomerModel
             'email_norm' => $emailNorm,
         ]);
 
-        // ── Sub-task A: Двоетапний пошук з пріоритетом ────────────────────────
+        // ── Sub-task A: Двухэтапный поиск с приоритетом ────────────────────────
         $existing = self::resolveExisting($pdo, $phoneNorm, $emailNorm);
 
         if ($existing !== null) {
-            // ── Sub-task B: UPDATE за id — завжди точний ──────────────────────
+            // ── Sub-task B: UPDATE по id — всегда точный ──────────────────────
             self::updateById($pdo, $existing['id'], $payload, $phoneNorm, $emailNorm, $orderNumber, $total);
             OlaLogger::info('CUSTOMER_UPDATED', ['id' => $existing['id']]);
             return $existing['id'];
         }
 
-        // ── Новий клієнт — INSERT ──────────────────────────────────────────────
+        // ── Новый клиент — INSERT ──────────────────────────────────────────────
         return self::insertNew($pdo, $payload, $phoneNorm, $emailNorm, $orderNumber);
     }
 
     /**
-     * Sub-task A: знайти наявного клієнта з пріоритетом телефон > email.
+     * Sub-task A: найти существующего клиента с приоритетом телефон > email.
      *
-     * Якщо телефон та email відповідають РІЗНИМ клієнтам (data drift) —
-     * логуємо попередження і повертаємо клієнта за телефоном.
-     * Телефон є надійнішим ідентифікатором: він унікальний для людини,
-     * тоді як email іноді передається іншим (сімейна пошта, робоча).
+     * Если телефон и email соответствуют РАЗНЫМ клиентам (data drift) —
+     * логируем предупреждение и возвращаем клиента по телефону.
+     * Телефон является более надежным идентификатором: он уникален для человека,
+     * тогда как email иногда передается другому (семейная почта, рабочая).
      */
     private static function resolveExisting(PDO $pdo, string $phoneNorm, string $emailNorm): ?array
     {
@@ -75,7 +75,7 @@ class CustomerModel
             $byEmail = $stmt->fetch() ?: null;
         }
 
-        // Обидва знайдені та це РІЗНІ клієнти → data drift, пріоритет: телефон
+        // Оба найдены и это РАЗНЫЕ клиенты → data drift, приоритет: телефон
         if ($byPhone && $byEmail && (int)$byPhone['id'] !== (int)$byEmail['id']) {
             OlaLogger::warn('CUSTOMER_AMBIGUOUS_MATCH', [
                 'by_phone_id'    => $byPhone['id'],
@@ -91,8 +91,8 @@ class CustomerModel
     }
 
     /**
-     * Sub-task B: оновити конкретного клієнта за id.
-     * WHERE id = :id — жодних OR, жодних LIMIT 1, жодного шансу потрапити не туди.
+     * Sub-task B: обновить конкретного клиента по id.
+     * WHERE id = :id — никаких OR, никаких LIMIT 1, никакого шанса попасть не туда.
      */
     private static function updateById(
         PDO    $pdo,
@@ -138,10 +138,10 @@ class CustomerModel
     }
 
     /**
-     * Вставити нового клієнта.
-     * INSERT IGNORE залишаємо як safety net проти race condition:
-     * якщо між resolveExisting() та insert() інший процес встиг вставити
-     * того ж клієнта — INSERT IGNORE мовчки пропустить, а ми зробимо SELECT.
+     * Вставить нового клиента.
+     * INSERT IGNORE оставляем как safety net против race condition:
+     * если между resolveExisting() и insert() другой процесс успел вставить
+     * того же клиента — INSERT IGNORE молча пропустит, а мы сделаем SELECT.
      */
     private static function insertNew(
         PDO    $pdo,
@@ -186,7 +186,7 @@ class CustomerModel
             return $insertId;
         }
 
-        // INSERT IGNORE спрацював мовчки — знайти хто встиг вставити
+        // INSERT IGNORE сработал молча — найти кто успел вставить
         OlaLogger::warn('CUSTOMER_INSERT_RACE', [
             'phone_norm' => $phoneNorm,
             'email_norm' => $emailNorm,

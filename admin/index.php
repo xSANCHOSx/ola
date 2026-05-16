@@ -74,7 +74,7 @@ if ($pdo instanceof PDO) {
                 </div>
             </div>
             
-            <!-- Пошук за ПІБ клієнта -->
+            <!-- Поиск по ФИО клиента -->
             <div id="search-customer_name" class="search-input-group" style="display: none;">
                 <div class="form-group">
                     <label for="customerName">ФИО клиента:</label>
@@ -82,7 +82,7 @@ if ($pdo instanceof PDO) {
                 </div>
             </div>
             
-            <!-- Пошук за телефоном клієнта -->
+            <!-- Поиск по телефону клиента -->
             <div id="search-customer_phone" class="search-input-group" style="display: none;">
                 <div class="form-group">
                     <label for="customerPhone">Телефон:</label>
@@ -90,7 +90,7 @@ if ($pdo instanceof PDO) {
                 </div>
             </div>
             
-            <!-- Пошук за email клієнта -->
+            <!-- Поиск по email клиента -->
             <div id="search-customer_email" class="search-input-group" style="display: none;">
                 <div class="form-group">
                     <label for="customerEmail">Email:</label>
@@ -98,7 +98,7 @@ if ($pdo instanceof PDO) {
                 </div>
             </div>
             
-            <!-- Пошук за конкретною датою -->
+            <!-- Поиск по конкретной дате -->
             <div id="search-date_exact" class="search-input-group" style="display: none;">
                 <div class="form-group">
                     <label for="dateExact">Дата:</label>
@@ -106,7 +106,7 @@ if ($pdo instanceof PDO) {
                 </div>
             </div>
             
-            <!-- Пошук за діапазоном дат -->
+            <!-- Поиск по диапазону дат -->
             <div id="search-date_range" class="search-input-group" style="display: none;">
                 <div class="form-group">
                     <label>Диапазон дат:</label>

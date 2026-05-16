@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-// config/coupons.php — Функції для роботи з системою купонів
-// Інтегрується в sendmail.php для валідації та застосування купонів
+// config/coupons.php — Функции для работы с системой купонов
+// Интегрируется в sendmail.php для валидации и применения купонов
 
 /**
- * Отримати активний купон за кодом
+ * Получить активный купон по коду
  *
- * BUG-03 fix: FOR UPDATE без BEGIN — NOP у MySQL.
- * Тепер блокування вмикається явно через $forUpdate = true
- * лише тоді, коли caller вже відкрив транзакцію (OrderController::saveToDb).
+ * FOR UPDATE без BEGIN — NOP в MySQL.
+ * Теперь блокировка включается явно через $forUpdate = true
+ * только тогда, когда caller уже открыл транзакцию (OrderController::saveToDb).
  *
  * @param PDO    $pdo
  * @param string $code      Код купона
- * @param bool   $forUpdate true — додає FOR UPDATE (лише у відкритій транзакції!)
+ * @param bool   $forUpdate true — добавляет FOR UPDATE (только в открытой транзакции!)
  * @return array|null
  */
 function get_active_coupon(PDO $pdo, string $code, bool $forUpdate = false): ?array
@@ -44,12 +44,12 @@ function get_active_coupon(PDO $pdo, string $code, bool $forUpdate = false): ?ar
 }
 
 /**
- * Валідувати купон для замовлення
+ * Валидировать купон для заказа
  *
  * @param PDO    $pdo
  * @param string $couponCode Код купона
- * @param float  $orderSum   Сума замовлення БЕЗ знижки
- * @param bool   $forUpdate  Передати true якщо виклик всередині транзакції
+ * @param float  $orderSum   Сумма заказа БЕЗ скидки
+ * @param bool   $forUpdate  Передать true если вызов внутри транзакции
  * @return array ['valid' => bool, 'coupon' => array|null, 'error' => string|null]
  */
 function validate_coupon_for_order(PDO $pdo, string $couponCode, float $orderSum, bool $forUpdate = false): array
@@ -60,29 +60,29 @@ function validate_coupon_for_order(PDO $pdo, string $couponCode, float $orderSum
         return [
             'valid'  => false,
             'coupon' => null,
-            'error'  => 'Купон не знайдено або закінчився',
+            'error'  => 'Купон не найден или закончился',
         ];
     }
 
-    // Перевірити мінімальну суму замовлення
+    // Проверить минимальную сумму заказа
     if ($orderSum < (float)$coupon['min_order_sum']) {
         return [
             'valid'  => false,
             'coupon' => $coupon,
             'error'  => sprintf(
-                'Мінімальна сума замовлення: %.2f руб. (поточна: %.2f)',
+                'Минимальная сумма заказа: %.2f руб. (текущая: %.2f)',
                 $coupon['min_order_sum'],
                 $orderSum
             ),
         ];
     }
 
-    // Перевірити кількість використань
+    // Проверить количество использований
     if ($coupon['max_usage_count'] !== null && (int)$coupon['used_count'] >= (int)$coupon['max_usage_count']) {
         return [
             'valid'  => false,
             'coupon' => $coupon,
-            'error'  => 'Купон вичерпано максимум використань',
+            'error'  => 'Купон исчерпал максимум использований',
         ];
     }
 
@@ -90,10 +90,10 @@ function validate_coupon_for_order(PDO $pdo, string $couponCode, float $orderSum
 }
 
 /**
- * Розрахувати величину знижки за купоном
+ * Рассчитать величину скидки по купону
  *
- * @param array $coupon   Дані купона з БД
- * @param float $orderSum Сума замовлення БЕЗ знижки
+ * @param array $coupon   Данные купона из БД
+ * @param float $orderSum Сумма заказа БЕЗ скидки
  * @return float
  */
 function calculate_discount_amount(array $coupon, float $orderSum): float
@@ -108,9 +108,9 @@ function calculate_discount_amount(array $coupon, float $orderSum): float
 }
 
 /**
- * Записати факт використання купона (не атомарна версія — залишена для сумісності)
+ * Записать факт использования купона (не атомарная версия — оставлена для совместимости)
  *
- * @deprecated Використовувати log_coupon_usage_atomic() з coupons_optimized.php
+ * @deprecated Использовать log_coupon_usage_atomic() из coupons_optimized.php
  */
 function log_coupon_usage(
     PDO $pdo,
@@ -137,7 +137,7 @@ function log_coupon_usage(
 }
 
 /**
- * Отримати статистику купона
+ * Получить статистику купона
  */
 function get_coupon_stats(PDO $pdo, int $couponId): array
 {

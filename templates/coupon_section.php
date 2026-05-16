@@ -27,7 +27,7 @@
 
 	<!-- Форма ввода купона -->
 	<div style="display: flex; gap: 10px; margin-bottom: 20px;">
-		<input id="coupon-code" type="text" placeholder="Введіть код промокода" maxlength="50"
+		<input id="coupon-code" type="text" placeholder="Введите код промокода" maxlength="50"
 			style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 3px; font-size: 14px;">
 		<button id="apply-coupon" type="button" style="
                 padding: 10px 20px;
@@ -74,7 +74,7 @@ const couponManager = new CouponManager({
 	successDisplay: '#coupon-success'
 });
 
-// Показати інформацію про знижку коли вона застосована
+// Показать информацию о скидке когда она применена
 window.addEventListener('couponApplied', (e) => {
 	const infoBlock = document.getElementById('coupon-info');
 	if (infoBlock) {
@@ -82,9 +82,9 @@ window.addEventListener('couponApplied', (e) => {
 	}
 });
 
-// Також можна слухати зміну суми замовлення
+// Также можно слушать изменение суммы заказа
 document.addEventListener('orderSumChanged', (e) => {
-	// Якщо сума змінилась, переваліджити купон
+	// Если сумма изменилась, перевалидировать купон
 	const code = couponManager.getCouponCode();
 	if (code) {
 		couponManager.validateCoupon(code, e.detail.newSum);
@@ -92,7 +92,7 @@ document.addEventListener('orderSumChanged', (e) => {
 });
 </script>
 
-<!-- Стилі CSS (опціонально) -->
+<!-- Стили CSS (опционально) -->
 <style>
 #coupon-section input[type="text"] {
 	transition: border-color 0.3s;

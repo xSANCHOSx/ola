@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 /**
- * Простий файловий логер.
+ * Простой файловый логер.
  *
  * Лог: {DOCUMENT_ROOT}/log/order_debug.log
- * Ротація: новий файл щодня (order_debug_2026-05-11.log)
- * Рівні: DEBUG | INFO | WARN | ERROR
+ * Ротация: новый файл каждый день (order_debug_2026-05-11.log)
+ * Уровни: DEBUG | INFO | WARN | ERROR
  */
 class OlaLogger
 {

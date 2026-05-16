@@ -1436,7 +1436,7 @@ if (isset($_GET['msg'])) {
 				table: {
 					contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
 				},
-				language: 'uk'
+				language: 'ru'
 			})
 			.then(function(editor) {
 				window.blogEditor = editor;

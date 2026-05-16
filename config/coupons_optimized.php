@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-// config/coupons_optimized.php — ОПТИМІЗОВАНА версія з кешем и батчинговой обработкой
-// Покращена продуктивність через file-based кеш і query оптимізацію
+// config/coupons_optimized.php — ОПТИМИЗИРОВАННАЯ версия с кешем и батчинговой обработкой
+// Улучшена производительность через file-based кеш и query оптимизацию
 
 /**
- * Отримати активний купон за кодом (з кешем на рівні PHP-процесу)
- * 
- * ОПТИМІЗАЦІЯ 1: Static cache в PHP процесі
- * - 1-й запит: SELECT з БД
- * - 2-й запит того ж коду: з пам'яті процесу (0 мс)
+ * Получить активный купон по коду (с кешем на уровне PHP-процесса)
+ *
+ * ОПТИМИЗАЦИЯ 1: Static cache в PHP процессе
+ * - 1-й запрос: SELECT из БД
+ * - 2-й запрос того же кода: из памяти процесса (0 мс)
  * 
  * @param PDO $pdo
  * @param string $code
@@ -37,25 +37,25 @@ function get_active_coupon_cached(PDO $pdo, string $code): ?array
         ');
         $stmt->execute([$codeKey]);
         $result = $stmt->fetch() ?: null;
-        $cache[$codeKey] = $result; // Кешуємо навіть NULL результати
+        $cache[$codeKey] = $result; // Кешируем даже NULL результаты
         return $result;
     } catch (Throwable $e) {
         dev_log_runtime('Failed to get coupon: ' . $e->getMessage());
-        $cache[$codeKey] = null; // Кешуємо помилку
+        $cache[$codeKey] = null; // Кешируем ошибку
         return null;
     }
 }
 
 /**
- * Отримати кілька купонів за один запит (батчинг)
- * 
- * ОПТИМІЗАЦІЯ 2: Батчинговий запит замість N запитів
- * - Замість: 5 окремих SELECT
- * - Результат: 1 SELECT з IN (...) клаузулою
- * 
+ * Получить несколько купонов за один запрос (батчинг)
+ *
+ * ОПТИМИЗАЦИЯ 2: Батчинговый запрос вместо N запросов
+ * - Вместо: 5 отдельных SELECT
+ * - Результат: 1 SELECT с IN (...) клаузулой
+ *
  * @param PDO $pdo
- * @param array $codes Коди купонів
- * @return array Масив [код => дані]
+ * @param array $codes Коды купонов
+ * @return array Массив [код => данные]
  */
 function get_active_coupons_batch(PDO $pdo, array $codes): array
 {
@@ -63,7 +63,7 @@ function get_active_coupons_batch(PDO $pdo, array $codes): array
         return [];
     }
     
-    // Очистити дублікати й привести до uppercase
+    // Очистить дубликаты и привести к uppercase
     $codes = array_unique(array_map('strtoupper', $codes));
     
     try {
@@ -90,20 +90,20 @@ function get_active_coupons_batch(PDO $pdo, array $codes): array
 }
 
 /**
- * Валідувати купон (оптимізована версія)
- * 
- * ОПТИМІЗАЦІЯ 3: Уникнення повторних запитів
- * - Приймає вже завантажений масив купона
- * - Позбавляється додаткового DB запиту
- * 
- * @param array|null $coupon Дані купона (або null)
- * @param float $orderSum Сума замовлення
+ * Валидировать купон (оптимизированная версия)
+ *
+ * ОПТИМИЗАЦИЯ 3: Избежание повторных запросов
+ * - Принимает уже загруженный массив купона
+ * - Избавляется от дополнительного DB запроса
+ *
+ * @param array|null $coupon Данные купона (или null)
+ * @param float $orderSum Сумма заказа
  * @return array ['valid' => bool, 'reason' => string]
  */
 function validate_coupon_fast(?array $coupon, float $orderSum): array
 {
     if (!$coupon) {
-        return ['valid' => false, 'reason' => 'Купон не знайдено'];
+        return ['valid' => false, 'reason' => 'Купон не найден'];
     }
     
     if ((float)$coupon['min_order_sum'] > $orderSum) {
@@ -119,11 +119,11 @@ function validate_coupon_fast(?array $coupon, float $orderSum): array
 }
 
 /**
- * Розрахувати знижку (інліновано, без функцій)
- * 
- * ОПТИМІЗАЦІЯ 4: Інління для frequency-hot path
- * - Видалена одна функція з callstack
- * - Прямий розрахунок без витрат на виклик
+ * Рассчитать скидку (инлайнено, без функций)
+ *
+ * ОПТИМИЗАЦИЯ 4: Инлайнинг для frequency-hot path
+ * - Удалена одна функция из callstack
+ * - Прямой расчёт без затрат на вызов
  */
 function calculate_discount_fast(array $coupon, float $orderSum): float
 {
@@ -136,15 +136,15 @@ function calculate_discount_fast(array $coupon, float $orderSum): float
 }
 
 /**
- * Лоагувати купон + отримати стан за ОДИН запит
- * 
- * ОПТИМІЗАЦІЯ 5: Об'єднання операцій в одній транзакції
+ * Загрузить купон + получить состояние за ОДИН запрос
+ *
+ * ОПТИМИЗАЦИЯ 5: Объединение операций в одной транзакции
  * - BEGIN
  * - INSERT INTO coupon_usage
  * - UPDATE coupons SET used_count = used_count + 1
  * - COMMIT
- * 
- * Всі 3 операції атомарні, без race condition.
+ *
+ * Все 3 операции атомарные, без race condition.
  * 
  * @param PDO $pdo
  * @param int $couponId
@@ -187,11 +187,11 @@ function log_coupon_usage_atomic(
 }
 
 /**
- * Отримати статистику по купону (з кешем на диску)
- * 
- * ОПТИМІЗАЦІЯ 6: File-based кеш для statistyki (оновлюється раз у хвилину)
- * - Часте читання → файловий кеш
- * - Зрідка оновлюється → фоновий скрипт оновлює раз у хвилину
+ * Получить статистику по купону (с кешем на диске)
+ *
+ * ОПТИМИЗАЦИЯ 6: File-based кеш для statistyki (обновляется раз в минуту)
+ * - Частое чтение → файловый кеш
+ * - Редко обновляется → фоновый скрипт обновляет раз в минуту
  */
 function get_coupon_stats_cached(PDO $pdo, int $couponId, bool $forceRefresh = false): array
 {
@@ -203,13 +203,13 @@ function get_coupon_stats_cached(PDO $pdo, int $couponId, bool $forceRefresh = f
     $cacheFile = $cacheDir . '/coupon_' . $couponId . '.json';
     $cacheAge = file_exists($cacheFile) ? time() - filemtime($cacheFile) : PHP_INT_MAX;
     
-    // Якщо кеш свіжий (менше 1 хвилини) і не force, повернути з файлу
+    // Если кеш свежий (менее 1 минуты) и не force, вернуть из файла
     if (!$forceRefresh && $cacheAge < 60 && file_exists($cacheFile)) {
         $cached = json_decode(file_get_contents($cacheFile), true);
         return $cached ?: [];
     }
     
-    // Інакше — запит до БД
+    // Иначе — запрос к БД
     try {
         $stmt = $pdo->prepare('
             SELECT 
@@ -223,7 +223,7 @@ function get_coupon_stats_cached(PDO $pdo, int $couponId, bool $forceRefresh = f
         $stmt->execute([$couponId]);
         $result = $stmt->fetch() ?: [];
         
-        // Кешуємо на диску
+        // Кешируем на диске
         @file_put_contents($cacheFile, json_encode($result));
         
         return $result;
@@ -234,17 +234,17 @@ function get_coupon_stats_cached(PDO $pdo, int $couponId, bool $forceRefresh = f
 }
 
 /**
- * Скрипт для фонового оновлення кешу статистики
- * 
- * ЗАПУСТИТИ через cron раз у хвилину:
+ * Скрипт для фонового обновления кеша статистики
+ *
+ * ЗАПУСТИТЬ через cron раз в минуту:
  *   * * * * * /usr/bin/php /path/to/admin/cron_update_coupon_cache.php
- * 
- * Це позбавляє основного потоку від важких агрегацій.
+ *
+ * Это избавляет основной поток от тяжелых агрегаций.
  */
 function refresh_coupon_stats_cache(PDO $pdo): void
 {
     try {
-        // Отримати всі купони
+        // Получить все купоны
         $stmt = $pdo->query('SELECT id FROM coupons WHERE is_active = 1');
         $coupons = $stmt->fetchAll(PDO::FETCH_COLUMN);
         
@@ -259,12 +259,12 @@ function refresh_coupon_stats_cache(PDO $pdo): void
 }
 
 /**
- * Отримати активні купони для фронтенда (мінімізовано)
- * 
- * ОПТИМІЗАЦІЯ 7: Передавати мінімум даних на фронтенд
- * - Не відправляємо: used_count, max_usage_count
- * - Безпека: користувач не знає про обмеження
- * - Розмір JSON: менше байтів у відповіді
+ * Получить активные купоны для фронтенда (минимизировано)
+ *
+ * ОПТИМИЗАЦИЯ 7: Передавать минимум данных на фронтенд
+ * - Не отправляем: used_count, max_usage_count
+ * - Безопасность: пользователь не знает об ограничениях
+ * - Размер JSON: меньше байтов в ответе
  */
 function get_coupons_for_frontend(PDO $pdo): array
 {

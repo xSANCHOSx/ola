@@ -11,7 +11,7 @@
 			this.idsKey = storageKey + '_ids'
 			this.items = this.readJSON(this.storageKey, {})
 			this.ids = this.readJSON(this.idsKey, [])
-			// Відновити купон із localStorage
+			// Восстановить купон из localStorage
 			const saved = this.readJSON('cart_coupon', null)
 			this.coupon = saved ? saved.code : ''
 			this.coupon_discount = saved ? saved.discount : 0
@@ -140,7 +140,7 @@
 		updateWidgets(widgetSelector) {
 			const count = this.store.totalItems()
 			const txt = count > 0 ? '(' + count + ')' : '(0)'
-			// Уніфіковані селектори: клас замість ID
+			// Унифицированные селекторы: класс вместо ID
 			$('.cart-widget-count').text(txt)
 			// Обновление badge в drawer
 			$('.minicart-badge').text(count > 0 ? count : '0')
@@ -304,13 +304,7 @@
 		renderTotals() {
 			const sum     = this.store.totalPrice()
 			const baseSum = this.store.baseTotalPrice() // сума БЕЗ знижки купона
-			const isEmpty = Object.keys(this.store.items).length === 0
-
-			// Доставка: +250 если есть товары и сумма ниже порога
-			// FIX 1: при пустой корзине доставка не показывается
-			const DELIVERY_COST = 250
 			const DELIVERY_THRESHOLD = 5000
-			const delivery = (!isEmpty && baseSum < DELIVERY_THRESHOLD) ? DELIVERY_COST : 0
 			const total = sum 
 
 			// Старый #bsum — сохраняем для обратной совместимости
@@ -318,7 +312,7 @@
 				.attr('data-price', total.toFixed(2))
 				.html('Сумма: <span class="price_value">' + total.toFixed(2) + '</span> ₽.')
 
-			// Обновляем итоговую сумму (с доставкой)
+			// Обновляем итоговую сумму (без доставки)
 			$('#minicart-total-display').text(total.toFixed(2) + ' ₽')
 
 				if (baseSum >= DELIVERY_THRESHOLD) {
@@ -331,7 +325,7 @@
 					)
 			}
 
-			// Відновити відображення купона якщо він активний
+			// Восстановить отображение купона если он активен
 			if (this.store.coupon) {
 				this.showCoupon(this.store.coupon)
 			}
@@ -368,7 +362,7 @@
 			.fail(function(xhr) {
 					if (xhr.status === 429) {
 							var seconds = (xhr.responseJSON || {}).retry_after || 60;
-							alert('Забагато спроб. Зачекайте ' + seconds + ' сек. і спробуйте знову.');
+							alert('Слишком много попыток. Подождите ' + seconds + ' сек. и попробуйте снова.');
 					}
 			})
 				.always(function () {
@@ -512,7 +506,7 @@
 					this.store.clearCoupon()
 					$input.css('border-color', '#e74c3c')
 					setTimeout(() => $input.css('border-color', ''), 1500)
-					// Показати повідомлення про помилку
+					// Показать сообщение об ошибке
 					const $err = $('.coupon_error')
 					if ($err.length) { $err.text(data.error || 'Купон недействителен').show() }
 					else { $input.attr('placeholder', data.error || 'Неверный купон') }

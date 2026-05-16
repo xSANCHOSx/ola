@@ -21,7 +21,7 @@ if ($pdo instanceof PDO) {
         $orders = $stmt->fetchAll();
     }
 }
-// get_order_items_with_links() — визначена в _bootstrap.php
+// get_order_items_with_links() — определена в _bootstrap.php
 ?>
 <!doctype html>
 <html lang="ru">
@@ -53,7 +53,7 @@ if ($pdo instanceof PDO) {
     <?php require __DIR__ . '/_nav.php'; ?>
     <h3>Клиенты</h3>
 
-    <!-- Форма пошуку -->
+    <!-- Форма поиска -->
     <div class="search-form">
         <div class="search-tabs">
             <button class="search-tab-btn active" data-type="all">Все клиенты</button>
@@ -90,7 +90,7 @@ if ($pdo instanceof PDO) {
         <div class="results-info" id="resultsInfo" style="display:none;"></div>
     </div>
 
-    <!-- Таблиця клієнтів -->
+    <!-- Таблица клиентов -->
     <table class="table table-bordered table-striped" id="customersTable">
         <thead>
             <tr>

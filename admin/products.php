@@ -67,7 +67,7 @@ if ($pdo instanceof PDO) {
 $edit = null;
 if (isset($_GET['edit'])) {
 	$editId = (int)$_GET['edit'];
-	$edit = []; // порожній масив = новий товар; null = список без форми
+	$edit = []; // пустой массив = новый товар; null = список без формы
 	foreach ($products as $p) {
 		if ((int)$p['id'] === $editId) {
 			$edit = $p;
@@ -662,17 +662,17 @@ if (isset($_GET['edit'])) {
 	<script>
 		(function() {
 			var imageUpload = document.getElementById('imageUpload');
-			if (!imageUpload) return; // форма відсутня на сторінці
+			if (!imageUpload) return; // форма отсутствует на странице
 
 			var imagePreview = document.getElementById('imagePreview');
 			var btnRemove = document.getElementById('btnRemoveImage');
 
-			// Клік на превью — відкрити діалог вибору файлу
+			// Клик на превью — открыть диалог выбора файла
 			imagePreview.addEventListener('click', function() {
 				imageUpload.click();
 			});
 
-			// Завантаження фото
+			// Загрузка фото
 			imageUpload.addEventListener('change', function(e) {
 				var file = e.target.files[0];
 				if (!file) return;
@@ -685,7 +685,7 @@ if (isset($_GET['edit'])) {
 				reader.readAsDataURL(file);
 			});
 
-			// Видалення фото
+			// Удаление фото
 			window.removeImage = function(event) {
 				event.preventDefault();
 				event.stopPropagation();

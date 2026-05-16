@@ -5,7 +5,7 @@ $coupon_code    = isset($_SESSION['coupon_code'])    ? $_SESSION['coupon_code'] 
 $discount_amount= isset($_SESSION['discount_amount'])? (float)$_SESSION['discount_amount'] : 0.0;
 $base_total     = isset($_SESSION['base_total'])     ? (float)$_SESSION['base_total']      : 0.0;
 
-// очищаємо після отримання
+// очищаем после получения
 unset($_SESSION['order_id'], $_SESSION['coupon_code'], $_SESSION['discount_amount'], $_SESSION['base_total']);
 
 ?>

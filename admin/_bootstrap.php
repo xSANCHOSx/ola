@@ -49,7 +49,7 @@ function admin_h(string $value): string
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
-// ===== WebP конвертація =====
+// ===== WebP конвертация =====
 function convert_to_webp(string $source, int $quality = 82): void
 {
     if (!function_exists('imagewebp')) return;
@@ -78,11 +78,11 @@ function convert_to_webp(string $source, int $quality = 82): void
     imagedestroy($image);
 }
 
-// ===== Спільні хелпери для адмінки =====
+// ===== Общие хелперы для админки =====
 
 /**
- * Повертає позиції замовлення з посиланнями на товари в адмінці.
- * Шукає товар спочатку за external_id, потім за назвою.
+ * Возвращает позиции заказа со ссылками на товары в админке.
+ * Ищет товар сначала по external_id, затем по названию.
  */
 function get_order_items_with_links(PDO $pdo, int $orderId): array
 {

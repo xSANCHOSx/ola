@@ -28,7 +28,7 @@ class NotificationService
         $emailToShop = mail(self::RECIPIENTS, $subject, $template, $headers);
         OlaLogger::info('MAIL_SHOP_DONE', ['result' => $emailToShop]);
 
-        // ── Email клієнту ─────────────────────────────────────────────────────
+        // ── Email клиенту ─────────────────────────────────────────────────────
         OlaLogger::debug('MAIL_USER_START', ['to' => $payload['email']]);
         $emailToUser = mail($payload['email'], $subject, $template, $headers);
         OlaLogger::info('MAIL_USER_DONE', ['result' => $emailToUser]);

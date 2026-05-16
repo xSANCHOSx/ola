@@ -12,7 +12,7 @@ class EmailView
     }
 
     /**
-     * Збирає повний HTML-лист.
+     * Собирает полный HTML-письмо.
      */
     public static function buildTemplate(
         array  $payload,

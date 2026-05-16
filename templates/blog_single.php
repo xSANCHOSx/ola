@@ -30,7 +30,7 @@ if (!$post) {
 
 // Кеширование view counter (redis или file-based)
 // Чтобы не делать UPDATE при каждом просмотре
-$viewCacheTTL = 3600; // 1 година
+$viewCacheTTL = 3600; // 1 час
 $viewCacheFile = __DIR__ . '/../log/view_cache_' . (int)$post['id'] . '.txt';
 
 $shouldUpdateViews = true;
@@ -117,7 +117,7 @@ function getSafeImagePath(string $path): ?string
 <?php require __DIR__ . '/head.php'; ?>
 
 <style>
-	/* Відступ для фіксованої шапки (header.sticky = 50px) */
+	/* Отступ для фиксированной шапки (header.sticky = 50px) */
 	.blog-single-wrap {
 		padding-top: 80px;
 		padding-bottom: 60px;
@@ -162,7 +162,7 @@ function getSafeImagePath(string $path): ?string
 		border-bottom: 1px solid #eee;
 	}
 
-	/* Обкладинка — перший елемент після мета, на всю ширину */
+	/* Обложка — первый элемент после мета, на всю ширину */
 	.blog-featured-image {
 		width: 100%;
 		max-height: 480px;
@@ -291,12 +291,12 @@ function getSafeImagePath(string $path): ?string
 							<?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?>
 						</h1>
 
-						<!-- Мета: дата + перегляди -->
+						<!-- Мета: дата + просмотры -->
 						<div class="blog-meta">
 
 						</div>
 
-						<!-- Обкладинка — одразу після заголовка та мета -->
+						<!-- Обложка — сразу после заголовка и мета -->
 						<?php
 						$imagePath = null;
 						if (!empty($post['featured_image'])) {
@@ -308,7 +308,7 @@ function getSafeImagePath(string $path): ?string
 								class="blog-featured-image">
 						<?php endif; ?>
 
-						<!-- Зміст статті -->
+						<!-- Содержание статьи -->
 						<div class="blog-content">
 							<?= $post['content'] ?>
 						</div>
@@ -328,7 +328,7 @@ function getSafeImagePath(string $path): ?string
 							</div>
 						<?php endif; ?>
 
-						<!-- Навигация між постами -->
+						<!-- Навигация между постами -->
 						<div class="blog-nav">
 							<?php if ($prevPost): ?>
 								<a href="/blog/<?= htmlspecialchars((string)$prevPost['slug'], ENT_QUOTES, 'UTF-8') ?>">

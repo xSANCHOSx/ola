@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// api/validate_coupon.php — REST endpoint для валідації купонів
+// api/validate_coupon.php — REST endpoint для валидации купонов
 // GET: /api/validate_coupon.php?code=OLA5600&sum=1000
 
 require_once __DIR__ . '/../config/db.php';
@@ -10,7 +10,7 @@ require_once __DIR__ . '/../config/coupons.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// ═══ Перевірка методу ══════════════════════════════════════════════════════
+// ═══ Проверка метода ══════════════════════════════════════════════════════
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
@@ -18,8 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
-// ═══ BUG-07 fix: Rate limiting ════════════════════════════════════════════
-// Обмеження: 10 запитів на хвилину з однієї IP
+// ═══ Rate limiting ═══════════════════════════════════════════════════
+// Ограничение: 10 запросов в минуту с одного IP
 
 $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 if (!check_rate_limit('coupon_api_' . $ip, 10, 60)) {
@@ -29,7 +29,7 @@ if (!check_rate_limit('coupon_api_' . $ip, 10, 60)) {
     exit;
 }
 
-// ═══ Валідація параметрів ═════════════════════════════════════════════════
+// ═══ Валидация параметров ═════════════════════════════════════════════════
 
 $couponCode = strtoupper(trim($_GET['code'] ?? ''));
 $orderSum = (float)($_GET['sum'] ?? 0);
@@ -46,7 +46,7 @@ if ($orderSum <= 0) {
     exit;
 }
 
-// ═══ Валідація купона ══════════════════════════════════════════════════════
+// ═══ Валидация купона ══════════════════════════════════════════════════════
 
 try {
     $pdo = dev_db_connection();
@@ -76,7 +76,7 @@ try {
     $discount = calculate_discount_amount($coupon, $orderSum);
     $finalSum = max(0.0, $orderSum - $discount);
 
-    // ✅ Купон валідний
+    // ✅ Купон валиден
     http_response_code(200);
     echo json_encode([
         'valid' => true,

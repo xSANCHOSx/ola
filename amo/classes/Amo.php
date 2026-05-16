@@ -7,12 +7,12 @@ use \Itactis\AmoHelper\AmoTable,
     \Itactis\AmoHelper\AmoSend;
 
 /**
- * Головний клас інтеграції з AmoCRM.
+ * Главный класс интеграции с AmoCRM.
  *
- * Зміни відносно оригіналу:
- *  - sendExeption() тепер кидає реальний \RuntimeException замість тихого логування,
- *    щоб викликаючий код (amo_send_order()) міг перехопити помилку через try/catch
- *    і не зупиняти основний потік обробки замовлення.
+ * Изменения относительно оригинала:
+ *  - sendExeption() теперь бросает реальный \RuntimeException вместо тихого логирования,
+ *    чтобы вызывающий код (amo_send_order()) мог перехватить ошибку через try/catch
+ *    и не останавливать основной поток обработки заказа.
  */
 class Amo
 {
@@ -76,7 +76,7 @@ class Amo
         if (!$accessToken) {
             $tokens = $amoAuth->getTokens();
             if (array_key_exists('error', $tokens)) {
-                $this->sendExeption('Помилка отримання AMO токенів: ' . $tokens['error']);
+                $this->sendExeption('Ошибка получения AMO токенов: ' . $tokens['error']);
             }
             $accessToken  = $tokens[$this->accessTokenCode];
             $refreshToken = $tokens[$this->refreshTokenCode] ?? '';
@@ -89,7 +89,7 @@ class Amo
         }
 
         if (!$accessToken) {
-            $this->sendExeption('Не вдалося отримати access token AMO');
+            $this->sendExeption('Не удалось получить access token AMO');
         }
 
         return [
@@ -109,8 +109,8 @@ class Amo
     }
 
     /**
-     * Логує помилку і кидає виняток.
-     * Виняток перехоплюється в amo_send_order() і НЕ доходить до користувача.
+     * Логирует ошибку и бросает исключение.
+     * Исключение перехватывается в amo_send_order() и НЕ доходит до пользователя.
      */
     protected function sendExeption(string $message): void
     {

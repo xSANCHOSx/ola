@@ -96,11 +96,11 @@ if ($mimeType && !in_array($mimeType, $allowedMimes, true)) {
 $dir = __DIR__ . '/../data/uploads/blog';
 if (!is_dir($dir)) {
 	@mkdir($dir, 0755, true);
-	// Create .htaccess для заборони виконання PHP
+	// Создаем .htaccess для запрета выполнения PHP
 	@file_put_contents($dir . '/.htaccess', "php_flag engine off\nAddType text/plain .php .phtml .php3 .php4 .php5 .php6 .php7 .phps .pht .phar .shtml");
 }
 
-// Генеруємо унікальне ім'я файлу
+// Генерируем уникальное имя файла
 $fileName = bin2hex(random_bytes(16)) . '.' . $ext;
 $target = $dir . '/' . $fileName;
 
@@ -116,11 +116,11 @@ if (!move_uploaded_file($file['tmp_name'], $target)) {
 	exit;
 }
 
-// Встановлюємо більш строгі права доступу
+// Устанавливаем более строгие права доступа
 @chmod($target, 0644);
 convert_to_webp($target);
 
-// Якщо convert_to_webp створив .webp версію — повертаємо її URL
+// Если convert_to_webp создал .webp версию — возвращаем её URL
 $webpTarget = preg_replace('/\.[^.]+$/', '.webp', $target);
 $returnFileName = (file_exists($webpTarget) && $webpTarget !== $target)
 	? preg_replace('/\.[^.]+$/', '.webp', $fileName)

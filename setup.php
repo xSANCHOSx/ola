@@ -84,7 +84,7 @@ if (file_exists($migFile)) {
     echo "Migration coupons: {$mOk} OK, {$mFail} warnings.\n";
 }
 
-// ── Синхронізуємо order_sequence з counter.txt ────────────────────────────────
+// ── Синхронизируем order_sequence с counter.txt ────────────────────────────────
 $counterRaw = trim((string)@file_get_contents(__DIR__ . '/counter.txt'));
 $counter    = ctype_digit($counterRaw) ? (int)$counterRaw : 0;
 $stmt = $pdo->prepare(
@@ -94,7 +94,7 @@ $stmt = $pdo->prepare(
 $stmt->execute(['value' => $counter]);
 echo "order_sequence synced (counter={$counter}).\n";
 
-// ── Створюємо admin якщо нема ─────────────────────────────────────────────────
+// ── Создаем admin если нет ─────────────────────────────────────────────────
 $adminCount = (int)$pdo->query('SELECT COUNT(*) FROM admin_users')->fetchColumn();
 if ($adminCount === 0) {
     $pass = bin2hex(random_bytes(6));
@@ -104,12 +104,12 @@ if ($adminCount === 0) {
     echo "\n🔑 Admin created!\n";
     echo "   Login:    admin\n";
     echo "   Password: {$pass}\n";
-    echo "\n⚠️  Збережіть пароль — він більше не буде показаний!\n";
+    echo "\n⚠️  Сохраните пароль — он больше не будет показан!\n";
 } else {
-    echo "Admin user already exists — пропускаємо.\n";
+    echo "Admin user already exists — пропускаем.\n";
 }
 
-// ── Створюємо папку для логів ─────────────────────────────────────────────────
+// ── Создаем папку для логов ─────────────────────────────────────────────────
 $logDir = __DIR__ . '/log';
 if (!is_dir($logDir)) {
     mkdir($logDir, 0755, true);

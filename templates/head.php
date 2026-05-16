@@ -1,6 +1,6 @@
 <?php
 // templates/head.php
-// Змінні: $pageTitle, $pageDescription, $extraCss
+// Переменные: $pageTitle, $pageDescription, $extraCss
 $pageTitle       ??= 'Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине';
 $pageDescription ??= 'Средства для волос Olaplex (Олаплекс) для домашнего использования можно заказать у нас! Отличные цены, доставка по всей территории России!';
 $cssBust = function (string $f) {

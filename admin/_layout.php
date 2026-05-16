@@ -1,6 +1,6 @@
 <?php
-// Використання: $adminPageTitle = 'Заказы'; require __DIR__ . '/_layout.php';
-$adminPageTitle ??= 'Адмінка';
+// Использование: $adminPageTitle = 'Заказы'; require __DIR__ . '/_layout.php';
+$adminPageTitle ??= 'Админка';
 ?>
 <!doctype html>
 <html lang="ru">

@@ -22,7 +22,7 @@ $offset      = max((int)($_GET['offset'] ?? 0),   0);
 $pdo = dev_db_connection();
 
 /**
- * Будує WHERE-умову та параметри один раз — використовується і для SELECT і для COUNT.
+ * Строит WHERE-условие и параметры один раз — используется и для SELECT и для COUNT.
  */
 function build_orders_where(string $type, string $value, string $dateFrom, string $dateTo): array
 {
@@ -62,13 +62,13 @@ function build_orders_where(string $type, string $value, string $dateFrom, strin
 try {
     ['where' => $where, 'params' => $params] = build_orders_where($searchType, $searchValue, $dateFrom, $dateTo);
 
-    // COUNT — ті самі params
+    // COUNT — те же params
     $countStmt = $pdo->prepare('SELECT COUNT(*) as total FROM orders o' . $where);
     foreach ($params as $k => $v) { $countStmt->bindValue(':' . $k, $v); }
     $countStmt->execute();
     $totalCount = (int)$countStmt->fetch()['total'];
 
-    // SELECT — ті самі params + limit/offset
+    // SELECT — те же params + limit/offset
     $stmt = $pdo->prepare('
         SELECT o.id, o.order_number, o.customer_name_snapshot, o.customer_phone_snapshot,
                o.customer_email_snapshot, o.total, o.coupon, o.coupon_discount_amount,

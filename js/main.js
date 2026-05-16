@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	if (checked) updateField(checked.value);
 });
 
-// Нативна маска телефону — замінює inputmask (25 рядків замість 181 KB)
+// Нативная маска телефона — заменяет inputmask (25 строк вместо 181 KB)
 document.addEventListener('DOMContentLoaded', function () {
   var phone = document.getElementById('phoneNumber');
   if (!phone) return;

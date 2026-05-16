@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-// admin/cron_update_coupon_cache.php — Фоновий скрипт оновлення кешу
-// Запускати через cron: * * * * * /usr/bin/php /path/to/admin/cron_update_coupon_cache.php
+// admin/cron_update_coupon_cache.php — Фоновый скрипт обновления кэша
+// Запускать через cron: * * * * * /usr/bin/php /path/to/admin/cron_update_coupon_cache.php
 
 if (php_sapi_name() !== 'cli') {
     http_response_code(403);
@@ -21,7 +21,7 @@ try {
         throw new Exception('Database connection failed');
     }
     
-    // Отримати всі активні купони
+    // Получить все активные купоны
     $stmt = $pdo->query('SELECT id FROM coupons WHERE is_active = 1 ORDER BY id');
     $coupons = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
@@ -30,7 +30,7 @@ try {
         exit(0);
     }
     
-    // Оновити кеш для кожного купона
+    // Обновить кэш для каждого купона
     $cacheDir = __DIR__ . '/../log/cache';
     if (!is_dir($cacheDir)) {
         @mkdir($cacheDir, 0755, true);

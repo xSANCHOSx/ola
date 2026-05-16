@@ -416,16 +416,34 @@
 		renderBasket() {
 			this.ui.renderTable(
 				id => {
-					this.store.updateQty(id, -1)
-					this.renderBasket()
+					const item = this.store.items[id]
+					if (item && item.num <= 1) {
+						// Последний экземпляр — спросить перед удалением
+						this.showConfirm(
+							`Убрать <strong>${item.name || 'товар'}</strong> из корзины?`,
+							() => {
+								this.store.remove(id)
+								this.renderBasket()
+							},
+						)
+					} else {
+						this.store.updateQty(id, -1)
+						this.renderBasket()
+					}
 				},
 				id => {
 					this.store.updateQty(id, 1)
 					this.renderBasket()
 				},
 				id => {
-					this.store.remove(id)
-					this.renderBasket()
+					const item = this.store.items[id]
+					this.showConfirm(
+						`Удалить <strong>${item ? item.name : 'товар'}</strong> из корзины?`,
+						() => {
+							this.store.remove(id)
+							this.renderBasket()
+						},
+					)
 				},
 			)
 			this.ui.updateWidgets(this.widgetSelector)
@@ -517,6 +535,49 @@
 				id => this.store.remove(id)
 			)
 			this.ui.updateWidgets(this.widgetSelector)
+		}
+		showConfirm(message, onConfirm) {
+			// Удаляем предыдущий диалог если есть
+			$('#cart-confirm-overlay').remove()
+
+			const $overlay = $(`
+				<div id="cart-confirm-overlay" style="
+					position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;
+					display:flex;align-items:center;justify-content:center;">
+					<div id="cart-confirm-box" style="
+						background:#fff;border-radius:12px;padding:28px 32px;max-width:340px;
+						width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:center;">
+						<p style="margin:0 0 20px;font-size:15px;line-height:1.5;color:#222;">
+							${message}
+						</p>
+						<div style="display:flex;gap:10px;justify-content:center;">
+							<button id="cart-confirm-yes" style="
+								flex:1;padding:10px 0;border:none;border-radius:8px;
+								background:#e74c3c;color:#fff;font-size:14px;font-weight:600;
+								cursor:pointer;">Удалить</button>
+							<button id="cart-confirm-no" style="
+								flex:1;padding:10px 0;border:none;border-radius:8px;
+								background:#f0f0f0;color:#444;font-size:14px;font-weight:600;
+								cursor:pointer;">Отмена</button>
+						</div>
+					</div>
+				</div>
+			`)
+
+			$('body').append($overlay)
+
+			// Закрытие
+			const close = () => $overlay.remove()
+
+			$overlay.find('#cart-confirm-yes').on('click', () => {
+				close()
+				onConfirm()
+			})
+			$overlay.find('#cart-confirm-no').on('click', close)
+			// Клик вне диалога
+			$overlay.on('click', function (e) {
+				if ($(e.target).is($overlay)) close()
+			})
 		}
 		sendOrder() {
 			const items = this.store.asOrderItems()

@@ -2,6 +2,9 @@
 <html lang="ru">
 
 <?php
+session_start();
+require_once __DIR__ . '/config/db.php';
+
 $pageTitle = 'Доставка и оплата - Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине';
 require __DIR__ . '/templates/head.php';
 ?>

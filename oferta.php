@@ -2,6 +2,9 @@
 <html lang="ru">
 
 <?php
+session_start();
+require_once __DIR__ . '/config/db.php';
+
 $pageTitle = 'Соглашение на обработку персональный данных';
 $extraCss = '<meta name="robots" content="noindex, nofollow" />';
 require __DIR__ . '/templates/head.php';

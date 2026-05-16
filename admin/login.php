@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $postedCsrf = (string)($_POST['csrf_token'] ?? '');
     if (empty($postedCsrf) || !hash_equals($csrf, $postedCsrf)) {
         $error = 'Security error. Please reload the page.';
-    } elseif (!check_rate_limit('admin_login_' . md5($_SERVER['REMOTE_ADDR'] ?? ''), 10, 300)) {
+    } elseif (!check_rate_limit('admin_login_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'), 10, 300)) {
         $error = 'Слишком много попыток входа. Попробуйте через 5 минут.';
     } else {
         $username = trim((string)($_POST['username'] ?? ''));

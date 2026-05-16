@@ -13,5 +13,5 @@ return [
     'rate_limit_max_requests' => 5,  // max orders per window
     // Токен для веб-запуску setup.php. Згенеруйте власний: php -r "echo bin2hex(random_bytes(16));"
     // Після ініціалізації БД рекомендується видалити або змінити.
-    'setup_token' => 'r12sfdh34wrt24g3wffsd34653ghd',  // ← встановіть сюди унікальний токен
+    'setup_token' => getenv('SETUP_TOKEN') ?: 'CHANGE_ME_IN_PRODUCTION',
 ];

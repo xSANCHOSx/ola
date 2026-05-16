@@ -245,7 +245,12 @@
 			items.forEach(item => {
 				const imgHtml = item.img
 					? `<img src="${item.img}" alt="${item.name || ''}" loading="lazy">`
-					: `<div class="minicart-item__img-placeholder">🛒</div>`
+					: `<div class="minicart-item__img-placeholder">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+								<path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+							</svg>
+						</div>`
 
 				// Иконка корзины (SVG trash)
 				const trashIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -483,7 +488,7 @@
 			const code = $("input[name='coupon_input_value']").val().trim().toUpperCase()
 			if (!code) return
 
-			const sum = this.store.totalPrice() + this.store.coupon_discount // сума без знижки
+			const sum = this.store.baseTotalPrice() // сума БЕЗ знижки купона
 			if (sum <= 0) return
 
 			const $input = $("input[name='coupon_input_value']")

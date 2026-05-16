@@ -74,7 +74,7 @@ try {
 
     $coupon = $validation['coupon'];
     $discount = calculate_discount_amount($coupon, $orderSum);
-    $finalSum = max(0, $orderSum - $discount);
+    $finalSum = max(0.0, $orderSum - $discount);
 
     // ✅ Купон валідний
     http_response_code(200);

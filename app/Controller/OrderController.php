@@ -177,7 +177,7 @@ class OrderController
             $finalTotalSum       = $totalSum;
 
             if ($couponData !== null && isset($couponData['code'])) {
-                $baseTotal  = (float)($_SESSION['base_total'] ?? $totalSum + $discountAmount);
+                $baseTotal = (float)($_SESSION['base_total'] ?? ($totalSum + $discountAmount));
                 $validation = validate_coupon_for_order($this->pdo, $couponData['code'], $baseTotal, true);
 
                 if (!$validation['valid']) {

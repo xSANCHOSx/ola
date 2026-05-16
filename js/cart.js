@@ -299,11 +299,13 @@
 		renderTotals() {
 			const sum     = this.store.totalPrice()
 			const baseSum = this.store.baseTotalPrice() // сума БЕЗ знижки купона
+			const isEmpty = Object.keys(this.store.items).length === 0
 
-			// Доставка: +250 если меньше порога
+			// Доставка: +250 если есть товары и сумма ниже порога
+			// FIX 1: при пустой корзине доставка не показывается
 			const DELIVERY_COST = 250
 			const DELIVERY_THRESHOLD = 5000
-			const delivery = baseSum >= DELIVERY_THRESHOLD ? 0 : DELIVERY_COST
+			const delivery = (!isEmpty && baseSum < DELIVERY_THRESHOLD) ? DELIVERY_COST : 0
 			const total = sum + delivery
 
 			// Старый #bsum — сохраняем для обратной совместимости
@@ -314,15 +316,14 @@
 			// Обновляем итоговую сумму (с доставкой)
 			$('#minicart-total-display').text(total.toFixed(2) + ' ₽')
 
-			// Логика доставки — порог проверяем по базовой сумме (до скидки)
-			if (baseSum >= DELIVERY_THRESHOLD) {
-				$('#minicart-delivery-banner .delivery-moscow').text(
-					'Москва: бесплатно  |  От 5000 — бесплатная'
-				)
-			} else {
-				$('#minicart-delivery-banner .delivery-moscow').text(
-					'Москва: +250 руб  |  От 5000 — бесплатная'
-				)
+				if (baseSum >= DELIVERY_THRESHOLD) {
+					$('#minicart-delivery-banner .delivery-moscow').text(
+						'Москва: бесплатно  |  От 5000 — бесплатная'
+					)
+				} else {
+					$('#minicart-delivery-banner .delivery-moscow').text(
+						'Москва: +250 руб  |  От 5000 — бесплатная'
+					)
 			}
 
 			// Відновити відображення купона якщо він активний

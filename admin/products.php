@@ -708,7 +708,7 @@ if (isset($_GET['edit'])) {
 					<?php foreach ($products as $i => $p): ?>
 						<tr data-id="<?= (int)$p['id'] ?>">
 							<td class="drag-handle" title="Перетягніть для зміни порядку">⠿</td>
-							<td class="row-position d-none"><?= $i + 1 ?></td>
+							<td class="row-position" style=" display:none;"><?= $i + 1 ?></td>
 							<td><?= admin_h((string)$p['external_id']) ?></td>
 							<td><?= admin_h((string)$p['cat_number']) ?></td>
 							<td><?= admin_h((string)$p['name']) ?></td>

@@ -33,7 +33,7 @@ $productSchema = [
 	'@context' => 'https://schema.org',
 	'@type' => 'Product',
 	'name' => $currentProduct['name'],
-	'image' => 'https://sanchos-dev.site' . $currentProduct['image'],
+	'image' => $currentProduct['image'],
 	'description' => $currentProduct['short_desc'] ?: $currentProduct['desc'],
 	'sku' => $currentProduct['cat_number'] ?: $currentProduct['id'],
 	'brand' => [
@@ -42,7 +42,7 @@ $productSchema = [
 	],
 	'offers' => [
 		'@type' => 'Offer',
-		'url' => 'https://sanchos-dev.site' . $currentProduct['link'],
+		'url' => $currentProduct['link'],
 		'priceCurrency' => 'RUB',
 		'price' => (string)$currentProduct['price'],
 		'availability' => $currentProduct['in_stock'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'

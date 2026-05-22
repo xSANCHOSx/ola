@@ -69,3 +69,49 @@
 .admin-nav__logout:hover {
     color: #007bff;
 }
+
+/* Mobile Responsive Styles */
+
+@media (max-width: 768px) {
+    .admin-nav {
+        padding: 0;
+        margin-bottom: 20px;
+        flex-direction: column;
+    }
+
+    .admin-nav__menu {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .admin-nav__item {
+        border-bottom: 1px solid #eee;
+    }
+
+    .admin-nav__item:last-child {
+        border-bottom: none;
+    }
+
+    .admin-nav__link {
+        padding: 12px;
+        min-height: 44px;
+        color: inherit;
+    }
+
+    .admin-nav__link:active {
+        background-color: #f0f0f0;
+    }
+
+    .admin-nav__icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .admin-nav__user {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        border-top: 1px solid #ddd;
+        gap: 8px;
+    }
+}

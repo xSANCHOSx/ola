@@ -1,0 +1,42 @@
+AddDefaultCharset UTF-8
+Options -Indexes
+
+# GZIP compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/xml
+</IfModule>
+
+# Кэш в браузерах
+<IfModule mod_headers.c>
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "max-age=43200"
+    </FilesMatch>
+    <FilesMatch "\.(js|css|txt)$">
+        Header set Cache-Control "max-age=604800"
+    </FilesMatch>
+    <FilesMatch "\.(pl|php|cgi|spl|scgi|fcgi)$">
+        Header unset Cache-Control
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_dir.c>
+    DirectoryIndex index.php
+</IfModule>
+
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css
+    AddOutputFilterByType BROTLI_COMPRESS application/javascript application/json
+</IfModule>
+
+# ======= REWRITE =======
+Options +FollowSymLinks
+RewriteEngine On
+RewriteBase /admin/
+
+# Убираем .php из URL для админки
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+)$ $1.php [L]
+
+# Редирект с www на без www
+RewriteCond %{HTTP_HOST} ^www\.(.*)$
+RewriteRule ^(.*)$ https://%1/admin/$1 [L,R=301]

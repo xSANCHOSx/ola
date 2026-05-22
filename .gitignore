@@ -33,6 +33,7 @@ env/
 .settings/
 config/db.php
 config/local.php
+.claude
 
 # Збірка та дистрибутиви
 dist/

@@ -95,7 +95,14 @@
     .admin-nav__link {
         padding: 12px;
         min-height: 44px;
-        color: inherit;
+        width: 100%;
+        transition: background-color 0.2s;
+    }
+
+    .admin-nav__link:focus {
+        outline: 2px solid #007bff;
+        outline-offset: -2px;
+        background-color: #f0f0f0;
     }
 
     .admin-nav__link:active {
@@ -113,5 +120,18 @@
         padding: 12px;
         border-top: 1px solid #ddd;
         gap: 8px;
+    }
+
+    .admin-nav__logout {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .admin-nav__logout:focus {
+        outline: 2px solid #007bff;
+        outline-offset: -2px;
     }
 }

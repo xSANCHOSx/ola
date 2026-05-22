@@ -17,7 +17,7 @@ if (!is_array($payload)) {
     exit(json_encode(['error' => 'Invalid JSON']));
 }
 
-// CSRF: validate_csrf_token() читає з $_POST, тому перевіряємо вручну
+// CSRF: validate_csrf_token() читает из $_POST, поэтому проверяем вручную
 $csrfToken = (string)($payload['csrf_token'] ?? '');
 $sessionToken = (string)($_SESSION['csrf_token'] ?? '');
 if (empty($csrfToken) || empty($sessionToken) || !hash_equals($sessionToken, $csrfToken)) {
@@ -32,7 +32,7 @@ if (!is_array($order) || count($order) === 0) {
     exit(json_encode(['error' => 'Empty order']));
 }
 
-// Санітація: id і sort_order — тільки цілі числа > 0
+// Санитация: id и sort_order — только целые числа > 0
 foreach ($order as $item) {
     if (!isset($item['id'], $item['sort_order'])
         || (int)$item['id'] <= 0

@@ -34,7 +34,7 @@
   position: fixed;
   top: 5vh;
   right: 0;
-  /* ← правий бік */
+  /* ← правый бок */
   width: 420px;
   max-width: calc(100vw - 16px);
   height: 90vh;
@@ -43,7 +43,7 @@
   z-index: 1002;
   overflow: hidden;
   transform: translateX(100%);
-  /* ← виїжджає праворуч */
+  /* ← выезжает вправо */
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.18);
   border-radius: 12px 0 0 12px;
@@ -352,7 +352,7 @@
   color: #1a1a2e;
 }
 
-/* Зберігаємо #bsum як прихований для зворотної сумісності з JS */
+/* Сохраняем #bsum как скрытый для обратной совместимости с JS */
 #bsum {
   display: none;
 }
@@ -415,7 +415,7 @@
   transform: translateY(0);
 }
 
-/* Стара .bbutton — залишаємо для popup */
+/* Старая .bbutton — оставляем для popup */
 .bbutton {
   background: #1a1a2e;
   color: #fff;

@@ -60,9 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 	exit;
 }
 
-// ВИПРАВЛЕНО: ORDER BY sort_order ASC замість id DESC,
-// щоб адмін бачив товари в тому самому порядку що й відвідувач сайту.
-// id ASC — тайбрейкер для товарів з однаковим sort_order (нові = 0).
+// ИСПРАВЛЕНО: ORDER BY sort_order ASC вместо id DESC,
+// чтобы админ видел товары в том же порядке что и посетитель сайта.
+// id ASC — тайбрейкер для товаров с одинаковым sort_order (новые = 0).
 $products = [];
 if ($pdo instanceof PDO) {
 	$products = $pdo->query('SELECT * FROM products ORDER BY sort_order ASC, id ASC LIMIT 500')->fetchAll();
@@ -85,11 +85,11 @@ if (isset($_GET['edit'])) {
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<!-- CSRF токен для AJAX-запитів (drag-and-drop збереження порядку) -->
+	<!-- CSRF токен для AJAX-запросов (drag-and-drop сохранение порядка) -->
 	<meta name="csrf-token" content="<?= csrf_token() ?>">
 	<title>Админка - Товары</title>
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
-	<!-- SortableJS — drag-and-drop бібліотека для таблиці товарів -->
+	<!-- SortableJS — drag-and-drop библиотека для таблицы товаров -->
 	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 	<style>
 		.product-form-wrapper {
@@ -367,7 +367,7 @@ if (isset($_GET['edit'])) {
 			margin-top: 50px;
 		}
 
-		/* ====== Drag-and-drop стилі ====== */
+		/* ====== Drag-and-drop стили ====== */
 		.drag-handle {
 			cursor: grab;
 			color: #aaa;
@@ -382,19 +382,19 @@ if (isset($_GET['edit'])) {
 			cursor: grabbing;
 		}
 
-		/* Рядок-привид під час перетягування */
+		/* Строка-привидение при перетягивании */
 		.sortable-ghost {
 			opacity: 0.35;
 			background: #cce5ff !important;
 		}
 
-		/* Вибраний рядок під час перетягування */
+		/* Выбранная строка при перетягивании */
 		.sortable-chosen {
 			background: #e8f4fd !important;
 			box-shadow: 0 2px 8px rgba(0, 123, 255, .25);
 		}
 
-		/* Кнопка збереження — прихована доки немає змін */
+		/* Кнопка сохранения — скрыта пока нет изменений */
 		#saveOrderBtn {
 			display: none;
 		}
@@ -543,7 +543,7 @@ if (isset($_GET['edit'])) {
 								</div>
 							</div>
 							<div class="form-group-wrapper">
-								<label for="sort_order">Порядок сортировки <small style="color:#888;font-weight:normal">(встановлюється
+								<label for="sort_order">Порядок сортировки <small style="color:#888;font-weight:normal">(устанавливается
 										перетягуванням у списку)</small></label>
 								<input type="number" class="form-control" id="sort_order" name="sort_order"
 									value="<?= admin_h((string)($edit['sort_order'] ?? '0')) ?>">
@@ -678,7 +678,7 @@ if (isset($_GET['edit'])) {
 
 			<!-- Заголовок + кнопка збереження порядку -->
 			<div class="products-list-header">
-				<h4>📦 Список товарів</h4>
+				<h4>📦 Список товаров</h4>
 				<button id="saveOrderBtn" class="btn btn-warning btn-sm">
 					💾 Зберегти порядок
 				</button>
@@ -686,13 +686,13 @@ if (isset($_GET['edit'])) {
 			</div>
 
 			<p style="color:#888;font-size:0.88rem;margin-bottom:10px;">
-				⠿ Перетягніть рядок за іконку щоб змінити порядок. Після перестановки натисніть «Зберегти порядок».
+				⠿ Перетащите строку за иконку чтобы изменить порядок. После перестановки нажмите «Сохранить порядок».
 			</p>
 
 			<table class="table table-bordered table-striped">
 				<thead>
 					<tr>
-						<th style="width:36px" title="Перетягніть для сортування">⠿</th>
+						<th style="width:36px" title="Перетащите для сортировки">⠿</th>
 						<th style="width:40px; display:none;">#</th>
 						<th>ID AMO</th>
 						<th>Код каталога</th>
@@ -707,7 +707,7 @@ if (isset($_GET['edit'])) {
 				<tbody id="sortable-products">
 					<?php foreach ($products as $i => $p): ?>
 						<tr data-id="<?= (int)$p['id'] ?>">
-							<td class="drag-handle" title="Перетягніть для зміни порядку">⠿</td>
+							<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
 							<td class="row-position" style=" display:none;"><?= $i + 1 ?></td>
 							<td><?= admin_h((string)$p['external_id']) ?></td>
 							<td><?= admin_h((string)$p['cat_number']) ?></td>
@@ -737,12 +737,12 @@ if (isset($_GET['edit'])) {
 		/* ====== Форма редагування товару ====== */
 		(function() {
 			var imageUpload = document.getElementById('imageUpload');
-			if (!imageUpload) return; // форма відсутня на сторінці
+			if (!imageUpload) return; // форма отсутствует на странице
 
 			var imagePreview = document.getElementById('imagePreview');
 			var btnRemove = document.getElementById('btnRemoveImage');
 
-			// Клік на превью — відкрити діалог вибору файла
+			// Клик на превью — открыть диалог выбора файла
 			imagePreview.addEventListener('click', function() {
 				imageUpload.click();
 			});
@@ -771,7 +771,7 @@ if (isset($_GET['edit'])) {
 			};
 		})();
 
-		// Перемикання статусу наявності
+		// Переключение статуса наличия
 		function toggleInStock() {
 			var toggle = document.getElementById('inStockToggle');
 			var input = document.getElementById('in_stock');
@@ -786,13 +786,13 @@ if (isset($_GET['edit'])) {
 			}
 		}
 
-		/* ====== Drag-and-drop сортування товарів ====== */
+		/* ====== Drag-and-drop сортировка товаров ====== */
 		(function() {
 			var tbody = document.getElementById('sortable-products');
 			var saveBtn = document.getElementById('saveOrderBtn');
 			var status = document.getElementById('saveStatus');
 
-			// Якщо таблиця відсутня (сторінка редагування) — нічого не робимо
+			// Если таблица отсутствует (страница редактирования) — ничего не делаем
 			if (!tbody || !saveBtn) return;
 
 			// CSRF токен з мета-тегу
@@ -801,21 +801,21 @@ if (isset($_GET['edit'])) {
 
 			var hasChanges = false;
 
-			// Ініціалізація SortableJS
+			// Инициализация SortableJS
 			Sortable.create(tbody, {
-				handle: '.drag-handle', // тягнути тільки за іконку
-				animation: 150, // плавна анімація переміщення
+				handle: '.drag-handle', // тащить только за иконку
+				animation: 150, // плавная анимация перемещения
 				ghostClass: 'sortable-ghost',
 				chosenClass: 'sortable-chosen',
 
 				onEnd: function() {
-					// Оновлюємо порядкові номери в колонці "#"
+					// Обновляем порядковые номера в колонке \"#\"
 					tbody.querySelectorAll('tr').forEach(function(tr, i) {
 						var cell = tr.querySelector('.row-position');
 						if (cell) cell.textContent = i + 1;
 					});
 
-					// Показуємо кнопку збереження
+					// Показываем кнопку сохранения
 					hasChanges = true;
 					saveBtn.classList.add('has-changes');
 					status.textContent = '';
@@ -859,7 +859,7 @@ if (isset($_GET['edit'])) {
 							status.textContent = '✓ Порядок збережено';
 							status.className = 'save-success';
 						} else {
-							status.textContent = '✗ Помилка: ' + (data.error || 'невідома');
+							status.textContent = '✗ Ошибка: ' + (data.error || 'неизвестная');
 							status.className = 'text-danger';
 						}
 					})
@@ -873,7 +873,7 @@ if (isset($_GET['edit'])) {
 					});
 			});
 
-			// Попередження при спробі закрити вкладку з незбереженими змінами
+			// Предупреждение при попытке закрыть вкладку с несохраненными изменениями
 			window.addEventListener('beforeunload', function(e) {
 				if (hasChanges) {
 					e.preventDefault();

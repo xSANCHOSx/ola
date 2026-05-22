@@ -479,12 +479,12 @@ div#max-team {
 
 .stars-rating {
   width: 110px;
-  /* трохи більше якщо відступи між зірками */
+  /* немного больше если отступы между звездами */
   height: 18px;
   background-image: url('/images/star.png');
   background-repeat: repeat-x;
   background-size: 20px 18px;
-  /* 20px по ширині = 2px відступ між зірками */
+  /* 20px по ширине = 2px отступ между звездами */
 }
 
 .member-profile .member-name,
@@ -1468,7 +1468,7 @@ Color for customizer
 ----------------------------------------------
 */
 
-/* === ANIMATIONS (замінює animate.css 71KB → 0.5KB) === */
+/* === ANIMATIONS (заменяет animate.css 71KB → 0.5KB) === */
 @keyframes fadeInDown {
   from {
     opacity: 0;
@@ -1508,7 +1508,7 @@ Color for customizer
 
 /* ============================================
    SKELETON LOADER — FlexSlider
-   .flex-ready додається через JS після init
+   .flex-ready добавляется через JS после init
    ============================================ */
 
 .flexslider:not(.flex-ready) {
@@ -1521,12 +1521,12 @@ Color for customizer
   overflow: hidden;
 }
 
-/* Ховаємо нестилізований контент під час завантаження */
+/* Скрываем несилизованный контент во время загрузки */
 .flexslider:not(.flex-ready) .slides {
   visibility: hidden;
 }
 
-/* Головний банер — aspect-ratio резервує точну висоту */
+/* Главный баннер — aspect-ratio резервирует точную высоту */
 section.slider .flexslider:not(.flex-ready) {
   aspect-ratio: 1920 / 600;
   width: 100%;
@@ -1537,12 +1537,12 @@ section.slider .flexslider:not(.flex-ready) {
   aspect-ratio: 16 / 9;
 }
 
-/* Відгуки */
+/* Отзывы */
 #max-customer-section .flexslider:not(.flex-ready) {
   min-height: 220px;
 }
 
-/* Карусель товарів */
+/* Карусель товаров */
 #max-team .flexslider:not(.flex-ready) {
   min-height: 320px;
 }

@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 		'seo_title' => trim((string)($_POST['seo_title'] ?? '')),
 		'seo_description' => trim((string)($_POST['seo_description'] ?? '')),
 		'volume' => trim((string)($_POST['volume'] ?? '')),
-		'sort_order' => trim((string)($_POST['sort_order'] ?? '')),
+		'sort_order' => (int)($_POST['sort_order'] ?? 0),
 
 	];
 
@@ -60,9 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 	exit;
 }
 
+// ВИПРАВЛЕНО: ORDER BY sort_order ASC замість id DESC,
+// щоб адмін бачив товари в тому самому порядку що й відвідувач сайту.
+// id ASC — тайбрейкер для товарів з однаковим sort_order (нові = 0).
 $products = [];
 if ($pdo instanceof PDO) {
-	$products = $pdo->query('SELECT * FROM products ORDER BY id DESC LIMIT 500')->fetchAll();
+	$products = $pdo->query('SELECT * FROM products ORDER BY sort_order ASC, id ASC LIMIT 500')->fetchAll();
 }
 $edit = null;
 if (isset($_GET['edit'])) {
@@ -82,8 +85,12 @@ if (isset($_GET['edit'])) {
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- CSRF токен для AJAX-запитів (drag-and-drop збереження порядку) -->
+	<meta name="csrf-token" content="<?= csrf_token() ?>">
 	<title>Админка - Товары</title>
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
+	<!-- SortableJS — drag-and-drop бібліотека для таблиці товарів -->
+	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 	<style>
 		.product-form-wrapper {
 			display: flex;
@@ -360,10 +367,52 @@ if (isset($_GET['edit'])) {
 			margin-top: 50px;
 		}
 
-		.products-list-section h4 {
-			margin-bottom: 20px;
+		/* ====== Drag-and-drop стилі ====== */
+		.drag-handle {
+			cursor: grab;
+			color: #aaa;
+			font-size: 20px;
+			padding: 0 6px;
+			user-select: none;
+			text-align: center;
+			line-height: 1;
+		}
+		.drag-handle:active {
+			cursor: grabbing;
+		}
+		/* Рядок-привид під час перетягування */
+		.sortable-ghost {
+			opacity: 0.35;
+			background: #cce5ff !important;
+		}
+		/* Вибраний рядок під час перетягування */
+		.sortable-chosen {
+			background: #e8f4fd !important;
+			box-shadow: 0 2px 8px rgba(0,123,255,.25);
+		}
+		/* Кнопка збереження — прихована доки немає змін */
+		#saveOrderBtn {
+			display: none;
+		}
+		#saveOrderBtn.has-changes {
+			display: inline-block;
+		}
+		.save-success {
+			color: #28a745;
+			font-weight: 600;
+		}
+		.products-list-header {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+			margin-bottom: 12px;
+			flex-wrap: wrap;
+		}
+		.products-list-header h4 {
+			margin: 0;
 			color: #333;
 		}
+		/* ================================== */
 
 		@media (max-width: 1200px) {
 			.product-form-top {
@@ -485,7 +534,7 @@ if (isset($_GET['edit'])) {
 								</div>
 							</div>
 							<div class="form-group-wrapper">
-								<label for="sort_order">Порядок сортировки</label>
+								<label for="sort_order">Порядок сортировки <small style="color:#888;font-weight:normal">(встановлюється перетягуванням у списку)</small></label>
 								<input type="number" class="form-control" id="sort_order" name="sort_order"
 									value="<?= admin_h((string)($edit['sort_order'] ?? '0')) ?>">
 							</div>
@@ -616,31 +665,46 @@ if (isset($_GET['edit'])) {
 
 		<!-- Таблица товаров -->
 		<div class="products-list-section">
-			<h4>📦 Список товаров</h4>
+
+			<!-- Заголовок + кнопка збереження порядку -->
+			<div class="products-list-header">
+				<h4>📦 Список товарів</h4>
+				<button id="saveOrderBtn" class="btn btn-warning btn-sm">
+					💾 Зберегти порядок
+				</button>
+				<span id="saveStatus"></span>
+			</div>
+
+			<p style="color:#888;font-size:0.88rem;margin-bottom:10px;">
+				⠿ Перетягніть рядок за іконку щоб змінити порядок. Після перестановки натисніть «Зберегти порядок».
+			</p>
+
 			<table class="table table-bordered table-striped">
 				<thead>
 					<tr>
-						<th>ID Sort</th>
+						<th style="width:36px" title="Перетягніть для сортування">⠿</th>
+						<th style="width:40px">#</th>
 						<th>ID AMO</th>
 						<th>Код каталога</th>
 						<th>Название</th>
+						<th>Slug</th>
 						<th>Объем</th>
 						<th>Цена</th>
-						<th>Slug</th>
 						<th>SEO</th>
 						<th></th>
 					</tr>
 				</thead>
-				<tbody>
-					<?php foreach ($products as $p): ?>
-						<tr>
-							<td><?= admin_h((string)$p['sort_order']) ?></td>
+				<tbody id="sortable-products">
+					<?php foreach ($products as $i => $p): ?>
+						<tr data-id="<?= (int)$p['id'] ?>">
+							<td class="drag-handle" title="Перетягніть для зміни порядку">⠿</td>
+							<td class="row-position"><?= $i + 1 ?></td>
 							<td><?= admin_h((string)$p['external_id']) ?></td>
 							<td><?= admin_h((string)$p['cat_number']) ?></td>
 							<td><?= admin_h((string)$p['name']) ?></td>
+							<td><?= admin_h((string)$p['link']) ?></td>
 							<td><?= admin_h((string)$p['volume']) ?></td>
 							<td><?= admin_h((string)$p['price']) ?></td>
-							<td><?= admin_h((string)$p['link']) ?></td>
 							<td><?= admin_h((string)$p['seo_title']) ?></td>
 							<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
 						</tr>
@@ -660,19 +724,20 @@ if (isset($_GET['edit'])) {
 	</div>
 
 	<script>
+		/* ====== Форма редагування товару ====== */
 		(function() {
 			var imageUpload = document.getElementById('imageUpload');
-			if (!imageUpload) return; // форма отсутствует на странице
+			if (!imageUpload) return; // форма відсутня на сторінці
 
 			var imagePreview = document.getElementById('imagePreview');
 			var btnRemove = document.getElementById('btnRemoveImage');
 
-			// Клик на превью — открыть диалог выбора файла
+			// Клік на превью — відкрити діалог вибору файла
 			imagePreview.addEventListener('click', function() {
 				imageUpload.click();
 			});
 
-			// Загрузка фото
+			// Завантаження фото
 			imageUpload.addEventListener('change', function(e) {
 				var file = e.target.files[0];
 				if (!file) return;
@@ -685,7 +750,7 @@ if (isset($_GET['edit'])) {
 				reader.readAsDataURL(file);
 			});
 
-			// Удаление фото
+			// Видалення фото
 			window.removeImage = function(event) {
 				event.preventDefault();
 				event.stopPropagation();
@@ -696,7 +761,7 @@ if (isset($_GET['edit'])) {
 			};
 		})();
 
-		// Переключение статуса в наличии
+		// Перемикання статусу наявності
 		function toggleInStock() {
 			var toggle = document.getElementById('inStockToggle');
 			var input = document.getElementById('in_stock');
@@ -710,6 +775,95 @@ if (isset($_GET['edit'])) {
 				input.value = '1';
 			}
 		}
+
+		/* ====== Drag-and-drop сортування товарів ====== */
+		(function () {
+			var tbody   = document.getElementById('sortable-products');
+			var saveBtn = document.getElementById('saveOrderBtn');
+			var status  = document.getElementById('saveStatus');
+
+			// Якщо таблиця відсутня (сторінка редагування) — нічого не робимо
+			if (!tbody || !saveBtn) return;
+
+			// CSRF токен з мета-тегу
+			var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+			var csrf = csrfMeta ? csrfMeta.content : '';
+
+			var hasChanges = false;
+
+			// Ініціалізація SortableJS
+			Sortable.create(tbody, {
+				handle: '.drag-handle',      // тягнути тільки за іконку
+				animation: 150,              // плавна анімація переміщення
+				ghostClass: 'sortable-ghost',
+				chosenClass: 'sortable-chosen',
+
+				onEnd: function () {
+					// Оновлюємо порядкові номери в колонці "#"
+					tbody.querySelectorAll('tr').forEach(function (tr, i) {
+						var cell = tr.querySelector('.row-position');
+						if (cell) cell.textContent = i + 1;
+					});
+
+					// Показуємо кнопку збереження
+					hasChanges = true;
+					saveBtn.classList.add('has-changes');
+					status.textContent = '';
+					status.className = '';
+				}
+			});
+
+			// Збереження нового порядку через AJAX
+			saveBtn.addEventListener('click', function () {
+				var rows  = tbody.querySelectorAll('tr[data-id]');
+				var order = [];
+
+				rows.forEach(function (tr, i) {
+					order.push({
+						id: parseInt(tr.getAttribute('data-id'), 10),
+						sort_order: i
+					});
+				});
+
+				saveBtn.disabled    = true;
+				saveBtn.textContent = '⏳ Збереження...';
+				status.textContent  = '';
+
+				fetch('/admin/api/reorder_products.php', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ csrf_token: csrf, order: order })
+				})
+				.then(function (r) { return r.json(); })
+				.then(function (data) {
+					if (data.success) {
+						hasChanges = false;
+						saveBtn.classList.remove('has-changes');
+						status.textContent = '✓ Порядок збережено';
+						status.className   = 'save-success';
+					} else {
+						status.textContent = '✗ Помилка: ' + (data.error || 'невідома');
+						status.className   = 'text-danger';
+					}
+				})
+				.catch(function () {
+					status.textContent = '✗ Мережева помилка';
+					status.className   = 'text-danger';
+				})
+				.finally(function () {
+					saveBtn.disabled    = false;
+					saveBtn.textContent = '💾 Зберегти порядок';
+				});
+			});
+
+			// Попередження при спробі закрити вкладку з незбереженими змінами
+			window.addEventListener('beforeunload', function (e) {
+				if (hasChanges) {
+					e.preventDefault();
+					e.returnValue = '';
+				}
+			});
+		})();
 	</script>
 </body>
 

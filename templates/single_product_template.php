@@ -85,7 +85,7 @@ require __DIR__ . '/head.php'; ?>
 						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
 					</div>
 				</div>
-				<!-- Інфо про товар -->
+				<!-- Информация о товаре -->
 				<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
 					<span></span>
 					<div class="col-xs-12 buy">

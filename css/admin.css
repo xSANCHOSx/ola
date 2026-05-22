@@ -1,0 +1,71 @@
+/* Admin Navigation Styles */
+
+.admin-nav {
+    padding: 12px 0;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-nav__menu {
+    display: flex;
+    gap: 12px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-nav__item {
+    display: flex;
+}
+
+.admin-nav__link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s;
+}
+
+.admin-nav__link:hover {
+    color: #007bff;
+}
+
+.admin-nav__link--active {
+    font-weight: bold;
+    color: #008000;
+}
+
+.admin-nav__link--stats {
+    font-weight: bold;
+    color: #0066cc;
+}
+
+.admin-nav__icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.admin-nav__user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-nav__username {
+    color: inherit;
+}
+
+.admin-nav__logout {
+    text-decoration: none;
+    color: inherit;
+}
+
+.admin-nav__logout:hover {
+    color: #007bff;
+}

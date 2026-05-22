@@ -3,14 +3,16 @@ include 'templates/helpers.php';
 include 'data/products.php';
 save_utm_cookies();
 $currentUrl = $_SERVER['REQUEST_URI'];
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+$currentHost = $protocol . $_SERVER['HTTP_HOST'];
 
 // Organization schema for homepage
 $organizationSchema = [
 	'@context' => 'https://schema.org',
 	'@type' => 'Store',
 	'name' => 'Олаплекс',
-	'url' => 'https://sanchos-dev.site',
-	'logo' => '/images/logo.png',
+	'url' => $currentHost,
+	'logo' => $currentHost . '/images/logo.png',
 	'telephone' => '+74950322929',
 	'contactPoint' => [
 		'@type' => 'ContactPoint',
@@ -26,10 +28,10 @@ $websiteSchema = [
 	'@context' => 'https://schema.org',
 	'@type' => 'WebSite',
 	'name' => 'Олаплекс - интернет-магазин',
-	'url' => 'https://sanchos-dev.site/',
+	'url' => $currentHost . '/',
 	'potentialAction' => [
 		'@type' => 'SearchAction',
-		'target' => 'https://sanchos-dev.site/search?q={search_term_string}',
+		'target' => $currentHost . '/search?q={search_term_string}',
 		'query-input' => 'required name=search_term_string'
 	]
 ];

@@ -1556,3 +1556,16 @@ section.slider .flexslider:not(.flex-ready) {
     background-position: -100% 0;
   }
 }
+
+/* Адаптивные изображения в слайдере */
+section.slider .flexslider img,
+section.slider .flexslider picture img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+section.slider .flexslider picture {
+  display: block;
+  width: 100%;
+}

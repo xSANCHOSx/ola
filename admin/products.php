@@ -544,7 +544,7 @@ if (isset($_GET['edit'])) {
 							</div>
 							<div class="form-group-wrapper">
 								<label for="sort_order">Порядок сортировки <small style="color:#888;font-weight:normal">(устанавливается
-										перетягуванням у списку)</small></label>
+										перетягиванием в списке)</small></label>
 								<input type="number" class="form-control" id="sort_order" name="sort_order"
 									value="<?= admin_h((string)($edit['sort_order'] ?? '0')) ?>">
 							</div>
@@ -676,11 +676,11 @@ if (isset($_GET['edit'])) {
 		<!-- Таблица товаров -->
 		<div class="products-list-section">
 
-			<!-- Заголовок + кнопка збереження порядку -->
+			<!-- Заголовок + кнопка сохранения порядка -->
 			<div class="products-list-header">
 				<h4>📦 Список товаров</h4>
 				<button id="saveOrderBtn" class="btn btn-warning btn-sm">
-					💾 Зберегти порядок
+					💾 Сохранить порядок
 				</button>
 				<span id="saveStatus"></span>
 			</div>
@@ -734,7 +734,7 @@ if (isset($_GET['edit'])) {
 	</div>
 
 	<script>
-		/* ====== Форма редагування товару ====== */
+		/* ====== Форма редактирования товара ====== */
 		(function() {
 			var imageUpload = document.getElementById('imageUpload');
 			if (!imageUpload) return; // форма отсутствует на странице
@@ -747,7 +747,7 @@ if (isset($_GET['edit'])) {
 				imageUpload.click();
 			});
 
-			// Завантаження фото
+			// Загрузка фото
 			imageUpload.addEventListener('change', function(e) {
 				var file = e.target.files[0];
 				if (!file) return;
@@ -760,7 +760,7 @@ if (isset($_GET['edit'])) {
 				reader.readAsDataURL(file);
 			});
 
-			// Видалення фото
+			// Удаление фото
 			window.removeImage = function(event) {
 				event.preventDefault();
 				event.stopPropagation();
@@ -823,7 +823,7 @@ if (isset($_GET['edit'])) {
 				}
 			});
 
-			// Збереження нового порядку через AJAX
+			// Сохранение нового порядка через AJAX
 			saveBtn.addEventListener('click', function() {
 				var rows = tbody.querySelectorAll('tr[data-id]');
 				var order = [];
@@ -836,7 +836,7 @@ if (isset($_GET['edit'])) {
 				});
 
 				saveBtn.disabled = true;
-				saveBtn.textContent = '⏳ Збереження...';
+				saveBtn.textContent = '⏳ Сохранение...';
 				status.textContent = '';
 
 				fetch('/admin/api/reorder_products.php', {
@@ -856,7 +856,7 @@ if (isset($_GET['edit'])) {
 						if (data.success) {
 							hasChanges = false;
 							saveBtn.classList.remove('has-changes');
-							status.textContent = '✓ Порядок збережено';
+							status.textContent = '✓ Порядок сохранен';
 							status.className = 'save-success';
 						} else {
 							status.textContent = '✗ Ошибка: ' + (data.error || 'неизвестная');
@@ -864,12 +864,12 @@ if (isset($_GET['edit'])) {
 						}
 					})
 					.catch(function() {
-						status.textContent = '✗ Мережева помилка';
+						status.textContent = '✗ Сетевая ошибка';
 						status.className = 'text-danger';
 					})
 					.finally(function() {
 						saveBtn.disabled = false;
-						saveBtn.textContent = '💾 Зберегти порядок';
+						saveBtn.textContent = '💾 Сохранить порядок';
 					});
 			});
 

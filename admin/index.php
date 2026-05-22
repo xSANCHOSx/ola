@@ -53,7 +53,7 @@ if ($pdo instanceof PDO) {
     <?php require __DIR__ . '/_nav.php'; ?>
     <h3>Заказы</h3>
     
-    <!-- Форма пошуку -->
+    <!-- Форма поиска -->
     <div class="search-form">
         <div class="search-tabs">
             <button class="search-tab-btn active" data-type="all">Все заказы</button>
@@ -66,7 +66,7 @@ if ($pdo instanceof PDO) {
         </div>
         
         <form id="searchForm" method="get">
-            <!-- Пошук за номером замовлення -->
+            <!-- Поиск по номеру заказа -->
             <div id="search-order_number" class="search-input-group" style="display: none;">
                 <div class="form-group">
                     <label for="orderNumber">Номер заказа:</label>
@@ -136,7 +136,7 @@ if ($pdo instanceof PDO) {
         <div class="results-info" id="resultsInfo" style="display: none;"></div>
     </div>
     
-    <!-- Таблиця замовлень -->
+    <!-- Таблица заказов -->
     <table class="table table-bordered table-striped" id="ordersTable">
         <thead>
         <tr>

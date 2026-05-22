@@ -1,5 +1,5 @@
 <?php $u = admin_current_user(); ?>
-<nav class="admin-nav" style="padding:12px 0; border-bottom:1px solid #ddd; margin-bottom:20px;">
+<nav class="admin-nav">
     <ul class="admin-nav__list">
         <li class="admin-nav__item"><a href="/admin/" class="admin-nav__link"><span>Заказы</span></a></li>
         <li class="admin-nav__item"><a href="/admin/products.php" class="admin-nav__link"><span>Товары</span></a></li>
@@ -8,7 +8,7 @@
         <li class="admin-nav__item"><a href="/admin/coupons.php" class="admin-nav__link"><span>Купоны</span></a></li>
         <li class="admin-nav__item"><a href="/admin/coupon_stats.php" class="admin-nav__link"><span>Статистика</span></a></li>
     </ul>
-    <div class="admin-nav__user" style="float:right;">
+    <div class="admin-nav__user">
         <?= admin_h((string)($u['username'] ?? '')) ?> |
         <a href="/admin/logout.php" class="admin-nav__link"><span>Выход</span></a>
     </div>

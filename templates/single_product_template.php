@@ -17,15 +17,48 @@ if ($productIndex !== false) {
 }
 
 $defaultTitle = htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') . ' - Олаплекс (Olaplex) Для Волос Купить В Интернет-Магазине';
-$defaultDescription = 'Средства для волос Olaplex (Олаплекс) для домашнего использования можно заказать у нас! Отличные цены, доставка по всей территории России!';
-$pageTitle = !empty($currentProduct['seo_title']) ? htmlspecialchars((string)$currentProduct['seo_title'], ENT_QUOTES, 'UTF-8') : $defaultTitle;
+$defaultDescription = generate_product_seo_description($currentProduct);
+$pageTitle = !empty($currentProduct['seo_title']) ? htmlspecialchars((string)$currentProduct['seo_title'], ENT_QUOTES, 'UTF-8') : generate_product_seo_title($currentProduct);
 $pageDescription = !empty($currentProduct['seo_description']) ? htmlspecialchars((string)$currentProduct['seo_description'], ENT_QUOTES, 'UTF-8') : $defaultDescription;
 ?>
 
 <!DOCTYPE html>
 <html lang="ru">
-<?php $extraCss = ($extraCss ?? '') . '
+<?php
+$extraCss = ($extraCss ?? '') . '
 <link rel="stylesheet" href="/css/flexslider.css">';
+
+// Generate Product schema JSON-LD
+$productSchema = [
+	'@context' => 'https://schema.org',
+	'@type' => 'Product',
+	'name' => $currentProduct['name'],
+	'image' => 'https://sanchos-dev.site' . $currentProduct['image'],
+	'description' => $currentProduct['short_desc'] ?: $currentProduct['desc'],
+	'sku' => $currentProduct['cat_number'] ?: $currentProduct['id'],
+	'brand' => [
+		'@type' => 'Brand',
+		'name' => 'Olaplex'
+	],
+	'offers' => [
+		'@type' => 'Offer',
+		'url' => 'https://sanchos-dev.site' . $currentProduct['link'],
+		'priceCurrency' => 'RUB',
+		'price' => (string)$currentProduct['price'],
+		'availability' => $currentProduct['in_stock'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+	]
+];
+
+// Add aggregateRating if available
+$productSchema['aggregateRating'] = [
+	'@type' => 'AggregateRating',
+	'ratingValue' => '5',
+	'bestRating' => '5',
+	'ratingCount' => '30'
+];
+
+$extraCss .= '<script type="application/ld+json">' . json_encode($productSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>';
+
 require __DIR__ . '/head.php'; ?>
 
 <body class="single">

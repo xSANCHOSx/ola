@@ -3,11 +3,43 @@ include 'templates/helpers.php';
 include 'data/products.php';
 save_utm_cookies();
 $currentUrl = $_SERVER['REQUEST_URI'];
+
+// Organization schema for homepage
+$organizationSchema = [
+	'@context' => 'https://schema.org',
+	'@type' => 'Store',
+	'name' => 'Олаплекс',
+	'url' => 'https://sanchos-dev.site',
+	'logo' => 'https://sanchos-dev.site/images/logo.png',
+	'telephone' => '+74950322929',
+	'contactPoint' => [
+		'@type' => 'ContactPoint',
+		'telephone' => '+74950322929',
+		'contactType' => 'customer service',
+		'availableLanguage' => 'Russian'
+	],
+	'sameAs' => ['https://wa.me/79096962720']
+];
+
+// WebSite schema for search
+$websiteSchema = [
+	'@context' => 'https://schema.org',
+	'@type' => 'WebSite',
+	'name' => 'Олаплекс - интернет-магазин',
+	'url' => 'https://sanchos-dev.site/',
+	'potentialAction' => [
+		'@type' => 'SearchAction',
+		'target' => 'https://sanchos-dev.site/search?q={search_term_string}',
+		'query-input' => 'required name=search_term_string'
+	]
+];
 ?>
 <!DOCTYPE html>
 <html lang="ru">
 <?php $extraCss = '
-<link rel="stylesheet" href="/css/flexslider.css">';
+<link rel="stylesheet" href="/css/flexslider.css">
+<script type="application/ld+json">' . json_encode($organizationSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>
+<script type="application/ld+json">' . json_encode($websiteSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>';
 require __DIR__ . '/templates/head.php'; ?>
 
 <body>
@@ -25,7 +57,7 @@ require __DIR__ . '/templates/head.php'; ?>
 									<!--Гарантия Защиты Волос-->
 								</span>
 							</div>
-							<?= webp_img('/images/banner-1.jpg', 'Olaplex', '', ['fetchpriority' => 'high']) ?>
+							<?= webp_img('/images/banner-1.jpg', 'Olaplex', '', ['fetchpriority' => 'high', 'width' => 1200, 'height' => 600]) ?>
 							<div class="flex-caption_r">
 								<span>
 									<!--Один Ингридиент меняет все-->
@@ -33,7 +65,7 @@ require __DIR__ . '/templates/head.php'; ?>
 							</div>
 						</li>
 						<li>
-							<?= webp_img('/images/banner-2.jpg', 'Olaplex', '', ['fetchpriority' => 'high']) ?>
+							<?= webp_img('/images/banner-2.jpg', 'Olaplex', '', ['fetchpriority' => 'high', 'width' => 1200, 'height' => 600]) ?>
 						</li>
 					</ul>
 				</div>

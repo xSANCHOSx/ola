@@ -624,9 +624,9 @@ if (isset($_GET['edit'])) {
 						<th>ID AMO</th>
 						<th>Код каталога</th>
 						<th>Название</th>
-						<th>Slug</th>
 						<th>Объем</th>
 						<th>Цена</th>
+						<th>Slug</th>
 						<th>SEO</th>
 						<th></th>
 					</tr>
@@ -638,9 +638,9 @@ if (isset($_GET['edit'])) {
 							<td><?= admin_h((string)$p['external_id']) ?></td>
 							<td><?= admin_h((string)$p['cat_number']) ?></td>
 							<td><?= admin_h((string)$p['name']) ?></td>
-							<td><?= admin_h((string)$p['link']) ?></td>
 							<td><?= admin_h((string)$p['volume']) ?></td>
 							<td><?= admin_h((string)$p['price']) ?></td>
+							<td><?= admin_h((string)$p['link']) ?></td>
 							<td><?= admin_h((string)$p['seo_title']) ?></td>
 							<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
 						</tr>

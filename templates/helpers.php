@@ -45,33 +45,47 @@ function getDiscountTimer(string $uniqueId): string
 
 
 /**
- * Генерирует <picture> с WebP если файл существует, иначе — обычный <img>
- *
- * @param string $src    Путь к изображению (относительно корня сайта)
- * @param string $alt    Alt текст
- * @param string $class  CSS классы
- * @param array  $attrs  Дополнительные атрибуты ['loading' => 'lazy', 'width' => 400, ...]
+ * Генерирует уникальное SEO описание для товара
  */
-function webp_img(string $src, string $alt = '', string $class = '', array $attrs = []): string
+function generate_product_seo_description(array $product): string
 {
-    $webpSrc  = preg_replace('/\.(jpe?g|png)$/i', '.webp', $src);
-    $webpPath = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . ltrim($webpSrc, '/');
-
-    // Собираем строку атрибутов
-    $attrStr = '';
-    if ($class) $attrs['class'] = $class;
-    foreach ($attrs as $k => $v) {
-        $attrStr .= ' ' . htmlspecialchars($k) . '="' . htmlspecialchars((string)$v) . '"';
+    if (!empty($product['seo_description'])) {
+        return $product['seo_description'];
     }
 
-    $altStr = ' alt="' . htmlspecialchars($alt) . '"';
+    $name = $product['name'] ?? '';
+    $price = $product['price'] ?? 0;
+    $shortDesc = $product['short_desc'] ?? '';
 
-    if (file_exists($webpPath)) {
-        return '<picture>'
-            . '<source srcset="' . htmlspecialchars($webpSrc) . '" type="image/webp">'
-            . '<img src="' . htmlspecialchars($src) . '"' . $altStr . $attrStr . '>'
-            . '</picture>';
+    // Генерируем уникальное описание на основе данных товара
+    $description = "Купить {$name} по цене {$price} ₽ в интернет-магазине Olaplex. ";
+
+    if (!empty($shortDesc)) {
+        $description .= $shortDesc . '. ';
     }
 
-    return '<img src="' . htmlspecialchars($src) . '"' . $altStr . $attrStr . '>';
+    $description .= 'Доставка по всей России. Оригинальный товар с гарантией.';
+
+    return $description;
 }
+
+/**
+ * Генерирует уникальный SEO заголовок для товара
+ */
+function generate_product_seo_title(array $product): string
+{
+    if (!empty($product['seo_title'])) {
+        return $product['seo_title'];
+    }
+
+    $name = $product['name'] ?? '';
+    $catNumber = $product['cat_number'] ?? '';
+
+    // Генерируем уникальный заголовок
+    if (!empty($catNumber)) {
+        return "{$catNumber} {$name} - Купить в интернет-магазине Olaplex";
+    }
+
+    return "{$name} - Olaplex для волос купить";
+}
+

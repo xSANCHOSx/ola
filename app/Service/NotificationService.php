@@ -46,24 +46,38 @@ class NotificationService
             $crmSent = false;
         }
 
-        // ── p2log ─────────────────────────────────────────────────────────────
-        $_POST['ORDER_ID']  = $orderNumber;
-        $_POST['MAIL_OUR']  = 'Result = ' . ($emailToShop ? '1' : '0');
-        $_POST['MAIL_USER'] = 'Result = ' . ($emailToUser ? '1' : '0');
-        $_POST['CRM_SENT']  = $crmSent ? '1' : '0';
-        p2log($_POST);
+        // ── p2log — тільки технічні дані, без PII ────────────────────────────
+        p2log([
+            'ORDER_ID'  => $orderNumber,
+            'MAIL_OUR'  => 'Result = ' . ($emailToShop ? '1' : '0'),
+            'MAIL_USER' => 'Result = ' . ($emailToUser ? '1' : '0'),
+            'CRM_SENT'  => $crmSent ? '1' : '0',
+        ]);
 
-        // ── AMO CRM ───────────────────────────────────────────────────────────
+        // ── AMO CRM — явний масив з $payload (нормалізовані дані) ─────────────
+        // Використовуємо $payload (нормалізований у sendmail.php) замість $_POST,
+        // щоб телефон і email були у чистому вигляді, а $_POST не мутував.
+        $amoPayload = [
+            'name'         => $payload['name'],
+            'email'        => $payload['email'],
+            'phone'        => $payload['phone'],   // вже нормалізований (sendmail.php)
+            'comments'     => $payload['comments'],
+            'coupon'       => $payload['coupon'],
+            'order_result' => json_encode($orderResult, JSON_UNESCAPED_UNICODE),
+            'page_params'  => $_POST['page_params'] ?? '',
+            'ORDER_ID'     => $orderNumber,
+        ];
+
         OlaLogger::debug('AMO_START');
         try {
-            $amoResult = amo_send_order($_POST);
+            $amoResult = amo_send_order($amoPayload);
             OlaLogger::info('AMO_DONE', ['result' => $amoResult]);
         } catch (Throwable $e) {
             OlaLogger::error('AMO_EXCEPTION', ['msg' => $e->getMessage()]);
             $amoResult = false;
         }
 
-        $_POST['AMO_SENT'] = $amoResult ? '1' : '0';
+        p2log(['AMO_SENT' => $amoResult ? '1' : '0']);
 
         return [
             'email' => $emailToShop && $emailToUser,

@@ -64,9 +64,9 @@ class CouponManager {
             const data     = await response.json()
 
             if (response.ok && data.valid) {
-                const discount = data.calculation.discount_amount
+                const { discount_type: dtype, discount_value: dvalue } = data.coupon
                 // Зберігаємо в cart.store — звідси і в POST, і в localStorage
-                window.cart.store.setCoupon(code.toUpperCase(), discount)
+                window.cart.store.setCoupon(code.toUpperCase(), dtype, dvalue)
                 window.cart.ui && window.cart.ui.renderTotals && window.cart.ui.renderTotals()
                 this._updateDiscountDisplay(discount, data.calculation.final_sum)
                 this.showSuccess(`Купон ${code} застосовано! Знижка: ${data.calculation.discount_percent}%`)

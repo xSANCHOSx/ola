@@ -21,10 +21,13 @@
 			this.idsKey = storageKey + '_ids'
 			this.items = this.readJSON(this.storageKey, {})
 			this.ids = this.readJSON(this.idsKey, [])
-			// Восстановить купон из localStorage
+			// Відновити купон із localStorage.
+			// Формат (новий): { code, type, value }   — 'percent' або 'fixed' зі значенням
+			// Формат (старий): { code, discount }     — backward-compat., абсолютна сума → fixed
 			const saved = this.readJSON('cart_coupon', null)
-			this.coupon = saved ? saved.code : ''
-			this.coupon_discount = saved ? saved.discount : 0
+			this.coupon       = saved ? (saved.code || '') : ''
+			this.coupon_type  = saved ? (saved.type  || (saved.discount != null ? 'fixed' : '')) : ''
+			this.coupon_value = saved ? (saved.value != null ? saved.value : (saved.discount || 0)) : 0
 		}
 		readJSON(key, fallback) {
 			try {
@@ -78,14 +81,17 @@
 			this.ids = []
 			this.persist()
 		}
-		setCoupon(code, discount) {
-			this.coupon = code
-			this.coupon_discount = discount
-			localStorage.setItem('cart_coupon', JSON.stringify({ code, discount }))
+		// type: 'percent' | 'fixed'   value: число (% або абсолютна сума)
+		setCoupon(code, type, value) {
+			this.coupon       = code
+			this.coupon_type  = type
+			this.coupon_value = value
+			localStorage.setItem('cart_coupon', JSON.stringify({ code, type, value }))
 		}
 		clearCoupon() {
-			this.coupon = ''
-			this.coupon_discount = 0
+			this.coupon       = ''
+			this.coupon_type  = ''
+			this.coupon_value = 0
 			localStorage.removeItem('cart_coupon')
 		}
 		baseTotalPrice() {
@@ -107,7 +113,12 @@
 					s + (parseFloat(item.price) || 0) * (parseInt(item.num, 10) || 0),
 				0,
 			)
-			if (this.coupon_discount > 0) sum = Math.max(0, sum - this.coupon_discount)
+			if (this.coupon && this.coupon_value > 0) {
+				const disc = this.coupon_type === 'percent'
+					? sum * this.coupon_value / 100
+					: this.coupon_value
+				sum = Math.max(0, sum - disc)
+			}
 			return sum
 		}
 		asOrderItems() {
@@ -513,8 +524,8 @@
 				const data = await res.json()
 
 				if (res.ok && data.valid) {
-					const discount = data.calculation.discount_amount
-					this.store.setCoupon(code, discount)
+					const { discount_type: dtype, discount_value: dvalue } = data.coupon
+					this.store.setCoupon(code, dtype, dvalue)
 					this.ui.showCoupon(code)
 					this.ui.renderTotals()
 					$input.css('border-color', '#27ae60')
@@ -599,8 +610,7 @@
 			const items = this.store.asOrderItems()
 			this.checkout.submit(items, this.store.coupon, data => {
 				if (data === 'ok') {
-					this.clearBasket()
-					this.store.clearCoupon()
+					this.clearBasket()  // clearBasket() вже викликає clearCoupon() всередині
 					window.location.href = '/success.php'
 				}
 			})

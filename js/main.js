@@ -35,6 +35,11 @@ $(function () {
         e.preventDefault();
     });
 
+    // Запобігаємо подвійному закриттю меню
+    $('.navbar-toggle').on('click', function(e) {
+        e.stopPropagation();
+    });
+
     // Scroll event handler
     $(window).scroll(function () {
         var fromTop = $(this).scrollTop() + topMenuHeight;

@@ -23,7 +23,10 @@ $(function () {
 
     // Menu click handler
     menuItems.on('click', function (e) {
-        $('.navbar-toggle').trigger('click');
+        // Закриваємо меню тільки якщо воно відкрито
+        if ($('#bs-example-navbar-collapse-1').hasClass('in')) {
+            $('.navbar-toggle').trigger('click');
+        }
         var href = $(this).attr('href'),
         offsetTop = href === '#'? 0 : $(href).offset().top - topMenuHeight + 1;
         $('html, body').stop().animate({

@@ -468,7 +468,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                                 </button>
                                 <button class="btn btn-sm btn-danger"
                                     onclick="deleteCoupon(<?= (int)$coupon['id'] ?>, '<?= admin_h((string)$coupon['code']) ?>')">
-                                    
+                                    🗑️ Удалить
                                 </button>
                             </td>
                         </tr>

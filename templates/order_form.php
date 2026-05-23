@@ -17,7 +17,7 @@
 		<div id="contact-username-wrapper">
 			<input type="text" name="contact_username" id="contact_username" placeholder="@username">
 		</div>
-		<textarea name="comments" id="question" placeholder="Адрес"></textarea>
+		<textarea name="comments" id="question" placeholder="Адрес" maxlength="2000"></textarea>
 		<input type="hidden" id="id_product" value="">
 		<?php if (!empty($currentProduct['status'])) { ?>
 		<input type="hidden" id="status" value="Предзаказ"> <?php } ?>

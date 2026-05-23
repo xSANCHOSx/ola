@@ -1,6 +1,12 @@
 <?php
 session_start();
-$order_id       = isset($_SESSION['order_id'])       ? $_SESSION['order_id']       : '—';
+
+if (empty($_SESSION['order_id'])) {
+    header('Location: /');
+    exit;
+}
+
+$order_id       = $_SESSION['order_id'];
 $coupon_code    = isset($_SESSION['coupon_code'])    ? $_SESSION['coupon_code']    : '';
 $discount_amount= isset($_SESSION['discount_amount'])? (float)$_SESSION['discount_amount'] : 0.0;
 $base_total     = isset($_SESSION['base_total'])     ? (float)$_SESSION['base_total']      : 0.0;

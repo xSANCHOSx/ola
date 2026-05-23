@@ -26,8 +26,8 @@ class CustomerModel
         $emailNorm = mb_strtolower(trim((string)$payload['email']));
 
         OlaLogger::debug('CUSTOMER_UPSERT_KEYS', [
-            'phone_norm' => $phoneNorm,
-            'email_norm' => $emailNorm,
+            'phone_norm' => substr($phoneNorm, 0, 3) . '***' . substr($phoneNorm, -2),
+            'email_norm' => preg_replace('/(?<=.).(?=[^@]*@)/', '*', $emailNorm),
         ]);
 
         // ── Sub-task A: Двухэтапный поиск с приоритетом ────────────────────────

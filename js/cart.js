@@ -5,6 +5,16 @@
 
 	const COUPON_API_URL = '/api/validate_coupon.php'
 
+	// Q1: утиліта екранування HTML — захист від XSS при вставці в DOM
+	function escHtml(s) {
+		return String(s == null ? '' : s)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;')
+	}
+
 	class CartStore {
 		constructor(storageKey) {
 			this.storageKey = storageKey
@@ -244,7 +254,7 @@
 
 			items.forEach(item => {
 				const imgHtml = item.img
-					? `<img src="${item.img}" alt="${item.name || ''}" loading="lazy">`
+					? `<img src="${escHtml(item.img)}" alt="${escHtml(item.name)}" loading="lazy">`
 					: `<div class="minicart-item__img-placeholder">
 							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 								<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
@@ -260,12 +270,12 @@
 				</svg>`
 
 				$list.append(`
-					<div class="minicart-item" data-id="${item.id}">
+					<div class="minicart-item" data-id="${escHtml(item.id)}">
 						<div class="minicart-item__img">${imgHtml}</div>
 
 						<div class="minicart-item__info">
-							<a href="${item.url || '#'}" class="minicart-item__name">
-								${item.name || ''}
+							<a href="${escHtml(item.url || '#')}" class="minicart-item__name">
+								${escHtml(item.name)}
 							</a>
 							<div class="minicart-item__price">
 								${parseFloat(item.price).toFixed(2)} ₽
@@ -355,19 +365,25 @@
 				id_product: orderItems[0] ? orderItems[0].id : '',
 				order: '',
 				coupon: coupon || '',
-				client_order_uuid: Date.now().toString(36) + Math.random().toString(36).slice(2),
+				client_order_uuid: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2)),
 				csrf_token: $('#formToSend input[name="csrf_token"]').val() || '',
 			})
-			.done(onDone)
-			.fail(function(xhr) {
-					if (xhr.status === 429) {
-							var seconds = (xhr.responseJSON || {}).retry_after || 60;
-							alert('Слишком много попыток. Подождите ' + seconds + ' сек. и попробуйте снова.');
-					}
+			.done(function(data) {
+				if (typeof onDone === 'function') onDone(data)
+				if (data !== 'ok') {
+					var msg = (data && data.error) ? data.error : 'Помилка відправки. Спробуйте знову.'
+					$('.valid-text2').text(msg).show()
+				}
 			})
-				.always(function () {
-					$('#send').prop('disabled', false).val('Отправить')
-				})
+			.fail(function(xhr) {
+				var msg = 'Помилка з\'єднання. Перевірте інтернет і спробуйте ще раз.'
+				if (xhr.status === 429) msg = 'Занадто багато спроб. Зачекайте хвилину.'
+				if (xhr.status === 403) msg = 'Помилка безпеки. Оновіть сторінку.'
+				$('.valid-text2').text(msg).show()
+			})
+			.always(function () {
+				$('#send').prop('disabled', false).val('Відправити')
+			})
 		}
 	}
 
@@ -419,7 +435,7 @@
 					if (item && item.num <= 1) {
 						// Последний экземпляр — спросить перед удалением
 						this.showConfirm(
-							`Убрать <strong>${item.name || 'товар'}</strong> из корзины?`,
+							`Убрать <strong>${escHtml(item.name || 'товар')}</strong> из корзины?`,
 							() => {
 								this.store.remove(id)
 								this.renderBasket()
@@ -437,7 +453,7 @@
 				id => {
 					const item = this.store.items[id]
 					this.showConfirm(
-						`Удалить <strong>${item ? item.name : 'товар'}</strong> из корзины?`,
+						`Удалить <strong>${escHtml(item ? item.name : 'товар')}</strong> из корзины?`,
 						() => {
 							this.store.remove(id)
 							this.renderBasket()
@@ -528,6 +544,7 @@
 		}
 		clearBasket() {
 			this.store.clear()
+			this.store.clearCoupon()
 			this.ui.renderTable(
 				id => this.store.updateQty(id, -1),
 				id => this.store.updateQty(id, 1),

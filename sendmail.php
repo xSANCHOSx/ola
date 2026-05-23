@@ -80,8 +80,8 @@ $jsonErr        = json_last_error();
 
 OlaLogger::debug('INPUT_PARSED', [
     'name'             => $payload['name'],
-    'email'            => $payload['email'],
-    'phone'            => $payload['phone'],
+    'email'            => preg_replace('/(?<=.).(?=[^@]*@)/', '*', $payload['email']),
+    'phone'            => substr($payload['phone'], 0, 3) . '***' . substr($payload['phone'], -2),
     'contact_method'   => $payload['contact_method'],
     'coupon'           => $payload['coupon'] ?: '(none)',
     'client_order_uuid'=> $payload['client_order_uuid'] ?: '(none)',
@@ -129,6 +129,28 @@ if (empty($orderResult)) {
     http_response_code(400);
     echo json_encode(['error' => 'Корзина пуста']);
     exit;
+}
+
+// Q8: contact_method — білий список
+$allowedMethods = ['whatsapp', 'telegram', 'max', ''];
+if (!in_array($payload['contact_method'], $allowedMethods, true)) {
+    $payload['contact_method'] = '';
+}
+
+// Q5: максимальна довжина полів
+$maxLengths = [
+    'name'             => 100,
+    'comments'         => 2000,
+    'contact_username' => 100,
+    'contact_method'   => 20,
+    'coupon'           => 50,
+];
+foreach ($maxLengths as $field => $max) {
+    if (mb_strlen($payload[$field]) > $max) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Поле ' . $field . ' задовге']);
+        exit;
+    }
 }
 
 OlaLogger::info('VALIDATION_OK', ['items' => count($orderResult)]);

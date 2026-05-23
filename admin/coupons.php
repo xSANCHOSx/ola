@@ -38,6 +38,28 @@ function get_coupons_list(PDO $pdo, ?bool $active = null, ?string $search = null
 }
 
 /**
+ * Получить список архивированных купонов
+ */
+function get_archived_coupons_list(PDO $pdo, ?string $search = null): array
+{
+    $query = 'SELECT * FROM coupons_archived WHERE 1=1';
+    $params = [];
+
+    if (!empty($search)) {
+        $query .= ' AND (code LIKE ? OR name LIKE ?)';
+        $searchTerm = '%' . $search . '%';
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+    }
+
+    $query .= ' ORDER BY archived_at DESC LIMIT 100';
+
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
+    return $stmt->fetchAll() ?: [];
+}
+
+/**
  * Получить купон по ID
  */
 function get_coupon_by_id(PDO $pdo, int $coupon_id): ?array
@@ -231,7 +253,7 @@ function update_coupon(PDO $pdo, int $coupon_id, array $data): array
 }
 
 /**
- * Удалить купон
+ * Удалить купон (с архивацией)
  */
 function delete_coupon(PDO $pdo, int $coupon_id): array
 {
@@ -241,19 +263,55 @@ function delete_coupon(PDO $pdo, int $coupon_id): array
     }
 
     try {
+        $pdo->beginTransaction();
+
+        // Шаг 1: Архивируем купон
+        $admin_id = $_SESSION[dev_app_config()['admin_session_key']] ?? null;
+
+        $stmt = $pdo->prepare('
+            INSERT INTO coupons_archived
+            (id, code, name, discount_type, discount_value, min_order_sum,
+             valid_from, valid_to, max_usage_count, used_count, is_active,
+             created_at, updated_at, archived_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ');
+
+        $stmt->execute([
+            $coupon['id'],
+            $coupon['code'],
+            $coupon['name'],
+            $coupon['discount_type'],
+            $coupon['discount_value'],
+            $coupon['min_order_sum'],
+            $coupon['valid_from'],
+            $coupon['valid_to'],
+            $coupon['max_usage_count'],
+            $coupon['used_count'],
+            $coupon['is_active'],
+            $coupon['created_at'],
+            $coupon['updated_at'],
+            $admin_id,
+        ]);
+
+        // Шаг 2: Удаляем из основной таблицы
+        // CASCADE автоматически удалит связанные записи в coupon_usage
         $stmt = $pdo->prepare('DELETE FROM coupons WHERE id = ?');
         $stmt->execute([$coupon_id]);
 
-        dev_log_security('COUPON_DELETED', [
+        $pdo->commit();
+
+        dev_log_security('COUPON_ARCHIVED', [
             'coupon_id'   => $coupon_id,
             'coupon_code' => $coupon['code'],
-            'admin_id'    => $_SESSION[dev_app_config()['admin_session_key']] ?? null,
+            'used_count'  => $coupon['used_count'],
+            'admin_id'    => $admin_id,
         ]);
 
         return ['success' => true];
     } catch (Throwable $e) {
-        dev_log_runtime('Coupon deletion failed: ' . $e->getMessage());
-        return ['success' => false, 'error' => 'Ошибка при удалении купона'];
+        $pdo->rollBack();
+        dev_log_runtime('Coupon archiving failed: ' . $e->getMessage());
+        return ['success' => false, 'error' => 'Ошибка при архивации купона'];
     }
 }
 
@@ -344,7 +402,10 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
 
         <div class="d-flex align-items-center justify-content-between mb-3">
             <h3 class="mb-0">Управление купонами</h3>
-            <button class="btn btn-success" onclick="openCreateModal()">+ Новый купон</button>
+            <div>
+                <a href="/admin/coupons_archive.php" class="btn btn-secondary me-2">📦 Архив</a>
+                <button class="btn btn-success" onclick="openCreateModal()">+ Новый купон</button>
+            </div>
         </div>
 
         <div id="successMsg" class="alert alert-success d-none" style="display:none!important"></div>

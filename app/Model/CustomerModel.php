@@ -41,7 +41,7 @@ class CustomerModel
         }
 
         // ── Новый клиент — INSERT ──────────────────────────────────────────────
-        return self::insertNew($pdo, $payload, $phoneNorm, $emailNorm, $orderNumber);
+        return self::insertNew($pdo, $payload, $phoneNorm, $emailNorm, $orderNumber, $total);
     }
 
     /**
@@ -148,7 +148,8 @@ class CustomerModel
         array  $payload,
         string $phoneNorm,
         string $emailNorm,
-        int    $orderNumber
+        int    $orderNumber,
+        float  $total
     ): ?int {
         $stmt = $pdo->prepare(
             'INSERT IGNORE INTO customers
@@ -160,7 +161,7 @@ class CustomerModel
                 (:full_name, :email, :phone, :contact_method, :contact_username,
                  :phone_norm, :email_norm,
                  :first_order_no, :last_order_no,
-                 0, 0, NOW())'
+                 1, :total_spent, NOW())'
         );
         $stmt->execute([
             'full_name'       => $payload['name'],
@@ -172,6 +173,7 @@ class CustomerModel
             'email_norm'      => $emailNorm,
             'first_order_no'  => $orderNumber,
             'last_order_no'   => $orderNumber,
+            'total_spent'     => $total,
         ]);
 
         $insertId   = (int)$pdo->lastInsertId();

@@ -9,6 +9,15 @@ function dev_db_connection(): PDO
 {
     static $instance = null;
     if ($instance !== null) {
+        // Перевірка живості з'єднання — відновлення при MySQL gone away
+        try {
+            $instance->query('SELECT 1');
+        } catch (PDOException $e) {
+            $instance = null;
+        }
+    }
+
+    if ($instance !== null) {
         return $instance;
     }
 
@@ -165,7 +174,10 @@ function check_rate_limit(string $key, int $limit = 5, int $window = 60): bool
     $now = time();
 
     $fp = fopen($cache_file, 'c+');
-    if (!$fp) return true;
+    if (!$fp) {
+        error_log("Rate limit storage unavailable for key: $key");
+        return false;
+    }
     flock($fp, LOCK_EX);
 
     $content = stream_get_contents($fp);

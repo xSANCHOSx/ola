@@ -59,7 +59,55 @@ class EmailView
         HTML;
     }
 
-    // ── Private builders ──────────────────────────────────────────────────────
+    /**
+     * Клієнтський лист — персоналізований, без технічних деталей адмін-формату.
+     */
+    public static function buildClientTemplate(
+        array  $payload,
+        string $subject,
+        array  $orderResult,
+        float  $totalSum,
+        float  $baseTotal      = 0.0,
+        float  $discountAmount = 0.0
+    ): string {
+        $name         = htmlspecialchars($payload['name']);
+        $productTable = self::buildProductTable($orderResult, $totalSum, $baseTotal, $discountAmount);
+        $couponHtml   = '';
+        if (!empty($payload['coupon']) && $discountAmount > 0.0) {
+            $couponHtml = '<p style="margin-top:12px;">'
+                . '<strong>Купон:</strong> ' . htmlspecialchars($payload['coupon'])
+                . ' &mdash; знижка <strong>' . number_format($discountAmount, 2, '.', '') . ' грн.</strong>'
+                . '</p>';
+        }
+        $color = self::PRIMARY_COLOR;
+
+        return <<<HTML
+        <html>
+        <head>
+            <style>
+                * { font-family: Arial, sans-serif; }
+                body { color: #333; line-height: 1.6; }
+                h1 { color: {$color}; font-size: 22px; }
+                h2 { color: {$color}; font-size: 18px; }
+            </style>
+        </head>
+        <body>
+            <h1>Дякуємо за замовлення, {$name}!</h1>
+            <p>Ваше замовлення отримано та буде оброблено найближчим часом.<br>
+               Ми зв'яжемось з вами для підтвердження.</p>
+            <h2 style="margin-top:20px;">Склад замовлення</h2>
+            {$productTable}
+            {$couponHtml}
+            <p style="margin-top:24px;color:#999;font-size:13px;">
+                З повагою, команда Olaplex Ukraine.<br>
+                Якщо у вас є питання — відповідайте на цей лист або звертайтесь до підтримки.
+            </p>
+        </body>
+        </html>
+        HTML;
+    }
+
+
 
     private static function buildCustomerTable(array $payload): string
     {

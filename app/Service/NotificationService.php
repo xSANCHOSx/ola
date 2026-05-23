@@ -6,8 +6,7 @@ require_once __DIR__ . '/../../amo/order.php';
 
 class NotificationService
 {
-    private const RECIPIENTS = 'client@macadamia-shop.ru, client@olaplex-shop.ru';
-    private const DOMAIN     = 'olaplex.ru';
+    private const DOMAIN = 'olaplex.ru';
 
     public function send(
         array  $payload,
@@ -18,19 +17,23 @@ class NotificationService
         float  $baseTotal      = 0.0,
         float  $discountAmount = 0.0
     ): array {
-        $template = EmailView::buildTemplate(
+        $shopTemplate   = EmailView::buildTemplate(
+            $payload, $subject, $orderResult, $totalSum, $baseTotal, $discountAmount
+        );
+        $clientTemplate = EmailView::buildClientTemplate(
             $payload, $subject, $orderResult, $totalSum, $baseTotal, $discountAmount
         );
         $headers  = $this->buildHeaders();
+        $recipients = $this->getRecipients();
 
         // ── Email до магазину ─────────────────────────────────────────────────
-        OlaLogger::debug('MAIL_SHOP_START', ['to' => self::RECIPIENTS]);
-        $emailToShop = mail(self::RECIPIENTS, $subject, $template, $headers);
+        OlaLogger::debug('MAIL_SHOP_START', ['to' => $recipients]);
+        $emailToShop = mail($recipients, $subject, $shopTemplate, $headers);
         OlaLogger::info('MAIL_SHOP_DONE', ['result' => $emailToShop]);
 
         // ── Email клиенту ─────────────────────────────────────────────────────
         OlaLogger::debug('MAIL_USER_START', ['to' => $payload['email']]);
-        $emailToUser = mail($payload['email'], $subject, $template, $headers);
+        $emailToUser = mail($payload['email'], $subject, $clientTemplate, $headers);
         OlaLogger::info('MAIL_USER_DONE', ['result' => $emailToUser]);
 
         // ── Bitrix CRM ────────────────────────────────────────────────────────
@@ -44,6 +47,7 @@ class NotificationService
         }
 
         // ── p2log ─────────────────────────────────────────────────────────────
+        $_POST['ORDER_ID']  = $orderNumber;
         $_POST['MAIL_OUR']  = 'Result = ' . ($emailToShop ? '1' : '0');
         $_POST['MAIL_USER'] = 'Result = ' . ($emailToUser ? '1' : '0');
         $_POST['CRM_SENT']  = $crmSent ? '1' : '0';
@@ -68,6 +72,12 @@ class NotificationService
         ];
     }
 
+    private function getRecipients(): string
+    {
+        $cfg = dev_app_config();
+        return $cfg['order_notification_emails'] ?? '';
+    }
+
     private function buildHeaders(): string
     {
         $from = 'no-reply@' . self::DOMAIN;
@@ -78,15 +88,5 @@ class NotificationService
             'MIME-Version: 1.0',
             'Content-Type: text/html; charset=UTF-8',
         ]) . "\r\n";
-    }
-}
-
-if (!function_exists('p2log')) {
-    function p2log(array $arr, string $key = ''): void
-    {
-        $key  = $key ?: 'main';
-        $dump = print_r($arr, true) . "\r\n";
-        $file = $_SERVER['DOCUMENT_ROOT'] . '/log/' . $key . '.log';
-        @file_put_contents($file, $dump, FILE_APPEND);
     }
 }

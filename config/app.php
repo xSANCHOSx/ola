@@ -14,4 +14,10 @@ return [
     // Токен для веб-запуска setup.php. Сгенерируйте собственный: php -r "echo bin2hex(random_bytes(16));"
     // После инициализации БД рекомендуется удалить или изменить.
     'setup_token' => getenv('SETUP_TOKEN') ?: 'CHANGE_ME_IN_PRODUCTION',
+    // Одержувачі листів про нові замовлення. Задайте через env: ORDER_NOTIFY_EMAILS
+    'order_notification_emails' => getenv('ORDER_NOTIFY_EMAILS') ?: '',
+    // Токен для веб-запуска convert_webp.php. Задайте через env: CONVERT_WEBP_TOKEN=<random>
+    // Сгенерируйте: php -r "echo bin2hex(random_bytes(24));"
+    // Значение '' — доступ закрыт (fail-closed по умолчанию).
+    'convert_webp_token' => getenv('CONVERT_WEBP_TOKEN') ?: '',
 ];

@@ -75,9 +75,7 @@ class OrderController
         }
 
         OlaLogger::info('ORDER_NUMBER_OK', ['order_number' => $orderNumber]);
-        $_POST['ORDER_ID']    = $orderNumber;
-        $_SESSION['order_id'] = $orderNumber;
-        // Сохраняем данные купона в сессии для success.php
+        $_SESSION['order_id']        = $orderNumber;
         $_SESSION['coupon_code']     = $couponCode;
         $_SESSION['discount_amount'] = $discountAmount;
         $_SESSION['base_total']      = $baseTotal;
@@ -212,26 +210,29 @@ class OrderController
                 OrderModel::saveItems($this->pdo, $dbOrderId, $orderResult);
             }
 
-            $this->pdo->commit();
-            OlaLogger::info('TRANSACTION_COMMITTED', ['db_order_id' => $dbOrderId]);
-
-            // Атомарная запись использования купона после commit основной транзакции.
-            // log_coupon_usage_atomic() открывает собственную транзакцию: BEGIN → INSERT → UPDATE → COMMIT
+            // Запись использования купона — внутри основной транзакции (до COMMIT).
+            // Это гарантирует атомарность: заказ + coupon_usage + used_count
+            // фиксируются единым COMMIT или откатываются вместе.
+            // Отдельный вызов log_coupon_usage_atomic() после COMMIT больше не нужен.
             if ($finalCouponData !== null && $finalDiscountAmount > 0.0) {
-                $atomicOk = log_coupon_usage_atomic(
-                    $this->pdo,
-                    (int)$finalCouponData['id'],
-                    $dbOrderId,
-                    $finalDiscountAmount,
-                    $customerId
+                $stmt = $this->pdo->prepare(
+                    'INSERT INTO coupon_usage (coupon_id, order_id, customer_id, discount_amount)
+                     VALUES (?, ?, ?, ?)'
                 );
-                OlaLogger::info('COUPON_USAGE_LOGGED', [
+                $stmt->execute([(int)$finalCouponData['id'], $dbOrderId, $customerId, $finalDiscountAmount]);
+
+                $this->pdo->prepare('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?')
+                          ->execute([(int)$finalCouponData['id']]);
+
+                OlaLogger::info('COUPON_USAGE_QUEUED', [
                     'coupon_id'       => $finalCouponData['id'],
                     'order_id'        => $dbOrderId,
                     'discount_amount' => $finalDiscountAmount,
-                    'atomic_ok'       => $atomicOk,
                 ]);
             }
+
+            $this->pdo->commit();
+            OlaLogger::info('TRANSACTION_COMMITTED', ['db_order_id' => $dbOrderId]);
 
             return $dbOrderId;
 

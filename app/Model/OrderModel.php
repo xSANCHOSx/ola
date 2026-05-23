@@ -45,7 +45,10 @@ class OrderModel
             'total'                 => $totalSum,
             'price_verified'        => $priceVerified ? 1 : 0,
             'idempotency_key'       => $idempotencyKey,
-            'raw_payload'           => json_encode($_POST, JSON_UNESCAPED_UNICODE),
+            'raw_payload'           => json_encode(
+                array_diff_key($payload, ['client_order_uuid' => 1, 'csrf_token' => 1]),
+                JSON_UNESCAPED_UNICODE
+            ),
         ];
 
         OlaLogger::debug('ORDER_INSERT_PARAMS', array_diff_key($params, ['raw_payload' => 1]));

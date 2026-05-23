@@ -100,29 +100,35 @@ if (!is_array($orderResult)) {
 if (empty($payload['name'])) {
     OlaLogger::error('VALIDATION_FAIL', ['reason' => 'empty_name']);
     log_security_event('INVALID_ORDER', ['reason' => 'empty_name']);
+    http_response_code(400);
     echo json_encode(['error' => 'Имя требуется']);
-    exit(1);
+    exit;
 }
 
 if (!validate_email($payload['email'])) {
     OlaLogger::error('VALIDATION_FAIL', ['reason' => 'invalid_email', 'value' => $payload['email']]);
     log_security_event('INVALID_EMAIL', ['email' => $payload['email']]);
+    http_response_code(400);
     echo json_encode(['error' => 'Неверный email']);
-    exit(1);
+    exit;
 }
 
-if (!validate_phone($payload['phone'])) {
+$normalizedPhone = validate_phone($payload['phone']);
+if ($normalizedPhone === null) {
     OlaLogger::error('VALIDATION_FAIL', ['reason' => 'invalid_phone', 'value' => $payload['phone']]);
     log_security_event('INVALID_PHONE', ['phone' => $payload['phone']]);
+    http_response_code(400);
     echo json_encode(['error' => 'Неверный номер телефона']);
-    exit(1);
+    exit;
 }
+$payload['phone'] = $normalizedPhone;
 
 if (empty($orderResult)) {
     OlaLogger::error('VALIDATION_FAIL', ['reason' => 'empty_cart', 'raw_preview' => substr($orderResultRaw, 0, 200)]);
     log_security_event('EMPTY_CART', ['ip' => $_SERVER['REMOTE_ADDR']]);
+    http_response_code(400);
     echo json_encode(['error' => 'Корзина пуста']);
-    exit(1);
+    exit;
 }
 
 OlaLogger::info('VALIDATION_OK', ['items' => count($orderResult)]);

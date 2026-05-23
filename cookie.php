@@ -20,9 +20,9 @@ if (isset($_GET['utm_source'])) {
         setcookie($param, $value, [
             'expires'  => $cookieTime,
             'path'     => '/',
-            'httponly' => true,   // недоступна через document.cookie → защита от XSS-кражи
-            'samesite' => 'Lax', // защита от CSRF при cross-site переходах
-            // 'secure' => true, // раскомментируйте, если сайт работает только по HTTPS
+            'httponly' => true,
+            'samesite' => 'Lax',
+            'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
         ]);
     }
 }

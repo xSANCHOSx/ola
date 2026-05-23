@@ -1,6 +1,11 @@
 <?php
 // Защита — запускать только из командной строки или с паролем
-if (!isset($_GET['key']) || $_GET['key'] !== 'sanchos12345!') {
+// Токен берётся из конфигурации (env-переменная CONVERT_WEBP_TOKEN)
+$cfg    = dev_app_config();
+$secret = $cfg['convert_webp_token'] ?? '';
+
+if ($secret === '' || ($_GET['key'] ?? '') !== $secret) {
+	http_response_code(403);
 	die('Forbidden');
 }
 

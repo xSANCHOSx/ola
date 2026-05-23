@@ -32,7 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare('SELECT id, username, password_hash FROM admin_users WHERE username = :username LIMIT 1');
             $stmt->execute(['username' => $username]);
             $user = $stmt->fetch();
-            if ($user && password_verify($password, $user['password_hash'])) {
+            // Завжди викликаємо password_verify щоб унеможливити timing-атаку
+            // на визначення існування логіна
+            $dummyHash   = '$2y$10$dummyHashToPreventTimingAttackXXXXXXXXXXXXXX';
+            $hashToCheck = $user ? $user['password_hash'] : $dummyHash;
+            if ($user && password_verify($password, $hashToCheck)) {
                 session_regenerate_id(true);
                 admin_session_set($user);
                 $pdo->prepare('UPDATE admin_users SET last_login = NOW() WHERE id = :id')->execute(['id' => $user['id']]);

@@ -58,9 +58,21 @@ class OlaLogger
             return self::$logDir;
         }
 
-        $root = rtrim($_SERVER['DOCUMENT_ROOT'] ?? __DIR__, '/');
-        $dir  = $root . '/log';
+        // Пріоритет: конфіг → __DIR__-based шлях (надійно і в CLI/cron, і в web)
+        if (function_exists('dev_app_config')) {
+            $cfg     = dev_app_config();
+            $runtime = $cfg['runtime_log'] ?? '';
+            if ($runtime !== '') {
+                $dir = dirname($runtime);
+                if (!is_dir($dir)) {
+                    @mkdir($dir, 0755, true);
+                }
+                self::$logDir = $dir;
+                return $dir;
+            }
+        }
 
+        $dir = dirname(__DIR__, 2) . '/log';
         if (!is_dir($dir)) {
             @mkdir($dir, 0755, true);
         }

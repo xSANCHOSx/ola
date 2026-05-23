@@ -652,10 +652,15 @@
   }
 
   .cart-toast {
-    bottom: 16px;
-    right: 10px;
-    left: 10px;
-    max-width: calc(100% - 20px);
+    bottom: 20px;
+    top: auto;
+    right: 50%;
+    left: auto;
+    transform: translateX(50%);
+    max-width: min(320px, calc(100% - 32px));
+    width: max-content;
+    font-size: 15px;
+    padding: 12px 20px;
   }
 
   .popup {

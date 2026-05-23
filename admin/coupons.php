@@ -187,9 +187,13 @@ function create_coupon(PDO $pdo, array $data): array
             isset($data['is_active']) ? 1 : 0,
         ]);
 
+        $cfg = dev_app_config();
+        $admin_session = $_SESSION[$cfg['admin_session_key']] ?? null;
+        $admin_id = $admin_session['id'] ?? null;
+
         dev_log_security('COUPON_CREATED', [
             'coupon_code' => $data['code'],
-            'admin_id'    => $_SESSION[dev_app_config()['admin_session_key']] ?? null,
+            'admin_id'    => $admin_id,
         ]);
 
         return ['success' => true, 'coupon_id' => (int)$pdo->lastInsertId()];
@@ -242,7 +246,7 @@ function update_coupon(PDO $pdo, int $coupon_id, array $data): array
         dev_log_security('COUPON_UPDATED', [
             'coupon_id'   => $coupon_id,
             'coupon_code' => $data['code'],
-            'admin_id'    => $_SESSION[dev_app_config()['admin_session_key']] ?? null,
+            'admin_id'    => $_SESSION[dev_app_config()['admin_session_key']]['id'] ?? null,
         ]);
 
         return ['success' => true];
@@ -266,7 +270,9 @@ function delete_coupon(PDO $pdo, int $coupon_id): array
         $pdo->beginTransaction();
 
         // Шаг 1: Архивируем купон
-        $admin_id = $_SESSION[dev_app_config()['admin_session_key']] ?? null;
+        $cfg = dev_app_config();
+        $admin_session = $_SESSION[$cfg['admin_session_key']] ?? null;
+        $admin_id = $admin_session['id'] ?? null;
 
         $stmt = $pdo->prepare('
             INSERT INTO coupons_archived
@@ -334,7 +340,7 @@ function toggle_coupon_status(PDO $pdo, int $coupon_id): array
             'coupon_id'   => $coupon_id,
             'coupon_code' => $coupon['code'],
             'new_status'  => $new_status,
-            'admin_id'    => $_SESSION[dev_app_config()['admin_session_key']] ?? null,
+            'admin_id'    => $_SESSION[dev_app_config()['admin_session_key']]['id'] ?? null,
         ]);
 
         return ['success' => true, 'new_status' => $new_status];

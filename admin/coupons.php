@@ -335,6 +335,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление купонами - Админ</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
 </head>
 
 <body>
@@ -418,7 +419,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     <h4 class="modal-title" id="modalTitle">Новый купон</h4>
                 </div>
                 <div class="modal-body">
@@ -484,14 +485,13 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                     <button type="button" class="btn btn-primary" onclick="submitCouponForm()">Сохранить купон</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="/js/jquery-3.7.1.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
     <script>
         const CSRF = '<?= $csrf ?>';
@@ -499,10 +499,8 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
 
         function getModal() {
             if (!bsModal) {
-                bsModal = {
-                    show: () => $('#couponModal').modal('show'),
-                    hide: () => $('#couponModal').modal('hide')
-                };
+                const el = document.getElementById('couponModal');
+                bsModal = new bootstrap.Modal(el);
             }
             return bsModal;
         }

@@ -30,6 +30,7 @@ if ($pdo instanceof PDO) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админка - Клиенты</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
     <style>
         .items-list  { font-size: 0.85rem; color: #555; line-height: 1.4; }
         .item-row    { margin-bottom: 4px; display: block; }

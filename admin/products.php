@@ -89,6 +89,7 @@ if (isset($_GET['edit'])) {
 	<meta name="csrf-token" content="<?= csrf_token() ?>">
 	<title>Админка - Товары</title>
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
 	<!-- SortableJS — drag-and-drop библиотека для таблицы товаров -->
 	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 	<style>

@@ -546,6 +546,7 @@ if (isset($_GET['msg'])) {
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Админка - Блог</title>
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
 	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 	<style>
 	/* ── Alerts ── */
@@ -1044,13 +1045,13 @@ if (isset($_GET['msg'])) {
 					</div>
 				</div>
 
-				<!-- ── Кнопки ── -->
-				<div style="display:flex; gap:12px; align-items:center;">
+			<!-- ── Кнопки ── -->
+				<div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
 					<button type="submit" class="btn btn-success btn-lg">
-						<?= !empty($edit['id']) ? '💾 Сохранить' : '➕ Создать пост' ?>
+						<?= !empty($edit['id']) ? 'Сохранить' : 'Создать пост' ?>
 					</button>
 					<?php if ($edit !== null): ?>
-					<a href="/admin/blog.php" class="btn btn-secondary btn-lg">↩ Отменить</a>
+					<a href="/admin/blog.php" class="btn btn-secondary btn-lg">Отменить</a>
 					<?php endif; ?>
 				</div>
 

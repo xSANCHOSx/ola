@@ -30,6 +30,7 @@ if ($pdo instanceof PDO) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админка - Заказы</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
     <style>
         .items-list { font-size: 0.85rem; color: #555; line-height: 1.4; }
         .item-row { margin-bottom: 4px; display: block; }
@@ -43,6 +44,7 @@ if ($pdo instanceof PDO) {
         .search-tabs button.active { background: #007bff; color: #fff; border-color: #007bff; }
         .search-tabs button:hover { border-color: #007bff; }
         .date-range-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 480px) { .date-range-inputs { grid-template-columns: 1fr; } }
         .loading-spinner { display: none; text-align: center; color: #666; }
         .no-results { text-align: center; color: #999; padding: 20px; }
         .results-info { color: #666; margin-bottom: 10px; font-size: 0.9rem; }

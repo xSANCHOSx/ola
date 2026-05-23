@@ -1,6 +1,6 @@
 <?php $u = admin_current_user(); ?>
 <nav class="admin-nav">
-    <ul class="admin-nav__list">
+    <ul class="admin-nav__menu">
         <li class="admin-nav__item"><a href="/admin/" class="admin-nav__link"><svg class="admin-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h.01M12 16h.01M9 16h.01"/></svg><span>Заказы</span></a></li>
         <li class="admin-nav__item"><a href="/admin/products.php" class="admin-nav__link"><svg class="admin-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16.5v-12c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM3.72 9.97l8.3 4.79c.38.22.86.22 1.24 0l8.3-4.79M12 19v-9"/></svg><span>Товары</span></a></li>
         <li class="admin-nav__item"><a href="/admin/customers.php" class="admin-nav__link"><svg class="admin-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M16 11a4 4 0 11-8 0 4 4 0 018 0zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span>Клиенты</span></a></li>

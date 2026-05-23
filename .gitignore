@@ -34,6 +34,7 @@ env/
 config/db.php
 config/local.php
 .claude
+.phpunit.result.cache
 *.md
 
 # Збірка та дистрибутиви

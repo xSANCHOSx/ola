@@ -342,8 +342,8 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         <?php require __DIR__ . '/_nav.php'; ?>
 
         <div class="d-flex align-items-center justify-content-between mb-3">
-            <h3 class="mb-0">💰 Управление купонами</h3>
-            <button class="btn btn-success" onclick="openCreateModal()">➕ Новый купон</button>
+            <h3 class="mb-0">Управление купонами</h3>
+            <button class="btn btn-success" onclick="openCreateModal()">+ Новый купон</button>
         </div>
 
         <div id="successMsg" class="alert alert-success d-none" style="display:none!important"></div>
@@ -352,6 +352,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
         <h5 class="mb-3">Активных купонов: <span class="badge bg-success"><?= $active_count ?></span></h5>
 
         <?php if (!empty($coupons)): ?>
+            <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
@@ -392,20 +393,21 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
                             <td style="white-space: nowrap;">
                                 <button class="btn btn-sm btn-primary"
                                     onclick="openEditModal(<?= (int)$coupon['id'] ?>, <?= htmlspecialchars(json_encode($coupon), ENT_QUOTES) ?>)">
-                                    ✎ Ред.
+                                    Ред.
                                 </button>
                                 <button class="btn btn-sm btn-warning" onclick="toggleStatus(<?= (int)$coupon['id'] ?>)">
-                                    <?= $coupon['is_active'] ? '🔴 Выкл.' : '🟢 Вкл.' ?>
+                                    <?= $coupon['is_active'] ? 'Выкл.' : 'Вкл.' ?>
                                 </button>
                                 <button class="btn btn-sm btn-danger"
                                     onclick="deleteCoupon(<?= (int)$coupon['id'] ?>, '<?= admin_h((string)$coupon['code']) ?>')">
-                                    🗑
+                                    
                                 </button>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div><!-- /.table-responsive -->
         <?php else: ?>
             <p class="text-muted text-center py-4">Купоны не найдены</p>
         <?php endif; ?>

@@ -689,6 +689,7 @@ if (isset($_GET['edit'])) {
 				⠿ Перетащите строку за иконку чтобы изменить порядок. После перестановки нажмите «Сохранить порядок».
 			</p>
 
+   <div class="table-responsive">
 			<table class="table table-bordered table-striped">
 				<thead>
 					<tr>
@@ -721,6 +722,7 @@ if (isset($_GET['edit'])) {
 					<?php endforeach; ?>
 				</tbody>
 			</table>
+   </div><!-- /.table-responsive -->
 		</div>
 
 		<!-- Кнопка добавления нового товара -->

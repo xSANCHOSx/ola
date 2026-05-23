@@ -1513,6 +1513,7 @@ if (isset($_GET['msg'])) {
 
 		<!-- ── Список всех постов ── -->
 		<h3 style="margin-top:40px;">Все посты (<?= count($posts) ?>)</h3>
+  <div class="table-responsive">
 		<table class="table table-bordered table-striped table-sm">
 			<thead>
 				<tr>
@@ -1553,6 +1554,7 @@ if (isset($_GET['msg'])) {
 				<?php endforeach; ?>
 			</tbody>
 		</table>
+  </div><!-- /.table-responsive -->
 
 	</div><!-- /.container -->
 </body>

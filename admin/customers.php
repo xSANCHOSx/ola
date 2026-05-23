@@ -91,6 +91,7 @@ if ($pdo instanceof PDO) {
     </div>
 
     <!-- Таблица клиентов -->
+    <div class="table-responsive">
     <table class="table table-bordered table-striped" id="customersTable">
         <thead>
             <tr>
@@ -117,12 +118,14 @@ if ($pdo instanceof PDO) {
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div><!-- /.table-responsive -->
 
     <div class="no-results" id="noResults" style="display:none;">Результаты не найдены</div>
 
     <?php if ($orders): ?>
         <hr>
         <h4>История заказов клиента</h4>
+        <div class="table-responsive">
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -169,6 +172,7 @@ if ($pdo instanceof PDO) {
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div><!-- /.table-responsive -->
     <?php endif; ?>
 </div>
 

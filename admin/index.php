@@ -137,6 +137,7 @@ if ($pdo instanceof PDO) {
     </div>
     
     <!-- Таблица заказов -->
+    <div class="table-responsive">
     <table class="table table-bordered table-striped" id="ordersTable">
         <thead>
         <tr>
@@ -191,6 +192,7 @@ if ($pdo instanceof PDO) {
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div><!-- /.table-responsive -->
     
     <div class="no-results" id="noResults" style="display: none;">
         Результаты не найдены

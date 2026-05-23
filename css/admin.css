@@ -1,19 +1,63 @@
-/* Admin Navigation Styles */
+/* ============================================================
+   Admin Navigation Styles
+   ============================================================ */
 
 .admin-nav {
-    padding: 12px 0;
-    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+    border-bottom: 2px solid #ddd;
     margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
+/* ── Topbar: hamburger + user info (always visible) ── */
+.admin-nav__topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* ── Hamburger toggle (hidden on desktop) ── */
+.admin-nav__toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 7px 9px;
+    cursor: pointer;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+.admin-nav__toggle-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #555;
+    border-radius: 1px;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+/* X animation when open */
+.admin-nav__toggle--open .admin-nav__toggle-bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+.admin-nav__toggle--open .admin-nav__toggle-bar:nth-child(2) {
+    opacity: 0;
+}
+.admin-nav__toggle--open .admin-nav__toggle-bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── Menu (horizontal on desktop) ── */
 .admin-nav__menu {
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 4px;
     list-style: none;
-    margin: 0;
+    margin: 10px 0 0;
     padding: 0;
 }
 
@@ -22,17 +66,23 @@
 }
 
 .admin-nav__link {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 0;
+    padding: 6px 10px;
     text-decoration: none;
     color: inherit;
-    transition: color 0.2s;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: background-color 0.15s, color 0.15s;
 }
 
-.admin-nav__link:hover {
+.admin-nav__link:hover,
+.admin-nav__link:focus {
     color: #007bff;
+    background-color: #f0f0f0;
+    text-decoration: none;
+    outline: none;
 }
 
 .admin-nav__link--active {
@@ -45,48 +95,73 @@
     color: #0066cc;
 }
 
+/* ── SVG Icon fix: explicit size, prevent Bootstrap overflow:hidden clipping ── */
 .admin-nav__icon {
     width: 20px;
     height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    display: inline-block;
+    vertical-align: middle;
     flex-shrink: 0;
+    overflow: visible;
 }
 
+/* ── User block ── */
 .admin-nav__user {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     margin-left: auto;
+    white-space: nowrap;
 }
 
 .admin-nav__username {
-    color: inherit;
+    color: #555;
 }
 
 .admin-nav__logout {
     text-decoration: none;
-    color: inherit;
+    color: #d9534f;
+    font-weight: 500;
 }
 
 .admin-nav__logout:hover {
-    color: #007bff;
+    color: #c9302c;
+    text-decoration: underline;
 }
 
-/* Mobile Responsive Styles */
+/* ============================================================
+   Mobile (≤ 767px)
+   ============================================================ */
+@media (max-width: 767px) {
 
-@media (max-width: 768px) {
     .admin-nav {
-        padding: 0;
-        margin-bottom: 20px;
-        flex-direction: column;
+        padding: 8px 0;
+        margin-bottom: 16px;
     }
 
+    /* Show hamburger */
+    .admin-nav__toggle {
+        display: inline-flex;
+    }
+
+    /* Hide menu by default on mobile */
     .admin-nav__menu {
+        display: none;
         flex-direction: column;
         gap: 0;
+        margin-top: 8px;
+        border-top: 1px solid #eee;
+    }
+
+    /* Show menu when toggled */
+    .admin-nav__menu--open {
+        display: flex;
     }
 
     .admin-nav__item {
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #f0f0f0;
     }
 
     .admin-nav__item:last-child {
@@ -94,45 +169,23 @@
     }
 
     .admin-nav__link {
-        padding: 12px;
-        min-height: 44px;
         width: 100%;
-        transition: background-color 0.2s;
+        padding: 12px 8px;
+        min-height: 44px;
+        border-radius: 0;
     }
 
-    .admin-nav__link:focus {
-        outline: 2px solid #007bff;
-        outline-offset: -2px;
-        background-color: #f0f0f0;
-    }
-
-    .admin-nav__link:active {
-        background-color: #f0f0f0;
-    }
-
+    /* Larger icons on mobile for touch targets */
     .admin-nav__icon {
-        width: 24px;
-        height: 24px;
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        min-height: 22px;
     }
 
     .admin-nav__user {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 12px;
-        border-top: 1px solid #ddd;
+        font-size: 14px;
         gap: 8px;
-    }
-
-    .admin-nav__logout {
-        display: inline-flex;
-        align-items: center;
-        padding: 8px 12px;
-        min-height: 44px;
-        min-width: 44px;
-    }
-
-    .admin-nav__logout:focus {
-        outline: 2px solid #007bff;
-        outline-offset: -2px;
+        margin-left: 0;
     }
 }

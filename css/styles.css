@@ -302,6 +302,7 @@ header.sticky .navbar-default .number .whatsapp {
 
 .img_lg {
   width: 400px;
+  max-width: 100%;
   margin: 0 auto;
   text-align: center;
 }
@@ -819,7 +820,8 @@ div#footer-copyrights {
 
   .max-feature-section-list .tovar-name {
     margin: 0;
-    width: 600px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .products_list {

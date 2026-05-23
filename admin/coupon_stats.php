@@ -122,7 +122,7 @@ $dailyStats = $stmt->fetchAll() ?: [];
     <div class="container">
         <?php require __DIR__ . '/_nav.php'; ?>
 
-        <h3>📊 Статистика купонов</h3>
+        <h3>Статистика купонов</h3>
 
         <!-- Метрики -->
         <div class="row g-3 mb-4">
@@ -153,8 +153,9 @@ $dailyStats = $stmt->fetchAll() ?: [];
         </div>
 
         <!-- Топ купоны -->
-        <h5 class="section-title">🎆 Топ-10 купонов по использованию</h5>
+        <h5 class="section-title">Топ-10 купонов по использованию</h5>
         <?php if (!empty($topCoupons)): ?>
+            <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
@@ -195,13 +196,15 @@ $dailyStats = $stmt->fetchAll() ?: [];
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div><!-- /.table-responsive -->
         <?php else: ?>
             <p class="text-muted">Купони не використовуються.</p>
         <?php endif; ?>
 
         <!-- Купоны, которые скоро заканчиваются -->
-        <h5 class="section-title">⏰ Купоны, которые скоро заканчиваются (7 дней)</h5>
+        <h5 class="section-title">Купоны, которые скоро заканчиваются (7 дней)</h5>
         <?php if (!empty($expiringSoon)): ?>
+            <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-warning">
                     <tr>
@@ -227,13 +230,15 @@ $dailyStats = $stmt->fetchAll() ?: [];
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div><!-- /.table-responsive -->
         <?php else: ?>
             <p class="text-muted">Нет купонов, которые скоро заканчиваются.</p>
         <?php endif; ?>
 
         <!-- Исчерпанные купоны -->
-        <h5 class="section-title">🔴 Исчерпанные купоны (максимум достигнут)</h5>
+        <h5 class="section-title">Исчерпанные купоны (максимум достигнут)</h5>
         <?php if (!empty($exhaustedCoupons)): ?>
+            <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-danger">
                     <tr>
@@ -254,13 +259,15 @@ $dailyStats = $stmt->fetchAll() ?: [];
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div><!-- /.table-responsive -->
         <?php else: ?>
             <p class="text-muted">Нет исчерпанных купонов.</p>
         <?php endif; ?>
 
         <!-- Статистика по дням -->
-        <h5 class="section-title">📋 Использование по дням (последние 7 дней)</h5>
+        <h5 class="section-title">Использование по дням (последние 7 дней)</h5>
         <?php if (!empty($dailyStats)): ?>
+            <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
@@ -281,6 +288,7 @@ $dailyStats = $stmt->fetchAll() ?: [];
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div><!-- /.table-responsive -->
         <?php else: ?>
             <p class="text-muted">Нет статистики за последние 7 дней.</p>
         <?php endif; ?>

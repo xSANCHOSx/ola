@@ -1,7 +1,7 @@
 <!-- templates/coupon_section.php — Раздел для применения купонов -->
 
 <div id="coupon-section" style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin: 20px 0;">
-	<h3 style="margin-top: 0;">💰 У вас есть промокод?</h3>
+	<h3 style="margin-top: 0;">У вас есть промокод?</h3>
 
 	<!-- Сообщение об ошибке -->
 	<div id="coupon-error" style="
@@ -26,10 +26,11 @@
     "></div>
 
 	<!-- Форма ввода купона -->
-	<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+	<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
 		<input id="coupon-code" type="text" placeholder="Введите код промокода" maxlength="50"
-			style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 3px; font-size: 14px;">
+			style="flex: 1 1 160px; min-width: 0; padding: 10px; border: 1px solid #ddd; border-radius: 3px; font-size: 14px;">
 		<button id="apply-coupon" type="button" style="
+                flex-shrink: 0;
                 padding: 10px 20px;
                 background: #007bff;
                 color: white;

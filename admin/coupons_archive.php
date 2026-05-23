@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-// admin/coupons_archive.php — Перегляд архіву видалених купонів
+// admin/coupons_archive.php — Просмотр архива удаленных купонов
 
 require __DIR__ . '/_bootstrap.php';
 admin_require_auth();
 
 $pdo = dev_db_connection();
 
-// Отримати список архівованих купонів
+// Получить список архивированных купонов
 $stmt = $pdo->query('
     SELECT * FROM coupons_archived
     ORDER BY archived_at DESC
@@ -19,12 +19,12 @@ $archived_coupons = $stmt->fetchAll();
 
 ?>
 <!doctype html>
-<html lang="uk">
+<html lang="ru">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Архів купонів - Админ</title>
+    <title>Архив купонов - Админ</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/admin.css">
 </head>
@@ -34,17 +34,17 @@ $archived_coupons = $stmt->fetchAll();
         <?php require __DIR__ . '/_nav.php'; ?>
 
         <div class="d-flex align-items-center justify-content-between mb-3">
-            <h3 class="mb-0">Архів видалених купонів</h3>
-            <a href="/admin/coupons.php" class="btn btn-secondary">← Назад до купонів</a>
+            <h3 class="mb-0">Архив удаленных купонов</h3>
+            <a href="/admin/coupons.php" class="btn btn-secondary">← Назад к купонам</a>
         </div>
 
         <div class="alert alert-info">
-            <strong>ℹ️ Інформація:</strong> Тут зберігаються всі видалені купони для історії.
-            Історія використання купонів зберігається в таблиці <code>coupon_usage</code>.
+            <strong>ℹ️ Информация:</strong> Здесь хранятся все удаленные купоны для истории.
+            История использования купонов хранится в таблице <code>coupon_usage</code>.
         </div>
 
         <?php if (!empty($archived_coupons)): ?>
-            <p class="text-muted mb-3">Всього архівованих купонів: <strong><?= count($archived_coupons) ?></strong></p>
+            <p class="text-muted mb-3">Всего архивированных купонов: <strong><?= count($archived_coupons) ?></strong></p>
 
             <div class="table-responsive">
                 <table class="table table-bordered table-striped">
@@ -52,11 +52,11 @@ $archived_coupons = $stmt->fetchAll();
                         <tr>
                             <th>ID</th>
                             <th>Код</th>
-                            <th>Назва</th>
-                            <th>Знижка</th>
-                            <th>Використано</th>
-                            <th>Створено</th>
-                            <th>Архівовано</th>
+                            <th>Название</th>
+                            <th>Скидка</th>
+                            <th>Использовано</th>
+                            <th>Создано</th>
+                            <th>Архивировано</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -73,7 +73,7 @@ $archived_coupons = $stmt->fetchAll();
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info"><?= (int)$coupon['used_count'] ?> разів</span>
+                                    <span class="badge bg-info"><?= (int)$coupon['used_count'] ?> раз</span>
                                     <?php if ($coupon['max_usage_count']): ?>
                                         / <?= (int)$coupon['max_usage_count'] ?>
                                     <?php endif; ?>
@@ -91,7 +91,7 @@ $archived_coupons = $stmt->fetchAll();
             </div>
         <?php else: ?>
             <div class="alert alert-secondary text-center py-5">
-                <p class="mb-0">📦 Архів порожній - жодного купона ще не було видалено</p>
+                <p class="mb-0">📦 Архив пуст - ни одного купона еще не было удалено</p>
             </div>
         <?php endif; ?>
     </div>

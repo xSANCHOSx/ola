@@ -71,7 +71,7 @@ $payload = [
     'comments'         => trim((string) ($_POST['comments']         ?? '')),
     'coupon'           => trim((string) ($_POST['coupon']           ?? '')),
     'id_product'       => trim((string) ($_POST['id_product']       ?? '')),
-    'client_order_uuid'=> trim((string) ($_POST['client_order_uuid']?? '')),
+    'client_order_uuid' => trim((string) ($_POST['client_order_uuid'] ?? '')),
 ];
 
 $orderResultRaw = (string) ($_POST['order_result'] ?? '');
@@ -84,7 +84,7 @@ OlaLogger::debug('INPUT_PARSED', [
     'phone'            => substr($payload['phone'], 0, 3) . '***' . substr($payload['phone'], -2),
     'contact_method'   => $payload['contact_method'],
     'coupon'           => $payload['coupon'] ?: '(none)',
-    'client_order_uuid'=> $payload['client_order_uuid'] ?: '(none)',
+    'client_order_uuid' => $payload['client_order_uuid'] ?: '(none)',
     'order_result_raw' => substr($orderResultRaw, 0, 300),
     'json_error'       => $jsonErr === JSON_ERROR_NONE ? 'none' : json_last_error_msg(),
     'items_count'      => is_array($orderResult) ? count($orderResult) : 'not_array',
@@ -131,13 +131,11 @@ if (empty($orderResult)) {
     exit;
 }
 
-// Q8: contact_method — білий список
 $allowedMethods = ['whatsapp', 'telegram', 'max', ''];
 if (!in_array($payload['contact_method'], $allowedMethods, true)) {
     $payload['contact_method'] = '';
 }
 
-// Q5: максимальна довжина полів
 $maxLengths = [
     'name'             => 100,
     'comments'         => 2000,
@@ -148,7 +146,7 @@ $maxLengths = [
 foreach ($maxLengths as $field => $max) {
     if (mb_strlen($payload[$field]) > $max) {
         http_response_code(400);
-        echo json_encode(['error' => 'Поле ' . $field . ' задовге']);
+        echo json_encode(['error' => 'Поле ' . $field . ' очень долгое']);
         exit;
     }
 }

@@ -24,6 +24,7 @@ if ($pdo instanceof PDO) {
     ')->fetchAll();
 }
 ?>
+
 <!doctype html>
 <html lang="ru">
 

@@ -180,7 +180,8 @@ if ($pdo instanceof PDO) {
 <script>
 (function () {
     var currentType = 'all';
-    var allCustomers = <?= json_encode($customers, JSON_UNESCAPED_UNICODE) ?>;
+    var initialCustomers = <?= json_encode($customers, JSON_UNESCAPED_UNICODE) ?>;
+    var allCustomers = initialCustomers;
 
     var inputMap = { name: 'customerName', phone: 'customerPhone', email: 'customerEmail' };
 
@@ -194,7 +195,7 @@ if ($pdo instanceof PDO) {
                 var g = document.getElementById('search-' + currentType);
                 if (g) g.style.display = 'block';
             } else {
-                renderCustomers(allCustomers);
+                renderCustomers(initialCustomers);
                 document.getElementById('resultsInfo').style.display = 'none';
                 document.getElementById('noResults').style.display  = 'none';
             }
@@ -202,7 +203,7 @@ if ($pdo instanceof PDO) {
     });
 
     document.getElementById('searchBtn').addEventListener('click', function () {
-        if (currentType === 'all') { renderCustomers(allCustomers); return; }
+        if (currentType === 'all') { renderCustomers(initialCustomers); return; }
         performSearch();
     });
 
@@ -238,7 +239,6 @@ if ($pdo instanceof PDO) {
             var result = await resp.json();
 
             if (result.success) {
-                allCustomers = result.data;
                 renderCustomers(result.data);
                 if (result.data.length === 0) {
                     noResults.style.display = 'block';

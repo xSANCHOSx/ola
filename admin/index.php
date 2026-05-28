@@ -278,7 +278,8 @@ if ($pdo instanceof PDO) {
 
     <script>
         let currentSearchType = 'all';
-        let currentOrders = <?= json_encode($orders, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP) ?>;
+        const allOrders = <?= json_encode($orders, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP) ?>;
+        let currentOrders = allOrders;
 
         // Обработчики для вкладок поиска
         document.querySelectorAll('.search-tab-btn').forEach(btn => {
@@ -304,7 +305,7 @@ if ($pdo instanceof PDO) {
 
                 // Если выбран "Все заказы", показываем исходные данные
                 if (currentSearchType === 'all') {
-                    renderOrders(currentOrders);
+                    renderOrders(allOrders);
                     document.getElementById('resultsInfo').style.display = 'none';
                     document.getElementById('noResults').style.display = 'none';
                 }
@@ -314,7 +315,7 @@ if ($pdo instanceof PDO) {
         // Обработчик поиска
         document.getElementById('searchBtn').addEventListener('click', function() {
             if (currentSearchType === 'all') {
-                renderOrders(currentOrders);
+                renderOrders(allOrders);
                 return;
             }
 

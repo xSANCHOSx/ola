@@ -15,7 +15,7 @@ return [
     // Сгенерируйте: php -r "echo bin2hex(random_bytes(16));"
     // Значение '' — доступ закрыт (fail-closed по умолчанию).
     'setup_token' => getenv('SETUP_TOKEN') ?: '',
-    // Одержувачі листів про нові замовлення. Задайте через env: ORDER_NOTIFY_EMAILS
+    // Получатели писем о новых заказах. Задайте через env: ORDER_NOTIFY_EMAILS
     'order_notification_emails' => getenv('ORDER_NOTIFY_EMAILS') ?: '',
     // Токен для веб-запуска convert_webp.php. Задайте через env: CONVERT_WEBP_TOKEN=<random>
     // Сгенерируйте: php -r "echo bin2hex(random_bytes(24));"

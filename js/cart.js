@@ -5,7 +5,6 @@
 
 	const COUPON_API_URL = '/api/validate_coupon.php'
 
-	// Q1: утиліта екранування HTML — захист від XSS при вставці в DOM
 	function escHtml(s) {
 		return String(s == null ? '' : s)
 			.replace(/&/g, '&amp;')
@@ -21,13 +20,7 @@
 			this.idsKey = storageKey + '_ids'
 			this.items = this.readJSON(this.storageKey, {})
 			this.ids = this.readJSON(this.idsKey, [])
-			// Відновити купон із localStorage.
-			// Формат (новий): { code, type, value }   — 'percent' або 'fixed' зі значенням
-			// Формат (старий): { code, discount }     — backward-compat., абсолютна сума → fixed
-			// ✅ Новий формат { code, type, value } — завантажуємо як є.
-			// ⚠️ Старий формат { code, discount } — тип невідомий (могло бути 'percent'),
-			//    фіксована сума не масштабується з корзиною → купон «замерзає».
-			//    Очищаємо, щоб користувач ввів купон знову і отримав правильний тип.
+
 			const saved = this.readJSON('cart_coupon', null)
 			if (saved && saved.type && saved.value != null) {
 				this.coupon       = saved.code || ''
@@ -96,7 +89,7 @@
 			this.ids = []
 			this.persist()
 		}
-		// type: 'percent' | 'fixed'   value: число (% або абсолютна сума)
+
 		setCoupon(code, type, value) {
 			this.coupon       = code
 			this.coupon_type  = type
@@ -190,7 +183,7 @@
 						<!-- HEADER -->
 						<div id="bsubject">
 							<div class="minicart-title">
-								<span>Кошик</span>
+								<span>Корзина</span>
 								<span class="minicart-badge">0</span>
 							</div>
 							<a id="bclose" href="javascript:void(0)"
@@ -211,25 +204,23 @@
 							<circle cx="18.5" cy="18.5" r="2.5"/>
 						</svg>
 						<div class="delivery-lines">
-							<span class="delivery-text delivery-moscow">Київ: +250 грн &nbsp;|&nbsp; Від 5000 — безкоштовно</span>
-							<span class="delivery-text delivery-regions">Регіони: Уточнюйте у оператора</span>
+							<span class="delivery-text delivery-moscow">Москва: +250₽ | От 5000 — бесплатно</span>
+							<span class="delivery-text delivery-regions">Регионы: Уточняйте у оператора</span>
 						</div>
 					</div>
 						<!-- FOOTER -->
 						<div id="bfooter">
-							<!-- Прихований #bsum для зворотної сумісності -->
 							<span id="bsum" data-price="0"></span>
 
-							<!-- Видимий рядок Total -->
 							<div class="minicart-total-row">
-								<span class="minicart-total-label">Разом:</span>
+								<span class="minicart-total-label">Вместе:</span>
 								<span class="minicart-total-value" id="minicart-total-display">0 ₽</span>
 							</div>
 
 							<div class="btn_footer_order">
 								<button class="bbutton checkout"
 												onclick="cart.showWinow('order',1)">
-									Оформити замовлення
+									Оформить заказ
 									<svg width="16" height="16" viewBox="0 0 24 24" fill="none"
 											 stroke="currentColor" stroke-width="2.5"
 											 stroke-linecap="round" stroke-linejoin="round">
@@ -238,7 +229,7 @@
 								</button>
 								<button class="bbutton skip"
 												onclick="cart.closeWindow('bcontainer',1)">
-									Продовжити покупки
+									Продолжить покупки
 								</button>
 							</div>
 
@@ -246,15 +237,15 @@
 								<div class="coupon_value"></div>
 								<div class="coupon__toggle" onclick="cart.toggleCoupon()">
 									<span class="coupon__toggle-icon">+</span>
-									<span>У мене є купон на знижку</span>
+									<span>У меня есть купон со скидкой</span>
 								</div>
 								<div class="coupon_body">
 									<div class="coupon_input">
-										<span>Введіть код купона:</span>
+										<span>Введите код купона:</span>
 										<input type="text" name="coupon_input_value"
 													 value="" placeholder="Код купона"/>
 										<button class="bbutton" onclick="cart.setCoupon()">
-											Застосувати
+											Применить
 										</button>
 									</div>
 									<div class="coupon_error_msg" style="display:none"></div>
@@ -274,7 +265,7 @@
 			const items = Object.values(this.store.items)
 
 			if (items.length === 0) {
-				$list.html('<div class="minicart-empty">Кошик порожній</div>')
+				$list.html('<div class="minicart-empty">Корзина пустая</div>')
 				this.renderTotals()
 				return
 			}
@@ -289,7 +280,6 @@
 							</svg>
 						</div>`
 
-				// Іконка кошика (SVG trash)
 				const trashIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 					stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
@@ -318,9 +308,9 @@
 						</div>
 
 						<button class="minicart-item__remove" data-op="del"
-										data-id="${item.id}" title="Видалити">
+										data-id="${item.id}" title="Удалить">
 							${trashIcon}
-							Видалити
+							Удалить
 						</button>
 					</div>
 				`)
@@ -340,29 +330,26 @@
 		}
 		renderTotals() {
 			const sum     = this.store.totalPrice()
-			const baseSum = this.store.baseTotalPrice() // сума БЕЗ знижки купона
+			const baseSum = this.store.baseTotalPrice()
 			const DELIVERY_THRESHOLD = 5000
 			const total = sum 
 
-			// Старый #bsum — сохраняем для обратной совместимости
 			$('#bsum')
 				.attr('data-price', total.toFixed(2))
-				.html('Сума: <span class="price_value">' + total.toFixed(2) + '</span> ₽.')
+				.html('Сумма: <span class="price_value">' + total.toFixed(2) + '</span> ₽.')
 
-			// Обновляем итоговую сумму (без доставки)
 			$('#minicart-total-display').text(total.toFixed(2) + ' ₽')
 
 				if (baseSum >= DELIVERY_THRESHOLD) {
 					$('#minicart-delivery-banner .delivery-moscow').text(
-						'Київ: безкоштовно  |  Від 5000 — безкоштовно'
+						'Москва: бесплатно | От 5000 — бесплатно'
 					)
 				} else {
 					$('#minicart-delivery-banner .delivery-moscow').text(
-						'Київ: +250 грн  |  Від 5000 — безкоштовно'
+						'Москва: +250₽ | От 5000 — бесплатно'
 					)
 			}
 
-			// Відновити відображення купона якщо він активний
 			if (this.store.coupon) {
 				this.showCoupon(this.store.coupon)
 			}
@@ -372,13 +359,13 @@
 			$('.coupon_body').removeClass('is-open')
 			$('.coupon_value')
 				.show()
-				.text('✓ Купон застосовано: ' + code)
+				.text('✓ Купон применено: ' + code)
 		}
 	}
 
 	class CheckoutService {
 		submit(orderItems, coupon, onDone) {
-			$('#send').prop('disabled', true).val('Надсилання...')
+			$('#send').prop('disabled', true).val('Отправка...')
 			$.post('sendmail.php?subj=Order_Olaplex', {
 				name: $('#formToSend input#fio').val() || '',
 				email: $('#formToSend input#email').val() || '',
@@ -409,7 +396,7 @@
 				$('.valid-text2').text(msg).show()
 			})
 			.always(function () {
-				$('#send').prop('disabled', false).val('Відправити')
+				$('#send').prop('disabled', false).val('Отправить')
 			})
 		}
 	}
@@ -431,7 +418,7 @@
 			this.ui.updateWidgets(this.widgetSelector)
 		}
 		addToCart(el, id) {
-			// ID может быть числом или строкой с нулями ('010') — нормализуем
+
 			const key = String(id).replace(/^0+/, '') || String(id)
 			const p = window.PRODUCTS?.[key] ?? window.PRODUCTS?.[id]
 			if (!p) {
@@ -446,13 +433,13 @@
 				id: id,
 				name: p.name || '',
 				price: p.price || 0,
-				img: p.image || p.img || '', // поле 'image' в массиве
+				img: p.image || p.img || '',
 				catalogNumber: p.cat_number || p.catalogNumber || '-',
 				url: p.link || window.location.href,
 				qty,
 			})
 			this.ui.updateWidgets(this.widgetSelector)
-			this.showToast('Товар додано до кошика!')
+			this.showToast('Товар добавлено в корзину!')
 			if (this.CONFIG.showAfterAdd) this.showWinow('bcontainer', 1)
 		}
 		renderBasket() {
@@ -460,9 +447,8 @@
 				id => {
 					const item = this.store.items[id]
 					if (item && item.num <= 1) {
-						// Последний экземпляр — спросить перед удалением
 						this.showConfirm(
-							`Прибрати <strong>${escHtml(item.name || 'товар')}</strong> з кошика?`,
+							`Убрать <strong>${escHtml(item.name || 'товар')}</strong> с корзины?`,
 							() => {
 								this.store.remove(id)
 								this.renderBasket()
@@ -480,7 +466,7 @@
 				id => {
 					const item = this.store.items[id]
 					this.showConfirm(
-						`Видалити <strong>${escHtml(item ? item.name : 'товар')}</strong> з кошика?`,
+						`Удалить <strong>${escHtml(item ? item.name : 'товар')}</strong> с корзины?`,
 						() => {
 							this.store.remove(id)
 							this.renderBasket()
@@ -498,7 +484,6 @@
 			setTimeout(() => $container.addClass('active'), 10)
 			if (blind) {
 				$blind.show().addClass('active')
-				// Закриття по кліку поза межами кошика
 				$blind
 					.off('click.cartclose')
 					.on('click.cartclose', () => this.closeWindow(win, true))
@@ -535,7 +520,7 @@
 			const code = $("input[name='coupon_input_value']").val().trim().toUpperCase()
 			if (!code) return
 
-			const sum = this.store.baseTotalPrice() // сума БЕЗ знижки купона
+			const sum = this.store.baseTotalPrice() // сума БЕЗ скидки купона
 			if (sum <= 0) return
 
 			const $input = $("input[name='coupon_input_value']")
@@ -569,7 +554,7 @@
 				setTimeout(() => $input.css('border-color', ''), 2000)
 				this.ui.showCouponError('Ошибка соединения. Проверьте интернет и попробуйте снова.')
 			} finally {
-				$btn.prop('disabled', false).text('Застосувати')
+				$btn.prop('disabled', false).text('Применить')
 			}
 		}
 		toggleCoupon() {
@@ -608,11 +593,11 @@
 							<button id="cart-confirm-yes" style="
 								flex:1;padding:10px 0;border:none;border-radius:8px;
 								background:#e74c3c;color:#fff;font-size:14px;font-weight:600;
-								cursor:pointer;">Видалити</button>
+								cursor:pointer;">Удалить</button>
 							<button id="cart-confirm-no" style="
 								flex:1;padding:10px 0;border:none;border-radius:8px;
 								background:#f0f0f0;color:#444;font-size:14px;font-weight:600;
-								cursor:pointer;">Скасувати</button>
+								cursor:pointer;">Отменить</button>
 						</div>
 					</div>
 				</div>
@@ -620,7 +605,7 @@
 
 			$('body').append($overlay)
 
-			// Закриття
+			// Закрытие
 			const close = () => $overlay.remove()
 
 			$overlay.find('#cart-confirm-yes').on('click', () => {
@@ -628,7 +613,6 @@
 				onConfirm()
 			})
 			$overlay.find('#cart-confirm-no').on('click', close)
-			// Клик вне диалога
 			$overlay.on('click', function (e) {
 				if ($(e.target).is($overlay)) close()
 			})
@@ -637,7 +621,7 @@
 			const items = this.store.asOrderItems()
 			this.checkout.submit(items, this.store.coupon, data => {
 				if (data === 'ok') {
-					this.clearBasket()  // clearBasket() вже викликає clearCoupon() всередині
+					this.clearBasket() 
 					window.location.href = '/success.php'
 				}
 			})

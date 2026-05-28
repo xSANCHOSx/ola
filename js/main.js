@@ -1,9 +1,5 @@
 'use strict'
 
-/**
- * Sticky Navigation with Scroll Detection
- * Highlights active menu item based on scroll position
- */
 $(function () {
     if ($(window).width() > 760) {
       var topMenuHeight = $('header').height() - 0
@@ -21,9 +17,7 @@ $(function () {
         }
     });
 
-    // Menu click handler
     menuItems.on('click', function (e) {
-        // Закриваємо меню тільки якщо воно відкрито
         if ($('#bs-example-navbar-collapse-1').hasClass('in')) {
             $('.navbar-toggle').trigger('click');
         }
@@ -35,7 +29,7 @@ $(function () {
         e.preventDefault();
     });
 
-    // Запобігаємо подвійному закриттю меню
+
     $('.navbar-toggle').on('click', function(e) {
         e.stopPropagation();
     });

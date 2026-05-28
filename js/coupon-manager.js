@@ -1,11 +1,4 @@
-/**
- * CouponManager — тонка обгортка навколо cart.store.
- *
- * Q10: Стара реалізація зберігала стан купона тільки в пам'яті (this.currentCoupon)
- * і не синхронізувалася з cart.store — купон не потрапляв у POST при відправці.
- * Тепер усі операції делегуються в cart.setCoupon() / cart.store.clearCoupon(),
- * що є єдиним джерелом правди для купона.
- */
+
 class CouponManager {
     constructor(config = {}) {
         this.config = {
@@ -38,14 +31,13 @@ class CouponManager {
 
     async applyButtonClick() {
         const code = this.getCouponCode()
-        if (!code) { this.showError('Введіть код купона'); return }
+        if (!code) { this.showError('Введите код купона'); return }
 
-        // Делегуємо суму і логіку в cart.store — єдине джерело правди
         const cart = window.cart
-        if (!cart || !cart.store) { this.showError('Кошик не ініціалізовано'); return }
+        if (!cart || !cart.store) { this.showError('Корзина не инициализирована'); return }
 
         const sum = cart.store.baseTotalPrice()
-        if (sum <= 0) { this.showError('Кошик порожній'); return }
+        if (sum <= 0) { this.showError('Корзина пустая'); return }
 
         await this.validateCoupon(code, sum)
     }
@@ -65,18 +57,18 @@ class CouponManager {
 
             if (response.ok && data.valid) {
                 const { discount_type: dtype, discount_value: dvalue } = data.coupon
-                // Зберігаємо в cart.store — звідси і в POST, і в localStorage
+                // Сохраняем в cart.store — отсюда и в POST, и в localStorage
                 window.cart.store.setCoupon(code.toUpperCase(), dtype, dvalue)
                 window.cart.ui && window.cart.ui.renderTotals && window.cart.ui.renderTotals()
                 this._updateDiscountDisplay(discount, data.calculation.final_sum)
-                this.showSuccess(`Купон ${code} застосовано! Знижка: ${data.calculation.discount_percent}%`)
+                this.showSuccess(`Купон ${code} применён! Скидка: ${data.calculation.discount_percent}%`)
             } else {
                 window.cart && window.cart.store && window.cart.store.clearCoupon()
-                this.showError(data.error || 'Купон недійсний')
+                this.showError(data.error || 'Купон недействительный')
             }
         } catch (e) {
             window.cart && window.cart.store && window.cart.store.clearCoupon()
-            this.showError('Помилка перевірки купона')
+            this.showError('Ошибка проверки купона')
             console.error('CouponManager error:', e)
         } finally {
             this.isLoading = false
@@ -107,7 +99,7 @@ class CouponManager {
     }
 
     _fmt(sum) {
-        return new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH' }).format(sum)
+        return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' }).format(sum)
     }
 
     showError(msg) {

@@ -60,9 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 	exit;
 }
 
-// ИСПРАВЛЕНО: ORDER BY sort_order ASC вместо id DESC,
-// чтобы админ видел товары в том же порядке что и посетитель сайта.
-// id ASC — тайбрейкер для товаров с одинаковым sort_order (новые = 0).
 $products = [];
 if ($pdo instanceof PDO) {
 	$products = $pdo->query('SELECT * FROM products ORDER BY sort_order ASC, id ASC LIMIT 500')->fetchAll();
@@ -70,7 +67,7 @@ if ($pdo instanceof PDO) {
 $edit = null;
 if (isset($_GET['edit'])) {
 	$editId = (int)$_GET['edit'];
-	$edit = []; // пустой массив = новый товар; null = список без формы
+	$edit = [];
 	foreach ($products as $p) {
 		if ((int)$p['id'] === $editId) {
 			$edit = $p;
@@ -85,11 +82,10 @@ if (isset($_GET['edit'])) {
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<!-- CSRF токен для AJAX-запросов (drag-and-drop сохранение порядка) -->
 	<meta name="csrf-token" content="<?= csrf_token() ?>">
 	<title>Админка - Товары</title>
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/admin.css">
+	<link rel="stylesheet" href="/css/admin.css">
 	<!-- SortableJS — drag-and-drop библиотека для таблицы товаров -->
 	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 	<style>
@@ -690,40 +686,40 @@ if (isset($_GET['edit'])) {
 				⠿ Перетащите строку за иконку чтобы изменить порядок. После перестановки нажмите «Сохранить порядок».
 			</p>
 
-   <div class="table-responsive">
-			<table class="table table-bordered table-striped">
-				<thead>
-					<tr>
-						<th style="width:36px" title="Перетащите для сортировки">⠿</th>
-						<th style="width:40px; display:none;">#</th>
-						<th>ID AMO</th>
-						<th>Код каталога</th>
-						<th>Название</th>
-						<th>Объем</th>
-						<th>Цена</th>
-						<th>Slug</th>
-						<th>SEO</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody id="sortable-products">
-					<?php foreach ($products as $i => $p): ?>
-						<tr data-id="<?= (int)$p['id'] ?>">
-							<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
-							<td class="row-position" style=" display:none;"><?= $i + 1 ?></td>
-							<td><?= admin_h((string)$p['external_id']) ?></td>
-							<td><?= admin_h((string)$p['cat_number']) ?></td>
-							<td><?= admin_h((string)$p['name']) ?></td>
-							<td><?= admin_h((string)$p['volume']) ?></td>
-							<td><?= admin_h((string)$p['price']) ?></td>
-							<td><?= admin_h((string)$p['link']) ?></td>
-							<td><?= admin_h((string)$p['seo_title']) ?></td>
-							<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
+			<div class="table-responsive">
+				<table class="table table-bordered table-striped">
+					<thead>
+						<tr>
+							<th style="width:36px" title="Перетащите для сортировки">⠿</th>
+							<th style="width:40px; display:none;">#</th>
+							<th>ID AMO</th>
+							<th>Код каталога</th>
+							<th>Название</th>
+							<th>Объем</th>
+							<th>Цена</th>
+							<th>Slug</th>
+							<th>SEO</th>
+							<th></th>
 						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-   </div><!-- /.table-responsive -->
+					</thead>
+					<tbody id="sortable-products">
+						<?php foreach ($products as $i => $p): ?>
+							<tr data-id="<?= (int)$p['id'] ?>">
+								<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
+								<td class="row-position" style=" display:none;"><?= $i + 1 ?></td>
+								<td><?= admin_h((string)$p['external_id']) ?></td>
+								<td><?= admin_h((string)$p['cat_number']) ?></td>
+								<td><?= admin_h((string)$p['name']) ?></td>
+								<td><?= admin_h((string)$p['volume']) ?></td>
+								<td><?= admin_h((string)$p['price']) ?></td>
+								<td><?= admin_h((string)$p['link']) ?></td>
+								<td><?= admin_h((string)$p['seo_title']) ?></td>
+								<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div><!-- /.table-responsive -->
 		</div>
 
 		<!-- Кнопка добавления нового товара -->

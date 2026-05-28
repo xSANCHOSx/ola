@@ -8,7 +8,6 @@ if (admin_is_auth()) {
     exit;
 }
 
-// Инициализируем CSRF токен ДО обработки POST
 $csrf = csrf_token();
 
 $error = '';
@@ -32,8 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare('SELECT id, username, password_hash FROM admin_users WHERE username = :username LIMIT 1');
             $stmt->execute(['username' => $username]);
             $user = $stmt->fetch();
-            // Завжди викликаємо password_verify щоб унеможливити timing-атаку
-            // на визначення існування логіна
+
             $dummyHash   = '$2y$10$dummyHashToPreventTimingAttackXXXXXXXXXXXXXX';
             $hashToCheck = $user ? $user['password_hash'] : $dummyHash;
             if ($user && password_verify($password, $hashToCheck)) {

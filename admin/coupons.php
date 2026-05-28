@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-// admin/coupons.php — Управление купонами в админ-панели
-// Функциональность: CREATE, READ, UPDATE, DELETE, активация/деактивация
 
 require __DIR__ . '/_bootstrap.php';
 admin_require_auth();
@@ -395,298 +393,298 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление купонами - Админ</title>
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/admin.css">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Управление купонами - Админ</title>
+	<link rel="stylesheet" href="/css/bootstrap.min.css">
+	<link rel="stylesheet" href="/css/admin.css">
 </head>
 
 <body>
-    <div class="container">
-        <?php require __DIR__ . '/_nav.php'; ?>
+	<div class="container">
+		<?php require __DIR__ . '/_nav.php'; ?>
 
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <h3 class="mb-0">Управление купонами</h3>
-            <div>
-                <a href="/admin/coupons_archive.php" class="btn btn-secondary me-2">📦 Архив</a>
-                <button class="btn btn-success" onclick="openCreateModal()">+ Новый купон</button>
-            </div>
-        </div>
+		<div class="d-flex align-items-center justify-content-between mb-3">
+			<h3 class="mb-0">Управление купонами</h3>
+			<div>
+				<a href="/admin/coupons_archive.php" class="btn btn-secondary me-2">📦 Архив</a>
+				<button class="btn btn-success" onclick="openCreateModal()">+ Новый купон</button>
+			</div>
+		</div>
 
-        <div id="successMsg" class="alert alert-success d-none" style="display:none!important"></div>
-        <div id="errorMsg" class="alert alert-danger  d-none" style="display:none!important"></div>
+		<div id="successMsg" class="alert alert-success d-none" style="display:none!important"></div>
+		<div id="errorMsg" class="alert alert-danger  d-none" style="display:none!important"></div>
 
-        <h5 class="mb-3">Активных купонов: <span class="badge bg-success"><?= $active_count ?></span></h5>
+		<h5 class="mb-3">Активных купонов: <span class="badge bg-success"><?= $active_count ?></span></h5>
 
-        <?php if (!empty($coupons)): ?>
-            <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="table-primary">
-                    <tr>
-                        <th>Код</th>
-                        <th>Название</th>
-                        <th>Скидка</th>
-                        <th>Мин. сумма</th>
-                        <th>Действительно до</th>
-                        <th>Использовано</th>
-                        <th>Статус</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($coupons as $coupon): ?>
-                        <tr>
-                            <td><strong><?= admin_h((string)$coupon['code']) ?></strong></td>
-                            <td><?= admin_h((string)$coupon['name']) ?></td>
-                            <td>
-                                <?php if ($coupon['discount_type'] === 'percent'): ?>
-                                    <span class="badge bg-warning text-dark"><?= admin_h((string)$coupon['discount_value']) ?>%</span>
-                                <?php else: ?>
-                                    <span class="badge bg-success"><?= admin_h((string)$coupon['discount_value']) ?> р.</span>
-                                <?php endif; ?>
-                            </td>
-                            <td><?= number_format((float)$coupon['min_order_sum'], 2) ?> р.</td>
-                            <td><?= $coupon['valid_to'] ? date('d.m.Y', strtotime($coupon['valid_to'])) : '—' ?></td>
-                            <td>
-                                <?= (int)$coupon['used_count'] ?><?= $coupon['max_usage_count'] ? '/' . (int)$coupon['max_usage_count'] : '' ?>
-                            </td>
-                            <td>
-                                <?php if ($coupon['is_active']): ?>
-                                    <span class="badge bg-success">Активный</span>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary">Неактивный</span>
-                                <?php endif; ?>
-                            </td>
-                            <td style="white-space: nowrap;">
-                                <button class="btn btn-sm btn-primary"
-                                    onclick="openEditModal(<?= (int)$coupon['id'] ?>, <?= htmlspecialchars(json_encode($coupon), ENT_QUOTES) ?>)">
-                                    Ред.
-                                </button>
-                                <button class="btn btn-sm btn-warning" onclick="toggleStatus(<?= (int)$coupon['id'] ?>)">
-                                    <?= $coupon['is_active'] ? 'Выкл.' : 'Вкл.' ?>
-                                </button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="deleteCoupon(<?= (int)$coupon['id'] ?>, '<?= admin_h((string)$coupon['code']) ?>')">
-                                    🗑️ Удалить
-                                </button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-            </div><!-- /.table-responsive -->
-        <?php else: ?>
-            <p class="text-muted text-center py-4">Купоны не найдены</p>
-        <?php endif; ?>
-    </div>
+		<?php if (!empty($coupons)): ?>
+		<div class="table-responsive">
+			<table class="table table-bordered table-striped">
+				<thead class="table-primary">
+					<tr>
+						<th>Код</th>
+						<th>Название</th>
+						<th>Скидка</th>
+						<th>Мин. сумма</th>
+						<th>Действительно до</th>
+						<th>Использовано</th>
+						<th>Статус</th>
+						<th>Действия</th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ($coupons as $coupon): ?>
+					<tr>
+						<td><strong><?= admin_h((string)$coupon['code']) ?></strong></td>
+						<td><?= admin_h((string)$coupon['name']) ?></td>
+						<td>
+							<?php if ($coupon['discount_type'] === 'percent'): ?>
+							<span class="badge bg-warning text-dark"><?= admin_h((string)$coupon['discount_value']) ?>%</span>
+							<?php else: ?>
+							<span class="badge bg-success"><?= admin_h((string)$coupon['discount_value']) ?> р.</span>
+							<?php endif; ?>
+						</td>
+						<td><?= number_format((float)$coupon['min_order_sum'], 2) ?> р.</td>
+						<td><?= $coupon['valid_to'] ? date('d.m.Y', strtotime($coupon['valid_to'])) : '—' ?></td>
+						<td>
+							<?= (int)$coupon['used_count'] ?><?= $coupon['max_usage_count'] ? '/' . (int)$coupon['max_usage_count'] : '' ?>
+						</td>
+						<td>
+							<?php if ($coupon['is_active']): ?>
+							<span class="badge bg-success">Активный</span>
+							<?php else: ?>
+							<span class="badge bg-secondary">Неактивный</span>
+							<?php endif; ?>
+						</td>
+						<td style="white-space: nowrap;">
+							<button class="btn btn-sm btn-primary"
+								onclick="openEditModal(<?= (int)$coupon['id'] ?>, <?= htmlspecialchars(json_encode($coupon), ENT_QUOTES) ?>)">
+								Ред.
+							</button>
+							<button class="btn btn-sm btn-warning" onclick="toggleStatus(<?= (int)$coupon['id'] ?>)">
+								<?= $coupon['is_active'] ? 'Выкл.' : 'Вкл.' ?>
+							</button>
+							<button class="btn btn-sm btn-danger"
+								onclick="deleteCoupon(<?= (int)$coupon['id'] ?>, '<?= admin_h((string)$coupon['code']) ?>')">
+								🗑️ Удалить
+							</button>
+						</td>
+					</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div><!-- /.table-responsive -->
+		<?php else: ?>
+		<p class="text-muted text-center py-4">Купоны не найдены</p>
+		<?php endif; ?>
+	</div>
 
-    <!-- Bootstrap 3 Modal -->
-    <div class="modal fade" id="couponModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    <h4 class="modal-title" id="modalTitle">Новый купон</h4>
-                </div>
-                <div class="modal-body">
-                    <form id="couponForm">
-                        <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
-                        <input type="hidden" id="couponId" name="coupon_id">
+	<!-- Bootstrap 3 Modal -->
+	<div class="modal fade" id="couponModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+					<h4 class="modal-title" id="modalTitle">Новый купон</h4>
+				</div>
+				<div class="modal-body">
+					<form id="couponForm">
+						<input type="hidden" name="csrf_token" value="<?= $csrf ?>">
+						<input type="hidden" id="couponId" name="coupon_id">
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Код купона (латиница, цифры)</label>
-                            <input type="text" id="code" name="code" class="form-control" required maxlength="50">
-                            <div class="text-danger small" id="code-error"></div>
-                        </div>
+						<div class="mb-3">
+							<label class="form-label fw-bold">Код купона (латиница, цифры)</label>
+							<input type="text" id="code" name="code" class="form-control" required maxlength="50">
+							<div class="text-danger small" id="code-error"></div>
+						</div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Название купона</label>
-                            <input type="text" id="name" name="name" class="form-control" required maxlength="255">
-                            <div class="text-danger small" id="name-error"></div>
-                        </div>
+						<div class="mb-3">
+							<label class="form-label fw-bold">Название купона</label>
+							<input type="text" id="name" name="name" class="form-control" required maxlength="255">
+							<div class="text-danger small" id="name-error"></div>
+						</div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Тип скидки</label>
-                            <select id="discountType" name="discount_type" class="form-select" onchange="updateDiscountLabel()">
-                                <option value="fixed">Фиксированная сумма (р.)</option>
-                                <option value="percent">Процент (%)</option>
-                            </select>
-                            <div class="text-danger small" id="discount_type-error"></div>
-                        </div>
+						<div class="mb-3">
+							<label class="form-label fw-bold">Тип скидки</label>
+							<select id="discountType" name="discount_type" class="form-select" onchange="updateDiscountLabel()">
+								<option value="fixed">Фиксированная сумма (р.)</option>
+								<option value="percent">Процент (%)</option>
+							</select>
+							<div class="text-danger small" id="discount_type-error"></div>
+						</div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold" id="discountLabel">Размер скидки (р.)</label>
-                            <input type="number" id="discountValue" name="discount_value" class="form-control" step="0.01" required>
-                            <div class="text-danger small" id="discount_value-error"></div>
-                        </div>
+						<div class="mb-3">
+							<label class="form-label fw-bold" id="discountLabel">Размер скидки (р.)</label>
+							<input type="number" id="discountValue" name="discount_value" class="form-control" step="0.01" required>
+							<div class="text-danger small" id="discount_value-error"></div>
+						</div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Минимальная сумма заказа (р.)</label>
-                            <input type="number" id="minOrderSum" name="min_order_sum" class="form-control" step="0.01" value="0">
-                            <div class="text-danger small" id="min_order_sum-error"></div>
-                        </div>
+						<div class="mb-3">
+							<label class="form-label fw-bold">Минимальная сумма заказа (р.)</label>
+							<input type="number" id="minOrderSum" name="min_order_sum" class="form-control" step="0.01" value="0">
+							<div class="text-danger small" id="min_order_sum-error"></div>
+						</div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Действителен с (опционально)</label>
-                            <input type="datetime-local" id="validFrom" name="valid_from" class="form-control">
-                            <div class="text-danger small" id="valid_from-error"></div>
-                        </div>
+						<div class="mb-3">
+							<label class="form-label fw-bold">Действителен с (опционально)</label>
+							<input type="datetime-local" id="validFrom" name="valid_from" class="form-control">
+							<div class="text-danger small" id="valid_from-error"></div>
+						</div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Действителен до (опционально)</label>
-                            <input type="datetime-local" id="validTo" name="valid_to" class="form-control">
-                            <div class="text-danger small" id="valid_to-error"></div>
-                        </div>
+						<div class="mb-3">
+							<label class="form-label fw-bold">Действителен до (опционально)</label>
+							<input type="datetime-local" id="validTo" name="valid_to" class="form-control">
+							<div class="text-danger small" id="valid_to-error"></div>
+						</div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Максимум использований (пусто = без ограничений)</label>
-                            <input type="number" id="maxUsageCount" name="max_usage_count" class="form-control" min="1">
-                            <div class="text-danger small" id="max_usage_count-error"></div>
-                        </div>
+						<div class="mb-3">
+							<label class="form-label fw-bold">Максимум использований (пусто = без ограничений)</label>
+							<input type="number" id="maxUsageCount" name="max_usage_count" class="form-control" min="1">
+							<div class="text-danger small" id="max_usage_count-error"></div>
+						</div>
 
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="isActive" name="is_active" checked>
-                            <label class="form-check-label" for="isActive">Активный купон</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-primary" onclick="submitCouponForm()">Сохранить купон</button>
-                </div>
-            </div>
-        </div>
-    </div>
+						<div class="mb-3 form-check">
+							<input type="checkbox" class="form-check-input" id="isActive" name="is_active" checked>
+							<label class="form-check-label" for="isActive">Активный купон</label>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+					<button type="button" class="btn btn-primary" onclick="submitCouponForm()">Сохранить купон</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <script src="/js/bootstrap.min.js"></script>
-    <script>
-        const CSRF = '<?= $csrf ?>';
-        let bsModal = null;
+	<script src="/js/bootstrap.min.js"></script>
+	<script>
+	const CSRF = '<?= $csrf ?>';
+	let bsModal = null;
 
-        function getModal() {
-            if (!bsModal) {
-                const el = document.getElementById('couponModal');
-                bsModal = new bootstrap.Modal(el);
-            }
-            return bsModal;
-        }
+	function getModal() {
+		if (!bsModal) {
+			const el = document.getElementById('couponModal');
+			bsModal = new bootstrap.Modal(el);
+		}
+		return bsModal;
+	}
 
-        function updateDiscountLabel() {
-            const type = document.getElementById('discountType').value;
-            document.getElementById('discountLabel').textContent =
-                type === 'percent' ? 'Размер скидки (%)' : 'Размер скидки (р.)';
-        }
+	function updateDiscountLabel() {
+		const type = document.getElementById('discountType').value;
+		document.getElementById('discountLabel').textContent =
+			type === 'percent' ? 'Размер скидки (%)' : 'Размер скидки (р.)';
+	}
 
-        function openCreateModal() {
-            document.getElementById('modalTitle').textContent = 'Новый купон';
-            document.getElementById('couponForm').reset();
-            document.getElementById('couponId').value = '';
-            clearErrors();
-            getModal().show();
-        }
+	function openCreateModal() {
+		document.getElementById('modalTitle').textContent = 'Новый купон';
+		document.getElementById('couponForm').reset();
+		document.getElementById('couponId').value = '';
+		clearErrors();
+		getModal().show();
+	}
 
-        function openEditModal(couponId, coupon) {
-            document.getElementById('modalTitle').textContent = 'Редактирование купона';
-            document.getElementById('couponId').value = couponId;
-            document.getElementById('code').value = coupon.code;
-            document.getElementById('name').value = coupon.name;
-            document.getElementById('discountType').value = coupon.discount_type;
-            document.getElementById('discountValue').value = coupon.discount_value;
-            document.getElementById('minOrderSum').value = coupon.min_order_sum;
-            document.getElementById('isActive').checked = coupon.is_active == 1;
-            document.getElementById('validFrom').value = coupon.valid_from ? coupon.valid_from.replace(' ', 'T') : '';
-            document.getElementById('validTo').value = coupon.valid_to ? coupon.valid_to.replace(' ', 'T') : '';
-            document.getElementById('maxUsageCount').value = coupon.max_usage_count ?? '';
-            updateDiscountLabel();
-            clearErrors();
-            getModal().show();
-        }
+	function openEditModal(couponId, coupon) {
+		document.getElementById('modalTitle').textContent = 'Редактирование купона';
+		document.getElementById('couponId').value = couponId;
+		document.getElementById('code').value = coupon.code;
+		document.getElementById('name').value = coupon.name;
+		document.getElementById('discountType').value = coupon.discount_type;
+		document.getElementById('discountValue').value = coupon.discount_value;
+		document.getElementById('minOrderSum').value = coupon.min_order_sum;
+		document.getElementById('isActive').checked = coupon.is_active == 1;
+		document.getElementById('validFrom').value = coupon.valid_from ? coupon.valid_from.replace(' ', 'T') : '';
+		document.getElementById('validTo').value = coupon.valid_to ? coupon.valid_to.replace(' ', 'T') : '';
+		document.getElementById('maxUsageCount').value = coupon.max_usage_count ?? '';
+		updateDiscountLabel();
+		clearErrors();
+		getModal().show();
+	}
 
-        function clearErrors() {
-            document.querySelectorAll('[id$="-error"]').forEach(el => el.textContent = '');
-        }
+	function clearErrors() {
+		document.querySelectorAll('[id$="-error"]').forEach(el => el.textContent = '');
+	}
 
-        function showMessage(type, message) {
-            const el = document.getElementById(type === 'success' ? 'successMsg' : 'errorMsg');
-            el.textContent = message;
-            el.style.removeProperty('display');
-            el.classList.remove('d-none');
-            setTimeout(() => {
-                el.classList.add('d-none');
-                el.style.setProperty('display', 'none', 'important');
-            }, 5000);
-        }
+	function showMessage(type, message) {
+		const el = document.getElementById(type === 'success' ? 'successMsg' : 'errorMsg');
+		el.textContent = message;
+		el.style.removeProperty('display');
+		el.classList.remove('d-none');
+		setTimeout(() => {
+			el.classList.add('d-none');
+			el.style.setProperty('display', 'none', 'important');
+		}, 5000);
+	}
 
-        function displayErrors(errors) {
-            clearErrors();
-            Object.keys(errors).forEach(field => {
-                const el = document.getElementById(field + '-error');
-                if (el) el.textContent = errors[field];
-            });
-        }
+	function displayErrors(errors) {
+		clearErrors();
+		Object.keys(errors).forEach(field => {
+			const el = document.getElementById(field + '-error');
+			if (el) el.textContent = errors[field];
+		});
+	}
 
-        function submitCouponForm() {
-            const couponId = document.getElementById('couponId').value;
-            const action = couponId ? 'update' : 'create';
-            const formData = new FormData(document.getElementById('couponForm'));
-            formData.set('csrf_token', CSRF);
+	function submitCouponForm() {
+		const couponId = document.getElementById('couponId').value;
+		const action = couponId ? 'update' : 'create';
+		const formData = new FormData(document.getElementById('couponForm'));
+		formData.set('csrf_token', CSRF);
 
-            fetch(`?ajax=1&action=${action}`, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        showMessage('success', 'Купон успешно сохранен');
-                        getModal().hide();
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        data.errors ? displayErrors(data.errors) : showMessage('error', data.error || 'Ошибка при сохранении');
-                    }
-                })
-                .catch(e => showMessage('error', 'Ошибка сети: ' + e.message));
-        }
+		fetch(`?ajax=1&action=${action}`, {
+				method: 'POST',
+				body: formData
+			})
+			.then(r => r.json())
+			.then(data => {
+				if (data.success) {
+					showMessage('success', 'Купон успешно сохранен');
+					getModal().hide();
+					setTimeout(() => location.reload(), 1000);
+				} else {
+					data.errors ? displayErrors(data.errors) : showMessage('error', data.error || 'Ошибка при сохранении');
+				}
+			})
+			.catch(e => showMessage('error', 'Ошибка сети: ' + e.message));
+	}
 
-        function toggleStatus(couponId) {
-            if (!confirm('Вы уверены?')) return;
-            fetch('?ajax=1&action=toggle_status', {
-                    method: 'POST',
-                    body: new URLSearchParams({
-                        csrf_token: CSRF,
-                        coupon_id: couponId
-                    })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        showMessage('success', 'Статус изменен');
-                        setTimeout(() => location.reload(), 1000);
-                    } else showMessage('error', data.error);
-                })
-                .catch(e => showMessage('error', 'Ошибка: ' + e.message));
-        }
+	function toggleStatus(couponId) {
+		if (!confirm('Вы уверены?')) return;
+		fetch('?ajax=1&action=toggle_status', {
+				method: 'POST',
+				body: new URLSearchParams({
+					csrf_token: CSRF,
+					coupon_id: couponId
+				})
+			})
+			.then(r => r.json())
+			.then(data => {
+				if (data.success) {
+					showMessage('success', 'Статус изменен');
+					setTimeout(() => location.reload(), 1000);
+				} else showMessage('error', data.error);
+			})
+			.catch(e => showMessage('error', 'Ошибка: ' + e.message));
+	}
 
-        function deleteCoupon(couponId, code) {
-            if (!confirm(`Удалить купон "‎${code}‎"? Это действие нельзя отменить!`)) return;
-            fetch('?ajax=1&action=delete', {
-                    method: 'POST',
-                    body: new URLSearchParams({
-                        csrf_token: CSRF,
-                        coupon_id: couponId
-                    })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        showMessage('success', 'Купон удален');
-                        setTimeout(() => location.reload(), 1000);
-                    } else showMessage('error', data.error);
-                })
-                .catch(e => showMessage('error', 'Ошибка: ' + e.message));
-        }
-    </script>
+	function deleteCoupon(couponId, code) {
+		if (!confirm(`Удалить купон "‎${code}‎"? Это действие нельзя отменить!`)) return;
+		fetch('?ajax=1&action=delete', {
+				method: 'POST',
+				body: new URLSearchParams({
+					csrf_token: CSRF,
+					coupon_id: couponId
+				})
+			})
+			.then(r => r.json())
+			.then(data => {
+				if (data.success) {
+					showMessage('success', 'Купон удален');
+					setTimeout(() => location.reload(), 1000);
+				} else showMessage('error', data.error);
+			})
+			.catch(e => showMessage('error', 'Ошибка: ' + e.message));
+	}
+	</script>
 </body>
 
 </html>

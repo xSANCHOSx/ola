@@ -966,10 +966,8 @@ div#footer-copyrights {
     margin-left: 10%;
   }
 
-  .number.navbar-brand .whatsapp {
-    margin-left: 0;
-    padding-right: 5px;
-    padding-left: 5px;
+  .social {
+    margin-left: 5px;
   }
 
   .max-feature-section-list .row {

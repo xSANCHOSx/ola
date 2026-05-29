@@ -31,8 +31,6 @@ env/
 *.sublime-workspace
 .project
 .settings/
-config/db.php
-config/local.php
 .claude
 .phpunit.result.cache
 *.md

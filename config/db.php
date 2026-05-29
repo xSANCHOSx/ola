@@ -2,6 +2,61 @@
 
 declare(strict_types=1);
 
+
+function load_env_file(): void
+{
+    static $loaded = false;
+    if ($loaded) {
+        return;
+    }
+    $loaded = true;
+
+    // __DIR__ = <webroot>/config
+    // dirname(__DIR__) = <webroot>
+    // dirname(dirname(__DIR__)) = на 1 рівень вище webroot
+    $envFile = dirname(dirname(__DIR__)) . '/.env';
+
+    if (!is_readable($envFile)) {
+        return;
+    }
+
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines === false) {
+        return;
+    }
+
+    foreach ($lines as $line) {
+        $line = trim($line);
+
+        // Пропустити коментарі та порожні рядки
+        if ($line === '' || $line[0] === '#') {
+            continue;
+        }
+
+        if (strpos($line, '=') === false) {
+            continue;
+        }
+
+        [$key, $value] = explode('=', $line, 2);
+        $key   = trim($key);
+        $value = trim($value);
+
+        // Прибрати обгортаючі лапки: "value" або 'value'
+        if (strlen($value) >= 2 && preg_match('/^(["\'])(.*)\\1$/', $value, $m)) {
+            $value = $m[2];
+        }
+
+        // Не перезаписувати вже встановлені env-змінні (системні мають пріоритет)
+        if (getenv($key) === false) {
+            putenv("{$key}={$value}");
+            $_ENV[$key] = $value;
+        }
+    }
+}
+
+// Завантажуємо .env відразу при підключенні файлу
+load_env_file();
+
 /**
  * Get global PDO connection instance (Singleton)
  */
@@ -22,25 +77,25 @@ function dev_db_connection(): PDO
     }
 
     $dbHost = getenv('DB_HOST') ?: 'localhost';
-    $dbName = getenv('DB_NAME') ?: 'olap_san';
-    $dbUser = getenv('DB_USER') ?: 'olap_adm';
+    $dbName = getenv('DB_NAME') ?: '';
+    $dbUser = getenv('DB_USER') ?: '';
     $dbPass = getenv('DB_PASS');
 
     if ($dbPass === false || $dbPass === '') {
         if (php_sapi_name() === 'cli' || getenv('APP_ENV') === 'development') {
             $dbPass = 'dev_only_password';
         } else {
-            throw new RuntimeException('DB_PASS env variable is required');
+            throw new RuntimeException('DB_PASS env variable is required. Check ../.env file.');
         }
     }
 
     // Fallback to SQLite for local development
     if (!getenv('DB_HOST') && file_exists(__DIR__ . '/../database/dev_shop.sqlite')) {
-        $dsn = 'sqlite:' . __DIR__ . '/../database/dev_shop.sqlite';
+        $dsn    = 'sqlite:' . __DIR__ . '/../database/dev_shop.sqlite';
         $dbUser = null;
         $dbPass = null;
     } else {
-        $dsn = "mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4";
+        $dsn = "mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4";
     }
 
     $pdoOptions = [
@@ -76,14 +131,14 @@ function dev_app_config(): array
  */
 function dev_log_runtime(string $message): void
 {
-    $cfg = dev_app_config();
+    $cfg     = dev_app_config();
     $logFile = $cfg['runtime_log'] ?? (__DIR__ . '/../log/runtime.log');
-    $dir = dirname($logFile);
+    $dir     = dirname($logFile);
     if (!is_dir($dir)) {
         @mkdir($dir, 0755, true);
     }
     $timestamp = date('Y-m-d H:i:s');
-    $logMsg = "[{$timestamp}] {$message}\n";
+    $logMsg    = "[{$timestamp}] {$message}\n";
     @file_put_contents($logFile, $logMsg, FILE_APPEND);
 }
 
@@ -139,9 +194,9 @@ function validate_phone(string $phone): ?string
  */
 function log_security_event(string $event, array $context = []): void
 {
-    $cfg = dev_app_config();
+    $cfg  = dev_app_config();
     $file = $cfg['security_log'] ?? (__DIR__ . '/../log/security.log');
-    $dir = dirname($file);
+    $dir  = dirname($file);
     if (!is_dir($dir)) {
         @mkdir($dir, 0755, true);
     }
@@ -164,27 +219,37 @@ function dev_log_security(string $event, array $context = []): void
 }
 
 /**
- * Check rate limit for action
+ * Check rate limit for action.
+ * Returns true  = дозволено (ліміт не перевищено).
+ * Returns false = заблоковано (ліміт перевищено).
  */
 function check_rate_limit(string $key, int $limit = 5, int $window = 60): bool
 {
-    $cfg = dev_app_config();
-    $dir = dirname($cfg['runtime_log'] ?? (__DIR__ . '/../log/runtime.log'));
+    $cfg        = dev_app_config();
+    $dir        = dirname($cfg['runtime_log'] ?? (__DIR__ . '/../log/runtime.log'));
+
+    // Створюємо папку якщо не існує
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+
     $cache_file = $dir . '/ratelimit_' . md5($key) . '.json';
-    $now = time();
+    $now        = time();
 
     $fp = fopen($cache_file, 'c+');
     if (!$fp) {
+        // Якщо файл недоступний — не блокуємо (fail-open):
+        // помилка зберігання не повинна замінювати легітимний запит.
         error_log("Rate limit storage unavailable for key: $key");
-        return false;
+        return true;
     }
     flock($fp, LOCK_EX);
 
     $content = stream_get_contents($fp);
-    $data = json_decode($content, true) ?? [];
+    $data    = json_decode($content, true) ?? [];
 
-    $window_start = $now - $window;
-    $data['timestamps'] = array_filter(
+    $window_start        = $now - $window;
+    $data['timestamps']  = array_filter(
         $data['timestamps'] ?? [],
         fn($ts) => $ts > $window_start
     );
@@ -215,7 +280,6 @@ function esc_html(string $text): string
 
 /**
  * Зберегти UTM-параметри з GET у куки (7 днів)
- * Викликати на кожній публічній сторінці, де може бути перший візит
  */
 function save_utm_cookies(): void
 {
@@ -228,21 +292,14 @@ function save_utm_cookies(): void
 }
 
 /**
- * Запис у лог-файл (тижневі файли: main_28.04-04.05.25.log)
- * Єдина реалізація замість двох різних версій у sendmail.php та amo/order.php
+ * Запис у лог-файл (тижневі файли)
  */
 if (!function_exists('p2log')) {
-    /**
-     * Запис у тижневий лог-файл.
-     * @param mixed  $data — масив або рядок
-     * @param string $key  — префікс файлу (main, amo_orders, тощо)
-     */
     function p2log($data, string $key = 'main'): void
     {
         $cfg    = function_exists('dev_app_config') ? dev_app_config() : [];
         $logDir = dirname($cfg['runtime_log'] ?? (__DIR__ . '/../log/runtime.log'));
 
-        // Створюємо папку якщо її нема
         if (!is_dir($logDir)) {
             @mkdir($logDir, 0755, true);
         }
@@ -253,8 +310,8 @@ if (!function_exists('p2log')) {
 
         $file  = $logDir . '/' . $key . '_' . $week . '.log';
         $dump  = '[' . date('Y-m-d H:i:s') . "]\n"
-               . (is_array($data) || is_object($data) ? print_r($data, true) : (string)$data)
-               . "\n\n";
+            . (is_array($data) || is_object($data) ? print_r($data, true) : (string)$data)
+            . "\n\n";
         @file_put_contents($file, $dump, FILE_APPEND);
     }
 }

@@ -60,6 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 	exit;
 }
 
+// ИСПРАВЛЕНО: ORDER BY sort_order ASC вместо id DESC,
+// чтобы админ видел товары в том же порядке что и посетитель сайта.
+// id ASC — тайбрейкер для товаров с одинаковым sort_order (новые = 0).
 $products = [];
 if ($pdo instanceof PDO) {
 	$products = $pdo->query('SELECT * FROM products ORDER BY sort_order ASC, id ASC LIMIT 500')->fetchAll();
@@ -67,7 +70,7 @@ if ($pdo instanceof PDO) {
 $edit = null;
 if (isset($_GET['edit'])) {
 	$editId = (int)$_GET['edit'];
-	$edit = [];
+	$edit = []; // пустой массив = новый товар; null = список без формы
 	foreach ($products as $p) {
 		if ((int)$p['id'] === $editId) {
 			$edit = $p;
@@ -82,6 +85,7 @@ if (isset($_GET['edit'])) {
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- CSRF токен для AJAX-запросов (drag-and-drop сохранение порядка) -->
 	<meta name="csrf-token" content="<?= csrf_token() ?>">
 	<title>Админка - Товары</title>
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -280,6 +284,34 @@ if (isset($_GET['edit'])) {
 		.status-badge.inactive {
 			background: #dc3545;
 			color: white;
+		}
+
+		/* ── Кольорові рядки таблиці за статусом ── */
+		tr.table-row-active {
+			background-color: #d4edda !important;
+		}
+
+		/* зелений */
+		tr.table-row-active:hover {
+			background-color: #c3e6cb !important;
+		}
+
+		tr.table-row-preorder {
+			background-color: #fff3cd !important;
+		}
+
+		/* жовтий */
+		tr.table-row-preorder:hover {
+			background-color: #ffeeba !important;
+		}
+
+		tr.table-row-disabled {
+			background-color: #f8d7da !important;
+		}
+
+		/* червоний */
+		tr.table-row-disabled:hover {
+			background-color: #f5c6cb !important;
 		}
 
 		.descriptions-section {
@@ -527,6 +559,8 @@ if (isset($_GET['edit'])) {
 											</option>
 											<option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Предзаказ
 											</option>
+											<option value="disabled" <?= ($edit['status'] ?? '') === 'disabled' ? 'selected' : '' ?>>Выключен
+											</option>
 										</select>
 									</div>
 									<div class="form-group-wrapper">
@@ -699,12 +733,27 @@ if (isset($_GET['edit'])) {
 							<th>Цена</th>
 							<th>Slug</th>
 							<th>SEO</th>
+							<th>Статус</th>
 							<th></th>
 						</tr>
 					</thead>
 					<tbody id="sortable-products">
-						<?php foreach ($products as $i => $p): ?>
-							<tr data-id="<?= (int)$p['id'] ?>">
+						<?php foreach ($products as $i => $p):
+							$st = (string)($p['status'] ?? '');
+							$rowClass = match ($st) {
+								'active'   => 'table-row-active',
+								'preorder' => 'table-row-preorder',
+								'disabled' => 'table-row-disabled',
+								default    => '',
+							};
+							$statusLabel = match ($st) {
+								'active'   => 'Активный',
+								'preorder' => 'Предзаказ',
+								'disabled' => 'Выключен',
+								default    => '—',
+							};
+						?>
+							<tr data-id="<?= (int)$p['id'] ?>" class="<?= $rowClass ?>">
 								<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
 								<td class="row-position" style=" display:none;"><?= $i + 1 ?></td>
 								<td><?= admin_h((string)$p['external_id']) ?></td>
@@ -714,6 +763,7 @@ if (isset($_GET['edit'])) {
 								<td><?= admin_h((string)$p['price']) ?></td>
 								<td><?= admin_h((string)$p['link']) ?></td>
 								<td><?= admin_h((string)$p['seo_title']) ?></td>
+								<td><?= admin_h($statusLabel) ?></td>
 								<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
 							</tr>
 						<?php endforeach; ?>

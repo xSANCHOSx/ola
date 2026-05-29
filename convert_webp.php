@@ -1,6 +1,5 @@
 <?php
-// Защита — запускать только из командной строки или с паролем
-// Токен берётся из конфигурации (env-переменная CONVERT_WEBP_TOKEN)
+require_once __DIR__ . '/config/db.php';
 $cfg    = dev_app_config();
 $secret = $cfg['convert_webp_token'] ?? '';
 

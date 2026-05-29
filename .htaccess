@@ -66,6 +66,12 @@ Options +FollowSymLinks
 RewriteEngine On
 RewriteBase /
 
+# 0. HTTP → HTTPS (примусовий редирект)
+# Працює і при прямому Apache, і за Nginx-проксі
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 # --- URL routing ---
 
 # 1. Убираем .php из URL
@@ -82,7 +88,7 @@ RewriteRule ^(.*)$ https://%1/$1 [L,R=301]
 
 # 4. Редирект index.php на главную
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.(php|html|htm)\ HTTP/
-RewriteRule ^(.*)index\.(php|html|htm)$ https://olaplex-shop.ru/$1 [R=301,L]
+RewriteRule ^(.*)index\.(php|html|htm)$ https://test.olaplex-shop.ru/$1 [R=301,L]
 
 # 5. BLOG ROUTING (ПЕРЕД товарами!)
 RewriteCond %{REQUEST_FILENAME} !-f

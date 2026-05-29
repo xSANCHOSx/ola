@@ -3,7 +3,7 @@ namespace Itactis\AmoHelper;
 
 class AmoTable
 {
-    const SETTINGS_FILE = __DIR__ . '/../../amo_settings.json';
+    const SETTINGS_FILE = __DIR__ . '/../../../amo_settings.json';
 
     public static function getFieldsValue()
     {

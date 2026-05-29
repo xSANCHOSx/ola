@@ -43,11 +43,12 @@
 			<div class="header-right-area-mobile hidden-md hidden-lg">
 				<div class="number navbar-brand">
 					<a href="tel:+74950322929">+7 (495) 032-29-29</a>
-					<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
-					<a href="https://t.me/kosmoprof" target="_blank"><img src="/images/tg.svg" class="telegram"
+					<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp social"
+							alt="whatsapp"></a>
+					<a href="https://t.me/kosmoprof" target="_blank"><img src="/images/tg.svg" class="telegram social"
 							alt="telegram"></a>
-					<a href="https://max.ru/id7733272706_bot" target="_blank"><img src="/images/max.svg" class="max-messenger"
-							alt="max"></a>
+					<a href="https://max.ru/id7733272706_bot" target="_blank"><img src="/images/max.svg"
+							class="max-messenger social" alt="max"></a>
 				</div>
 				<div class="cart cart_mobile" onclick="cart.showWinow('bcontainer', 1);">
 					<img class="basket_logo" src="/images/basket.png" alt="Корзина" />

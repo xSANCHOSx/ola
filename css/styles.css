@@ -106,7 +106,7 @@ img {
 .navbar-default .navbar-nav>li>a {
   color: #363636 !important;
   text-transform: uppercase;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -125,7 +125,7 @@ img {
 }
 
 .nav>li>a {
-  padding: 15px 10px;
+  padding: 15px 8px;
 }
 
 /*.navbar-nav {
@@ -150,7 +150,7 @@ img {
 .navbar-nav {
   float: left;
   margin: 0;
-  width: 55%;
+  width: 53%;
 }
 
 header {
@@ -1421,7 +1421,7 @@ header.sticky .navbar-default .navbar-nav>li>a:hover {
 }
 
 .navbar-default .navbar-nav>li>a {
-  padding: 15px 10px;
+  padding: 15px 8px;
 }
 
 /*

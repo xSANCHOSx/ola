@@ -16,7 +16,7 @@ jobs:
           host: ${{ secrets.HOST2 }}
           username: ${{ secrets.USERNAME2 }}
           key: ${{ secrets.SSH_PASS }}
-          port: 22
+          port: 22 
           script: |
             # Путь к файлам
             SITE_ROOT="/home/c/cs16144/test.olaplex-shop.ru"

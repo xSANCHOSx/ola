@@ -911,6 +911,83 @@ if (isset($_GET['msg'])) {
 			.seo-two-cols {
 				grid-template-columns: 1fr;
 			}
+
+			/* ── Posts table → card layout on mobile ── */
+			.posts-table thead {
+				display: none;
+			}
+
+			.posts-table,
+			.posts-table tbody,
+			.posts-table tr,
+			.posts-table td {
+				display: block;
+				width: 100%;
+			}
+
+			.posts-table tr {
+				border: 1px solid #dee2e6;
+				border-radius: 6px;
+				margin-bottom: 12px;
+				padding: 8px 4px;
+				background: #fff;
+				box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+			}
+
+			.posts-table tr:nth-child(odd) {
+				background: #f8f9fa;
+			}
+
+			.posts-table td {
+				display: flex;
+				align-items: flex-start;
+				gap: 8px;
+				padding: 6px 10px;
+				border: none;
+				border-bottom: 1px solid #eee;
+				word-break: break-word;
+				min-height: unset;
+			}
+
+			.posts-table td:last-child {
+				border-bottom: none;
+			}
+
+			.posts-table td::before {
+				content: attr(data-label);
+				flex-shrink: 0;
+				width: 80px;
+				font-weight: 600;
+				color: #555;
+				font-size: 12px;
+				text-transform: uppercase;
+				letter-spacing: .4px;
+				padding-top: 2px;
+			}
+
+			.posts-table__actions {
+				flex-direction: column;
+				align-items: stretch !important;
+				gap: 6px;
+			}
+
+			.posts-table__actions::before {
+				width: 80px;
+				flex-shrink: 0;
+				align-self: flex-start;
+			}
+
+			.posts-table__actions .btn,
+			.posts-table__actions form,
+			.posts-table__actions form button {
+				width: 100%;
+				display: block;
+				text-align: center;
+			}
+
+			.posts-table__actions form {
+				display: block !important;
+			}
 		}
 	</style>
 </head>
@@ -1516,7 +1593,7 @@ if (isset($_GET['msg'])) {
 		<!-- ── Список всех постов ── -->
 		<h3 style="margin-top:40px;">Все посты (<?= count($posts) ?>)</h3>
 		<div class="table-responsive">
-			<table class="table table-bordered table-striped table-sm">
+			<table class="table table-bordered table-striped table-sm posts-table">
 				<thead>
 					<tr>
 						<th>ID</th>
@@ -1524,25 +1601,25 @@ if (isset($_GET['msg'])) {
 						<th>Slug</th>
 						<th>Статус</th>
 						<th>Дата</th>
-						<th>Просмотры</th>
-						<th style="width:200px;">Действия</th>
+						<th>Просм.</th>
+						<th>Действия</th>
 					</tr>
 				</thead>
 				<tbody>
 					<?php foreach ($posts as $p): ?>
 						<tr>
-							<td><?= admin_h((string)$p['id']) ?></td>
-							<td><?= admin_h((string)$p['title']) ?></td>
-							<td><code><?= admin_h((string)$p['slug']) ?></code></td>
-							<td>
+							<td data-label="ID"><?= admin_h((string)$p['id']) ?></td>
+							<td data-label="Заголовок"><?= admin_h((string)$p['title']) ?></td>
+							<td data-label="Slug"><code><?= admin_h((string)$p['slug']) ?></code></td>
+							<td data-label="Статус">
 								<span
 									style="background:<?= $p['status'] === 'published' ? '#d4edda' : '#fff3cd' ?>; padding:3px 8px; border-radius:3px; font-size:12px;">
 									<?= $p['status'] === 'published' ? 'Опубликовано' : 'Черновик' ?>
 								</span>
 							</td>
-							<td><?= admin_h(date('d.m.Y H:i', strtotime((string)$p['created_at']))) ?></td>
-							<td><?= admin_h((string)$p['views']) ?></td>
-							<td>
+							<td data-label="Дата"><?= admin_h(date('d.m.Y H:i', strtotime((string)$p['created_at']))) ?></td>
+							<td data-label="Просм."><?= admin_h((string)$p['views']) ?></td>
+							<td data-label="Действия" class="posts-table__actions">
 								<a href="/admin/blog.php?edit=<?= (int)$p['id'] ?>" class="btn btn-sm btn-info">✎ Редактировать</a>
 								<form method="post" style="display:inline;">
 									<input type="hidden" name="id" value="<?= (int)$p['id'] ?>">

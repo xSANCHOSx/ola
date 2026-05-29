@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config/db.php';
 
+$scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host    = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+$baseUrl = $scheme . '://' . $host;
+
 // Статические страницы сайта
 $staticPages = [
     ['loc' => '/',              'priority' => '1.0', 'changefreq' => 'daily'],
@@ -27,7 +31,6 @@ if ($pdo instanceof PDO) {
     }
 }
 
-$baseUrl = 'https://olaplex-shop.ru';
 $now = date('Y-m-d');
 
 $xml = new XMLWriter();
@@ -70,4 +73,4 @@ $xml->endDocument();
 $file = $_SERVER['DOCUMENT_ROOT'] . '/sitemap.xml';
 file_put_contents($file, $xml->outputMemory());
 
-echo 'Sitemap успешно создан и сохранён. Для просмотра перейдите по ссылке <a href="https://olaplex-shop.ru/sitemap.xml">sitemap.xml</a>';
+echo 'Sitemap успешно создан и сохранён. Для просмотра перейдите по ссылке <a href="' . $baseUrl . '/sitemap.xml">sitemap.xml</a>';

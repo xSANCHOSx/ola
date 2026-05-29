@@ -258,8 +258,8 @@ header.sticky .navbar-default .number a {
   width: 25px;
   height: 25px;
   margin-left: 6px;
-  margin-top: 0;
-}
+  margin-top: 0 !important;
+
 }
 
 /*
@@ -1577,4 +1577,39 @@ section.slider .flexslider picture img {
 section.slider .flexslider picture {
   display: block;
   width: 100%;
+}
+
+@media (min-width:1024px) and (max-width: 1999px) {
+  .navbar-nav {
+    width: 50%;
+  }
+
+  .navbar-default .navbar-nav>li>a {
+    padding: 15px 5px;
+  }
+
+  .navbar-default .navbar-nav>li>a {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1023px) {
+  .navbar-default .navbar-nav>li>a {
+    padding: 15px 4px;
+  }
+
+  .navbar-default .navbar-nav>li>a {
+    font-size: 12px;
+  }
+
+  .navbar-header {
+    float: left;
+    width: 20%;
+  }
+
+  .navbar-nav {
+    float: left;
+    margin: 0;
+    width: 50%;
+  }
 }

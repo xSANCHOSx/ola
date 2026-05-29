@@ -13,23 +13,24 @@ jobs:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
+          host: ${{ secrets.HOST2 }}
+          username: ${{ secrets.USERNAME2 }}
+          password: ${{ secrets.SSH_PASS }}
           port: 22
           script: |
             # Путь к файлам
-            BASE_DIR="/var/www/www-root/data/www/sanchos-dev.site"
-            TEMP_DIR="$BASE_DIR/temp"
+            SITE_ROOT="/home/c/cs16144/test.olaplex-shop.ru"
+            TEMP_DIR="$SITE_ROOT/temp"
+            BASE_DIR="$SITE_ROOT/public_html"
             REPO="git@github.com:xSANCHOSx/ola.git"
 
             # Создаём структуру файлов
             mkdir -p $TEMP_DIR
+            mkdir -p $BASE_DIR
             cd $TEMP_DIR
 
-            # Нициализация или обновление репозитория
+            # Инициализация или обновление репозитория
             if [ ! -d ".git" ]; then
-              # Оставляем ПО жэстки (StrictHostKeyChecking=no для SSH внутри сервера)
               git clone $REPO .
             else
               git fetch origin main
@@ -40,10 +41,8 @@ jobs:
             find . -name ".DS_Store" -delete
             find . -name "Thumbs.db" -delete
 
-            # Синхронизация в корень сайта (на уровень выше)
-            # --exclude='temp/' важно, чтобы не удалить саму папку temp
+            # Синхронизация из temp/ в public_html/
             rsync -avz --delete \
-              --exclude='temp/' \
               --exclude='.git/' \
               --exclude='.github/' \
               --exclude='.gitignore' \
@@ -52,6 +51,6 @@ jobs:
               --exclude='log/' \
               --exclude='images/' \
               --exclude='data/images/' \
-              --exclude='data/uploads/' ./ ../
+              --exclude='data/uploads/' ./ $BASE_DIR/
 
             echo "Деплой выполнен успешно."

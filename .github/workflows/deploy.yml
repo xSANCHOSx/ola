@@ -15,7 +15,7 @@ jobs:
         with:
           host: ${{ secrets.HOST2 }}
           username: ${{ secrets.USERNAME2 }}
-         key: ${{ secrets.SSH_PASS }}
+          key: ${{ secrets.SSH_PASS }}
           port: 22
           debug: true          # ← добавь это
           command_timeout: 30s # ← добавь явный таймаут

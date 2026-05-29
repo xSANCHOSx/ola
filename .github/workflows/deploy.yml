@@ -16,32 +16,55 @@ jobs:
           host: ${{ secrets.HOST2 }}
           username: ${{ secrets.USERNAME2 }}
           key: ${{ secrets.SSH_PASS }}
-          port: 22 
+          port: 22
           script: |
+            echo "=== 1. ПРОВЕРКА ПОДКЛЮЧЕНИЯ ==="
+            echo "Пользователь: $(whoami)"
+            echo "Текущая директория: $(pwd)"
+            echo "Дата: $(date)"
+
             # Путь к файлам
             SITE_ROOT="/home/c/cs16144/test.olaplex-shop.ru"
             TEMP_DIR="$SITE_ROOT/temp"
             BASE_DIR="$SITE_ROOT/public_html"
             REPO="git@github.com:xSANCHOSx/ola.git"
 
-            # Создаём структуру файлов
+            echo ""
+            echo "=== 2. ПРОВЕРКА ДИРЕКТОРИЙ ==="
+            echo "SITE_ROOT существует: $([ -d $SITE_ROOT ] && echo ДА || echo НЕТ)"
+            echo "TEMP_DIR существует: $([ -d $TEMP_DIR ] && echo ДА || echo НЕТ)"
+            echo "BASE_DIR существует: $([ -d $BASE_DIR ] && echo ДА || echo НЕТ)"
+
             mkdir -p $TEMP_DIR
             mkdir -p $BASE_DIR
             cd $TEMP_DIR
 
-            # Инициализация или обновление репозитория
+            echo ""
+            echo "=== 3. ПРОВЕРКА SSH-КЛЮЧА ДЛЯ GITHUB ==="
+            ssh -T git@github.com 2>&1 || true
+
+            echo ""
+            echo "=== 4. КЛОНИРОВАНИЕ / ОБНОВЛЕНИЕ ==="
             if [ ! -d ".git" ]; then
-              git clone $REPO .
+              echo "Клонируем репозиторий..."
+              git clone $REPO . 2>&1
+              echo "Код выхода git clone: $?"
             else
-              git fetch origin main
-              git reset --hard origin/main
+              echo "Репозиторий уже существует, обновляем..."
+              git fetch origin main 2>&1
+              git reset --hard origin/main 2>&1
+              echo "Код выхода: $?"
             fi
 
-            # Удаляем мусор перед копированием
+            echo ""
+            echo "=== 5. СОДЕРЖИМОЕ TEMP ПОСЛЕ КЛОНИРОВАНИЯ ==="
+            ls -la $TEMP_DIR
+
+            echo ""
+            echo "=== 6. RSYNC ==="
             find . -name ".DS_Store" -delete
             find . -name "Thumbs.db" -delete
 
-            # Синхронизация из temp/ в public_html/
             rsync -avz --delete \
               --exclude='.git/' \
               --exclude='.github/' \
@@ -52,5 +75,9 @@ jobs:
               --exclude='images/' \
               --exclude='data/images/' \
               --exclude='data/uploads/' ./ $BASE_DIR/
+
+            echo ""
+            echo "=== 7. СОДЕРЖИМОЕ PUBLIC_HTML ПОСЛЕ ДЕПЛОЯ ==="
+            ls -la $BASE_DIR
 
             echo "Деплой выполнен успешно."

@@ -15,7 +15,7 @@ jobs:
         with:
           host: ${{ secrets.HOST2 }}
           username: ${{ secrets.USERNAME2 }}
-          password: ${{ secrets.SSH_PASS }}
+          key: ${{ secrets.SSH_PASS }}
           port: 22
           script: |
             # Путь к файлам

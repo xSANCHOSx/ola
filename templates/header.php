@@ -28,6 +28,10 @@
 					<div class="number navbar-brand">
 						<a href="tel:+74950322929">+7 (495) 032-29-29</a>
 						<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
+						<a href="https://t.me/kosmoprof" target="_blank"><img src="/images/tg.svg" class="telegram"
+								alt="telegram"></a>
+						<a href="https://max.ru/id7733272706_bot" target="_blank"><img src="/images/max.svg" class="max-messenger"
+								alt="max"></a>
 					</div>
 					<div class="cart cart_full" onclick="cart.showWinow('bcontainer', 1);">
 						<img class="basket_logo" src="/images/basket.png" alt="Корзина" />
@@ -39,6 +43,10 @@
 				<div class="number navbar-brand">
 					<a href="tel:+74950322929">+7 (495) 032-29-29</a>
 					<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"></a>
+					<a href="https://t.me/kosmoprof" target="_blank"><img src="/images/tg.svg" class="telegram"
+							alt="telegram"></a>
+					<a href="https://max.ru/id7733272706_bot" target="_blank"><img src="/images/max.svg" class="max-messenger"
+							alt="max"></a>
 				</div>
 				<div class="cart cart_mobile" onclick="cart.showWinow('bcontainer', 1);">
 					<img class="basket_logo" src="/images/basket.png" alt="Корзина" />

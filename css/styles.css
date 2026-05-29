@@ -249,10 +249,17 @@ header.sticky .navbar-default .number a {
   align-items: center;
 }
 
-header.sticky .navbar-default .number .whatsapp {
+/* header.sticky .navbar-default .number .whatsapp {
   width: 25px;
   height: 25px;
   margin-left: 10px;
+} */
+.social {
+  width: 25px;
+  height: 25px;
+  margin-left: 6px;
+  margin-top: 0;
+}
 }
 
 /*

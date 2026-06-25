@@ -75,7 +75,7 @@ foreach ($products as $product) {
 	$offer->addChild('picture', 'https://olaplex-shop.ru/' . $product['image']);
 	$offer->addChild('name', $product['name']);
 	$offer->addChild('description', htmlspecialchars($product['desc']));
-	$offer->addChild('sales_notes', 'Бесплатная доставка по МСК при заказе от 2500р.');
+	$offer->addChild('sales_notes', 'Бесплатная доставка по МСК при заказе от 5000р.');
 	$offer->addChild('vendor', 'Olaplex');
 	$offer->addChild('vendorCode', 'Olaplex');
 	$offer->addChild('barcode', '896364002329'); // Заменить на реальный штрихкод

@@ -346,7 +346,7 @@
 					)
 				} else {
 					$('#minicart-delivery-banner .delivery-moscow').text(
-						'Москва: +250₽ | От 5000 — бесплатно'
+						'Москва: +350₽ | От 5000 — бесплатно'
 					)
 			}
 

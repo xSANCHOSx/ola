@@ -28,7 +28,7 @@ require __DIR__ . '/templates/head.php';
 							<strong>5000</strong>&nbsp;
 							руб.
 						</p>
-						<p style="text-align:justify">Стоимость доставки в пределах МКАД - 250 руб.<br />Стоимость доставки за
+						<p style="text-align:justify">Стоимость доставки в пределах МКАД - 350 руб.<br />Стоимость доставки за
 							пределы МКАД - рассчитывается индивидуально. (В зависимости от удаленности транспортных узлов, трафика
 							и т.д.)</p>
 					</div>
@@ -84,9 +84,10 @@ require __DIR__ . '/templates/head.php';
 									комментарии&quot;
 									следует указать название транспортной кампании.</em></span></p>
 						<p style="text-align:justify"><img class="hidden-mobile-phone hidden-tablet" alt=""
-								src="https://www.xn--80aaapvimf6o.xn--p1ai/local/templates/makadamia-rf/img/payment.png" loading="lazy" /><img
-								class="mobile-responsive-img hidden-desktop" alt=""
-								src="https://www.xn--80aaapvimf6o.xn--p1ai/local/templates/makadamia-rf/img/mobile-payment-systems.png" loading="lazy" />
+								src="https://www.xn--80aaapvimf6o.xn--p1ai/local/templates/makadamia-rf/img/payment.png"
+								loading="lazy" /><img class="mobile-responsive-img hidden-desktop" alt=""
+								src="https://www.xn--80aaapvimf6o.xn--p1ai/local/templates/makadamia-rf/img/mobile-payment-systems.png"
+								loading="lazy" />
 						</p>
 					</div>
 				</div>

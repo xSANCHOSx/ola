@@ -600,7 +600,7 @@ div#max-team {
 }
 
 .menu_footer {
-  width: 100%;
+  width: 100% !important;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
@@ -967,7 +967,7 @@ div#footer-copyrights {
   }
 
   .social {
-    margin-left: 5px!important;
+    margin-left: 5px !important;
   }
 
   .max-feature-section-list .row {

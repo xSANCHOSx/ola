@@ -204,7 +204,7 @@
 							<circle cx="18.5" cy="18.5" r="2.5"/>
 						</svg>
 						<div class="delivery-lines">
-							<span class="delivery-text delivery-moscow">Москва: +250₽ | От 5000 — бесплатно</span>
+							<span class="delivery-text delivery-moscow">Москва: +350₽ | От 5000 — бесплатно</span>
 							<span class="delivery-text delivery-regions">Регионы: Уточняйте у оператора</span>
 						</div>
 					</div>

@@ -26,7 +26,7 @@
                 height = mainHeader.outerHeight();
             }
             
-            return height + 20; // Add 20px extra offset as requested
+            return height; // Add 20px extra offset as requested
         }
 
         /**

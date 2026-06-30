@@ -16,12 +16,12 @@
          * Calculate current header height dynamically + 20px buffer.
          */
         function getHeaderHeight() {
-            const mobileNavbar = $('header .navbar');
+            const mobileHeaderBar = $('header .navbar-header');
             const mainHeader = $('header');
             let height = 0;
             
-            if ($(window).width() <= 760 && mobileNavbar.length) {
-                height = mobileNavbar.outerHeight();
+            if ($(window).width() <= 760 && mobileHeaderBar.length) {
+               height = mobileHeaderBar.outerHeight();
             } else if (mainHeader.length) {
                 height = mainHeader.outerHeight();
             }

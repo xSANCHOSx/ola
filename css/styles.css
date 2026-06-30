@@ -750,6 +750,10 @@ div#footer-copyrights {
     display: none !important;
   }
 
+  .navbar-collapse.collapse.show {
+    display: block !important;
+  }
+
   .navbar-header .collapse,
   .navbar-toggle {
     display: block !important;
@@ -1588,9 +1592,6 @@ section.slider .flexslider picture {
 
   .navbar-default .navbar-nav>li>a {
     padding: 15px 5px;
-  }
-
-  .navbar-default .navbar-nav>li>a {
     font-size: 12px;
   }
 }
@@ -1598,9 +1599,6 @@ section.slider .flexslider picture {
 @media (min-width: 992px) and (max-width: 1023px) {
   .navbar-default .navbar-nav>li>a {
     padding: 15px 4px;
-  }
-
-  .navbar-default .navbar-nav>li>a {
     font-size: 12px;
   }
 

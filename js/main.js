@@ -1,4 +1,3 @@
-
 $(function () {
     /**
      * Header Height Calculation
@@ -102,3 +101,34 @@ jQuery(document).ready(function ($) {
 /**
  * E-commerce Analytics & Helpers
  */
+
+/**
+ * Discount Timer (Flip Clock)
+ * Обновляет блоки `.expire_date[data-end]`, выводя количество дней,
+ * оставшихся до конца акции, в элемент `.flip-unit .days`.
+ * Разметка генерируется в templates/helpers.php (функция getDiscountTimer).
+ */
+function updateTimer() {
+    var now = Math.floor(Date.now() / 1000);
+
+    $('.expire_date[data-end]').each(function () {
+        var $timer = $(this);
+        var endTime = parseInt($timer.attr('data-end'), 10);
+
+        if (isNaN(endTime)) {
+            return;
+        }
+
+        var diff = endTime - now;
+        var days = diff > 0 ? Math.floor(diff / 86400) : 0;
+
+        $timer.find('.flip-unit .days').text(days);
+    });
+}
+
+jQuery(function ($) {
+    if ($('.expire_date[data-end]').length) {
+        updateTimer();
+        setInterval(updateTimer, 60000);
+    }
+});

@@ -799,7 +799,7 @@ div#footer-copyrights {
   .cart {
     position: absolute;
     top: 0;
-    left: 60%;
+    right: 70px;
   }
 
   div#footer-copyrights {
@@ -928,9 +928,6 @@ div#footer-copyrights {
     left: 5%;
   }
 
-  .cart {
-    left: 63%;
-  }
 
   #max-work-container {
     padding-left: 20px;

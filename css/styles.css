@@ -781,7 +781,7 @@ div#footer-copyrights {
     display: grid !important;
     text-align: center;
     float: none;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.6);
     margin: 0;
     width: 100%;
   }

@@ -44,7 +44,7 @@ require __DIR__ . '/templates/head.php';
 	<script defer src="/js/bootstrap.min.js"></script>
 	<script defer src="/js/cart.js"></script>
 	<script defer src="/js/cart-init.js"></script>
-	<script src="/js/anchor-scroll.js"></script>
+	<script defer src="/js/anchor-scroll.js"></script>
 	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
 
 </body>

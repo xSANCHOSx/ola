@@ -498,147 +498,10 @@ div#max-team {
 .member-profile .member-name,
 .member-profile h2 {
   font-family: 'Open Sans', sans-serif;
-  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 16px;
   color: #363636;
-  font-size: 20px;
-  line-height: 24px;
-}
-
-.member-profile span {
-  color: #00b3e4;
-  font-size: 17px;
-  font-family: 'Open Sans', sans-serif;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.star:hover img {
-  opacity: 0.5;
-  transition: 0.3s ease;
-}
-
-.member-profile img {
-  position: relative;
-  max-height: 260px;
-}
-
-/*
------------------------------------------------
-	9) Skills or Experties Section
------------------------------------------------
-*/
-
-/*
------------------------------------------------
-	10) Packages or Purchases Section
------------------------------------------------
-*/
-#max-packages-section {
-  padding-left: 100px;
-  padding-right: 100px;
-  padding-bottom: 15px;
-  text-align: center;
-}
-
-.price {
-  padding: 20px;
-  background: #e0e0e0;
-}
-
-/*
------------------------------------------------
-	11) Blue Slider Section
------------------------------------------------
-*/
-
-/*
------------------------------------------------
-	12) Blog Section
------------------------------------------------
-*/
-
-.blog_list_image {
-  width: 100%;
-  max-height: 350px;
-  object-fit: cover;
-  border-radius: 5px;
-  margin-bottom: 20px;
-}
-
-.meta {
-  font-size: 13px;
-  color: #363636;
-  font-family: 'Open Sans', sans-serif;
-  line-height: 24px;
-}
-
-/*
------------------------------------------------
-	13) MAP Section
------------------------------------------------
-*/
-
-/*
------------------------------------------------
-	14) Contact Section
------------------------------------------------
-*/
-
-/*Contact Form */
-
-/*
------------------------------------------------
-	15) Footer Section
------------------------------------------------
-*/
-#max-footer {
-  width: 100%;
-  background: #000;
-  padding-left: 100px;
-  padding-right: 100px;
-  padding-top: 15px;
-}
-
-.menu_footer {
-  width: 100% !important;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-
-div#footer-copyrights {
-  padding: 30px 0;
-  color: #fff;
-  font-size: 17px;
-  font-family: 'Open Sans', sans-serif;
-  line-height: 30px;
-  text-align: center;
-}
-
-/*
------------------------------------------------
-	16) Creative Works/Portfolio Section
------------------------------------------------
-*/
-
-/* category filter */
-
-/* the color of the transparent overlay border */
-
-/* portfolio images */
-
-/* project title under image */
-
-/* transparent overlay */
-
-/* icons inside overlay */
-
-/* skew image on hover */
-
-.price_old {
-  text-decoration: line-through;
-  display: inline;
-  font-size: 91%;
+  margin-top: 15px;
 }
 
 /*
@@ -646,104 +509,6 @@ div#footer-copyrights {
 	17) Responsive
 -----------------------------------------------
 */
-@media screen and (min-width: 1110px) and (max-width: 1180px) {
-  .number {
-    padding: 15px 0px;
-    padding-left: 20px;
-    padding-right: 10px;
-  }
-
-  .navbar-nav {
-    margin-left: 0px;
-  }
-
-  .nav>li>a {
-    padding: 15px 8px;
-  }
-
-  .navbar-brand {
-    padding: 15px 10px;
-  }
-}
-
-@media screen and (min-width: 1050px) and (max-width: 1109px) {
-  .number {
-    padding: 15px 0px;
-    padding-left: 18px !important;
-  }
-
-  .navbar-nav {
-    margin-left: 0px;
-    width: 54%;
-  }
-
-  .nav>li>a {
-    padding: 15px 8px;
-  }
-
-  .container-fluid,
-  .container-fluid>.navbar-collapse {
-    padding: 0;
-    margin: 0;
-  }
-}
-
-@media screen and (min-width: 1050px) and (max-width: 1190px) {
-  .number.navbar-brand {
-    padding-left: 0px !important;
-  }
-
-  header.sticky .navbar-default .cart {
-    width: 7%;
-  }
-}
-
-@media screen and (min-width: 993px) and (max-width: 1049px) {
-  .navbar-nav {
-    margin-left: -10px;
-  }
-
-  .nav>li>a {
-    padding: 15px 6px;
-  }
-
-  .navbar-brand {
-    padding: 15px 10px;
-  }
-
-  .number {
-    padding-right: 5px;
-  }
-
-  .container-fluid,
-  .container-fluid>.navbar-collapse {
-    padding: 0;
-    margin: 0;
-  }
-
-  header.sticky .navbar-default .number {
-    padding: 15px 0px;
-  }
-
-  header.sticky .navbar-default .cart {
-    width: 7%;
-  }
-}
-
-/*Change the width if screen is 999 or plus*/
-@media screen and (min-width: 992px) {
-
-  #max-footer,
-  #max-footer .col-xs-12,
-  #max-footer .number {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  #max-footer .navbar-nav {
-    margin-left: 0;
-  }
-}
 
 @media screen and (max-width: 992px) {
   .navbar-collapse.collapse:not(.show) {
@@ -1100,423 +865,6 @@ button {
   opacity: 0.5;
 }
 
-.b1c[disabled]:hover,
-.bbutton[disabled]:hover {
-  background: #ba385c !important;
-}
-
-.b1c[disabled]:active,
-.bbutton[disabled]:active {
-  padding-bottom: 8px;
-  box-shadow: 0 0px 0 transparent !important;
-  margin: 0px 0 5px !important;
-  moz-box-shadow: 0 0px 0 transparent !important;
-  webkit-box-shadow: 0 0px 0 transparent !important;
-}
-
-.b1c-good {
-  margin-bottom: 25px;
-}
-
-.delivery {
-  min-height: 120px;
-}
-
-.delivery span {
-  color: #ba385c;
-}
-
-.delivery p {
-  text-align: justify;
-  line-height: 14px;
-  font-size: 16px;
-  padding: 0 10px;
-}
-
-@-webkit-keyframes spin {
-  0% {
-    -webkit-transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-
-  100% {
-    -webkit-transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes spin {
-  0% {
-    -webkit-transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-
-  100% {
-    -webkit-transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
-
-#max-footer .navbar {
-  margin-top: 20px;
-  margin-bottom: 0px;
-}
-
-
-#max-footer .navbar-nav>li>a,
-.policy {
-  background-color: transparent;
-  color: #fff !important;
-}
-
-#max-footer .navbar-nav>li>a:hover,
-.policy:hover {
-  background-color: transparent;
-  color: #ccc !important;
-  text-decoration: none;
-}
-
-.buy {
-  padding-left: 0;
-  padding-bottom: 20px;
-}
-
-.buy strong {
-  font-family: sans-serif;
-  font-size: 18px;
-  color: #ba385c;
-}
-
-.buy p:nth-child(2) strong,
-.buy p:nth-child(3) strong,
-.buy p:nth-child(4) strong {
-  color: #363636;
-  font-size: 16px;
-}
-
-.special {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  gap: 15px;
-}
-
-.regular_price strong {
-  color: #ba385c !important;
-  font-size: 18px !important;
-}
-
-.discont {
-  position: relative;
-  display: inline-block;
-  color: #fff;
-  font-size: 0.875rem;
-  font-weight: 600;
-  padding: 0.5em 1em;
-  transform: skew(-10deg);
-  margin: 0.5em 0;
-}
-
-.discont span {
-  display: inline-block;
-  transform: skew(10deg);
-}
-
-.discont::before {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 0;
-  border-left: 10px solid transparent;
-  border-top: 10px solid #c21e50;
-}
-
-/* Вариант 1 */
-.variant1 {
-  background: linear-gradient(90deg, #ff8a00, #c21e50);
-}
-
-#max-aboutus-section span {
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.font-geometria-light {
-  max-width: 92%;
-  float: right;
-}
-
-@media (min-width: 736px) {
-  .max-section-title h2 br {
-    display: none;
-  }
-}
-
-@media (max-width: 736px) {}
-
-.navbar-nav>li.active>a {
-  text-decoration: underline;
-}
-
-section.slider {
-  padding-bottom: 22px;
-  padding-top: 50px;
-}
-
-@media (max-width: 766px) and (min-width: 1px) {
-  .hidden-mobile-phone {
-    display: none;
-  }
-
-  .zakaz-min {
-    margin-top: 100px !important;
-  }
-}
-
-.mobile-responsive-img {
-  display: inline-block;
-  width: 100%;
-}
-
-@media (min-width: 767px) {
-  .hidden-desktop {
-    display: none;
-  }
-
-  .zakaz-min {
-    margin-top: 50px !important;
-  }
-}
-
-.zakaz-min {
-  text-align: left;
-  font-size: 18px !important;
-  color: rgb(251, 44, 83) !important;
-}
-
-.active_footer {
-  background-color: transparent;
-  color: #fff !important;
-  text-decoration: underline;
-  text-transform: uppercase;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 15px 10px;
-}
-
-.name_link,
-.name_link:hover {
-  text-decoration: none;
-  color: #000;
-  cursor: pointer;
-}
-
-.price_inner {
-  display: flex;
-  justify-content: space-between;
-}
-
-.coupon {
-  clear: both;
-  padding-top: 40px;
-}
-
-#coupon-code {
-  text-align: center !important;
-  margin-left: -5px !important;
-  font-size: 30px !important;
-  padding: 32px 0;
-  width: 100% !important;
-  font-weight: 900;
-  color: #f15178;
-}
-
-@media only screen and (max-width: 379px) {
-
-  #coupon-code {
-    margin-left: -5px !important;
-    font-size: 30px !important;
-    padding: 30px 0;
-    width: 100% !important;
-  }
-}
-
-.expire_date {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: Arial, sans-serif;
-}
-
-.flip-clock {
-  display: flex;
-  gap: 10px;
-}
-
-.flip-unit {
-  background: #333;
-  color: #fff;
-  border-radius: 5px;
-  width: 40px;
-  text-align: center;
-  position: relative;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-.flip-unit span {
-  font-size: 20px;
-  display: block;
-}
-
-.flip-unit::before {
-  content: '';
-  position: absolute;
-  top: 55%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #555;
-}
-
-.flip-label {
-  font-size: 12px;
-  color: #ccc;
-}
-
-#cookie-notice {
-  display: none;
-  font-size: 14px;
-}
-
-.oferta {
-  text-decoration: underline;
-  font-weight: 600;
-}
-
-/*
------------------------------------------------
-	1) Global CSS
------------------------------------------------
-*/
-
-.center {
-  color: #000;
-}
-
-/*
------------------------------------------------
-	2) Top Navigation bar
------------------------------------------------
-*/
-.navbar-default .navbar-nav>li>a:hover {
-  /*color: #00b3e4 !important;*/
-  background-color: transparent;
-
-}
-
-header.sticky .navbar-default .navbar-nav>li>a:hover {
-  /*color: #00b3e4 !important;*/
-}
-
-.navbar-default .navbar-nav>li>a {
-  padding: 15px 8px;
-}
-
-/*
------------------------------------------------
-	4) About us Section 
------------------------------------------------
-*/
-
-span.number {
-  color: #fff !important;
-}
-
-/*
------------------------------------------------
-	6) Customer Say Section / Testimonials
------------------------------------------------
-*/
-
-h2.name {
-  color: #000;
-}
-
-/*
------------------------------------------------
-	8) Meet The Team Section
------------------------------------------------
-*/
-#max-team-section .col-md-4 {
-  -webkit-transition: all 500ms ease;
-  transition: all 500ms ease;
-  /*  padding: 160px 10px;*/
-  cursor: default;
-}
-
-#max-team-section .col-md-4:hover {
-  -webkit-transform: scale(1.05);
-  -ms-transform: scale(1.05);
-  transform: scale(1.05);
-  background-color: #f3f3f3;
-}
-
-/*
-----------------------------------------------
-Customizer
-----------------------------------------------
-*/
-
-/*Color Skins*/
-
-/*
-----------------------------------------------
-Color for customizer
-----------------------------------------------
-*/
-
-/* === ANIMATIONS (заменяет animate.css 71KB → 0.5KB) === */
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translate3d(0, -20px, 0);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes zoomIn {
-  from {
-    opacity: 0;
-    transform: scale3d(0.3, 0.3, 0.3);
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.fadeInDown {
-  animation-name: fadeInDown;
-}
-
-.zoomIn {
-  animation-name: zoomIn;
-}
-
-.animated {
-  animation-duration: 1s;
-  animation-fill-mode: both;
-}
-
-
 /* ============================================
    SKELETON LOADER — FlexSlider
    .flex-ready добавляется через JS после init
@@ -1616,96 +964,163 @@ section.slider .flexslider picture {
   }
 }
 
-/* --- Mobile Header Customization --- */
-@media (max-width: 991px) {
-  .navbar-header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    float: none;
-    padding: 0 15px;
+/* ==========================================================================
+   UNIFIED MOBILE HEADER BLOCK (760px)
+   ========================================================================== */
+@media (max-width: 760px) {
+  /* Reset absolute positioning from legacy blocks */
+  .number, .cart {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    width: auto !important;
+    height: auto !important;
+    float: none !important;
+    margin: 0 !important;
   }
 
-  .navbar-brand {
-    float: none;
-    margin: 0 auto;
-    padding: 0;
-    height: 50px;
-    display: flex;
-    align-items: center;
-  }
-
-  .navbar-brand img {
-    margin-top: 0;
-    height: 30px;
-  }
-
-  .navbar-toggle {
-    margin: 0;
-    float: none;
-    padding: 9px 10px;
-    border: 1px solid #ddd;
-    background-color: transparent;
-  }
-
-  .cart_mobile {
-    margin-left: 0;
-    position: relative;
-    display: flex !important;
-    align-items: center;
-  }
-
-  .header-right-area-mobile {
-    width: 100%;
-    float: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    border-top: 1px solid #eee;
+  /* Header structure */
+  header.sticky {
+    height: auto !important;
+    line-height: normal !important;
     background: #fff;
   }
 
+  header.sticky .navbar-default .number {
+    height: auto !important;
+    max-width: none !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .navbar-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    height: 60px !important; /* Fixed height for the first row */
+    padding: 0 15px !important;
+    background: #fff !important;
+    border-bottom: 1px solid #eee !important; /* Thin border as in reference */
+    float: none !important;
+  }
+
+  /* Hamburger menu icon */
+  .navbar-toggle {
+    display: block !important;
+    margin: 0 !important;
+    padding: 8px 10px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    background: transparent !important;
+    float: none !important;
+  }
+  .navbar-toggle .icon-bar {
+    display: block !important;
+    width: 22px !important;
+    height: 2px !important;
+    background-color: #363636 !important;
+    border-radius: 1px !important;
+  }
+  .navbar-toggle .icon-bar + .icon-bar {
+    margin-top: 4px !important;
+  }
+
+  /* Logo centered */
+  .navbar-brand {
+    flex: 1 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    float: none !important;
+  }
+  .navbar-brand img {
+    height: 30px !important;
+    margin: 0 !important;
+  }
+
+  /* Cart on the right */
+  .cart_mobile {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    position: relative !important;
+    margin: 0 !important;
+  }
+  .cart_mobile .basket_logo {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .cart_mobile .cart-widget-count {
+    top: -5px !important;
+    right: -5px !important;
+  }
+
+  /* Second row: Phone and Messengers */
+  .header-right-area-mobile {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 12px 15px !important;
+    background: #fff !important;
+    border-bottom: 2px solid #000 !important; /* Thicker border as in reference */
+    float: none !important;
+  }
+
   .header-right-area-mobile .number {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
   }
-
   .header-right-area-mobile .number a {
-    display: flex;
-    align-items: center;
     color: #363636 !important;
-    text-decoration: none;
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
   }
-
   .phone-icon-mobile {
-    width: 20px;
-    height: 20px;
-    margin-right: 8px;
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 10px !important;
   }
 
   .social-icons-mobile {
-    display: flex;
-    gap: 10px;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
   }
-
   .social-icons-mobile .social {
-    width: 30px;
-    height: 30px;
-    margin-left: 0;
+    width: 32px !important;
+    height: 32px !important;
+    margin: 0 !important;
   }
 
-  header.sticky {
-    height: auto;
+  /* Navigation menu overlay */
+  .navbar-collapse {
+    position: absolute !important;
+    top: 60px !important; /* Starts after the first row */
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 1000 !important;
   }
 
-  header.sticky .navbar-default .number {
-    height: auto;
+  /* Content Offsets - Updated for two-row header (approx 60 + 56 = 116px) */
+  section.slider, 
+  #max-aboutus-section,
+  .product {
+    padding-top: 120px !important;
+    margin-top: 0 !important;
   }
   
-  /* Adjust main content padding to account for taller header */
-  section.slider {
-    padding-top: 100px;
+  /* Reset legacy offsets */
+  .slider {
+    margin-top: 0 !important;
   }
 }

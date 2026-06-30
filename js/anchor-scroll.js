@@ -13,20 +13,25 @@
 
     $(function () {
         /**
-         * Calculate current header height dynamically + 20px buffer.
+         * Calculate current header height dynamically.
+         * For mobile (<= 760px), it includes both rows of the header.
          */
         function getHeaderHeight() {
-            const mobileHeaderBar = $('header .navbar-header');
-            const mainHeader = $('header');
+            const $header = $('header');
+            const $navHeader = $('.navbar-header');
+            const $mobileArea = $('.header-right-area-mobile');
+            
             let height = 0;
             
-            if ($(window).width() <= 760 && mobileHeaderBar.length) {
-               height = mobileHeaderBar.outerHeight();
-            } else if (mainHeader.length) {
-                height = mainHeader.outerHeight();
+            if ($(window).width() <= 760) {
+                // On mobile, the header height is the sum of the logo row and the contact row
+                height = ($navHeader.outerHeight() || 0) + ($mobileArea.outerHeight() || 0);
+            } else if ($header.length) {
+                height = $header.outerHeight();
             }
             
-            return height; // Add 20px extra offset as requested
+            // If the calculated height is 0 (e.g. elements not found), fallback to a safe value
+            return height || 50;
         }
 
         /**

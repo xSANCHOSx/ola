@@ -985,6 +985,10 @@ div#footer-copyrights {
     margin: 0;
   }
 
+  .navbar-header {
+    height: 130px;
+  }
+
   header.sticky .navbar-default .number {
     flex-wrap: wrap;
     max-width: 180px;
@@ -995,11 +999,7 @@ div#footer-copyrights {
   #logo {
     height: 35px !important;
     margin-left: 10%;
-    margin-top: 25px !important;
-  }
-
-  .cart {
-    top: -24px !important;
+    margin-top: 15px !important;
   }
 
   .slider {

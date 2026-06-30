@@ -5,6 +5,7 @@ $pageTitle = 'Информация о продукции Olaplex';
 $pageDescription = 'FAQ о том, как правильно пользоваться продукцией Олаплекс, что нужно знать перед тем как начать использовать продукцию.';
 require __DIR__ . '/templates/head.php';
 ?>
+
 <body>
 	<?php include 'templates/header.php'; ?>
 	<!-- About us section -->
@@ -71,6 +72,8 @@ require __DIR__ . '/templates/head.php';
 	<script defer src="/js/cart.js"></script>
 	<script defer src="/js/cart-init.js"></script>
 	<!-- Custom JavaScript -->
+	<script src="/js/anchor-scroll.js"></script>
 	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>"></script>
 </body>
+
 </html>

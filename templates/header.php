@@ -13,6 +13,10 @@
 				<a class="navbar-brand" href="/">
 					<img id="logo" src="/images/logo.png" alt="Olaplex Logo">
 				</a>
+				<div class="cart cart_mobile hidden-md hidden-lg" onclick="cart.showWinow('bcontainer', 1);">
+					<img class="basket_logo" src="/images/basket.png" alt="Корзина" />
+					<span id="basketwidjet2" class="cart-widget-count">0</span>
+				</div>
 			</div>
 			<!-- Collect the nav links, forms, and other content for toggling -->
 			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -41,18 +45,19 @@
 				</div>
 			</div>
 			<div class="header-right-area-mobile hidden-md hidden-lg">
-				<div class="number navbar-brand">
-					<a href="tel:+74950322929">+7 (495) 032-29-29</a>
+				<div class="number">
+					<a href="tel:+74950322929">
+						<img src="/images/Phone-icon.png" class="phone-icon-mobile" alt="phone">
+						+7 (495) 032-29-29
+					</a>
+				</div>
+				<div class="social-icons-mobile">
 					<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp social"
 							alt="whatsapp"></a>
 					<a href="https://t.me/kosmoprof" target="_blank"><img src="/images/tg.svg" class="telegram social"
 							alt="telegram"></a>
 					<a href="https://max.ru/id7733272706_bot" target="_blank"><img src="/images/max.svg"
 							class="max-messenger social" alt="max"></a>
-				</div>
-				<div class="cart cart_mobile" onclick="cart.showWinow('bcontainer', 1);">
-					<img class="basket_logo" src="/images/basket.png" alt="Корзина" />
-					<span id="basketwidjet2" class="cart-widget-count">0</span>
 				</div>
 			</div>
 			<!-- /.navbar-collapse -->

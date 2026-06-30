@@ -1615,3 +1615,97 @@ section.slider .flexslider picture {
     width: 50%;
   }
 }
+
+/* --- Mobile Header Customization --- */
+@media (max-width: 991px) {
+  .navbar-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    float: none;
+    padding: 0 15px;
+  }
+
+  .navbar-brand {
+    float: none;
+    margin: 0 auto;
+    padding: 0;
+    height: 50px;
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar-brand img {
+    margin-top: 0;
+    height: 30px;
+  }
+
+  .navbar-toggle {
+    margin: 0;
+    float: none;
+    padding: 9px 10px;
+    border: 1px solid #ddd;
+    background-color: transparent;
+  }
+
+  .cart_mobile {
+    margin-left: 0;
+    position: relative;
+    display: flex !important;
+    align-items: center;
+  }
+
+  .header-right-area-mobile {
+    width: 100%;
+    float: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-top: 1px solid #eee;
+    background: #fff;
+  }
+
+  .header-right-area-mobile .number {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .header-right-area-mobile .number a {
+    display: flex;
+    align-items: center;
+    color: #363636 !important;
+    text-decoration: none;
+  }
+
+  .phone-icon-mobile {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+  }
+
+  .social-icons-mobile {
+    display: flex;
+    gap: 10px;
+  }
+
+  .social-icons-mobile .social {
+    width: 30px;
+    height: 30px;
+    margin-left: 0;
+  }
+
+  header.sticky {
+    height: auto;
+  }
+
+  header.sticky .navbar-default .number {
+    height: auto;
+  }
+  
+  /* Adjust main content padding to account for taller header */
+  section.slider {
+    padding-top: 100px;
+  }
+}

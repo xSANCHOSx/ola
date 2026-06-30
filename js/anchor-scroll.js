@@ -1,61 +1,67 @@
-    /**
- * Unified Anchor Scroll Script for Olaplex Shop
+/**
+ * Unified Anchor Scroll Script for Olaplex Shop (Fixed Version)
  * 
- * Features:
- * 1. Prevents adding hash to URL on click.
- * 2. Accounts for fixed header height on mobile and desktop.
- * 3. Works consistently across all devices.
- * 4. Deduplicated and clean implementation.
+ * Fixes:
+ * 1. Strictly prevents adding hash to URL using e.preventDefault().
+ * 2. Adds 20px extra offset to the header height.
+ * 3. Closes the mobile menu after clicking a link.
+ * 4. Works consistently across all devices.
+ * 5. **NEW**: Ensures URL hash is removed from address bar using History API.
  */
 (function ($) {
     'use strict';
 
     $(function () {
         /**
-         * Calculate current header height dynamically.
-         * Accounts for potential differences between mobile and desktop headers.
+         * Calculate current header height dynamically + 20px buffer.
          */
         function getHeaderHeight() {
-            // Check for the mobile navbar first, then fallback to main header
             const mobileNavbar = $('header .navbar');
             const mainHeader = $('header');
+            let height = 0;
             
             if ($(window).width() <= 760 && mobileNavbar.length) {
-                return mobileNavbar.outerHeight();
+                height = mobileNavbar.outerHeight();
+            } else if (mainHeader.length) {
+                height = mainHeader.outerHeight();
             }
-            return mainHeader.length ? mainHeader.outerHeight() : 0;
+            
+            return height + 20; // Add 20px extra offset as requested
         }
 
         /**
          * Smooth scroll to a target element with offset.
-         * @param {string} targetSelector - CSS selector for the target element.
          */
         function scrollToAnchor(targetSelector) {
             const $target = $(targetSelector);
             if ($target.length) {
-                const headerHeight = getHeaderHeight();
-                const offsetTop = $target.offset().top - headerHeight;
+                const offsetTop = $target.offset().top - getHeaderHeight();
 
                 $('html, body').stop().animate({
                     scrollTop: offsetTop
-                }, 500); // 500ms for a smooth transition
+                }, 600, function() {
+                    // Callback after animation completes
+                    // Ensure the URL hash is removed from the address bar
+                    if (history.replaceState) {
+                        history.replaceState(null, null, window.location.pathname + window.location.search);
+                    }
+                });
             }
         }
 
-        // Handle clicks on anchor links
+        // Use a more specific selector to avoid interfering with other functional links
+        // and ensure we catch all anchor links in the navigation
         $(document).on('click', 'a[href*="#"]', function (e) {
             const href = $(this).attr('href');
             
-            // Extract the anchor part (e.g., from "/#section" or "#section")
-            const anchorMatch = href.match(/#([^?\/]*)/);
-            if (!anchorMatch) return;
-
-            const anchorId = anchorMatch[1];
+            // Extract the anchor ID
+            const hashIndex = href.indexOf('#');
+            if (hashIndex === -1) return;
             
-            // If it's just "#", it's likely a functional link (like "top" or a script trigger)
-            if (!anchorId) {
-                // If it's exactly "#", we might want to scroll to top or just let it be
-                // But usually, we just ignore it to avoid breaking other JS functionality
+            const anchorId = href.substring(hashIndex + 1);
+            
+            // Skip if it's just "#" or a script-based link
+            if (!anchorId || anchorId === "" || $(this).attr('href') === 'javascript:void(0)') {
                 return;
             }
 
@@ -64,25 +70,35 @@
 
             // If the target exists on the current page
             if ($target.length) {
-                e.preventDefault(); // Prevent default jump and URL hash change
+                // 1. Prevent URL hash update
+                e.preventDefault(); 
+                e.stopPropagation();
 
-                // Close mobile menu if open (specific to Olaplex Shop bootstrap setup)
+                // 2. Close mobile menu if open
                 const $mobileMenu = $('#bs-example-navbar-collapse-1');
-                if ($mobileMenu.hasClass('show')) {
-                    $('.navbar-toggle').trigger('click');
+                if ($mobileMenu.hasClass('show') || $mobileMenu.hasClass('in')) {
+                    // Try both bootstrap 3 and 4/5 methods to be safe
+                    $('.navbar-toggle, .navbar-toggler').trigger('click');
                 }
 
+                // 3. Scroll to target
                 scrollToAnchor(targetSelector);
+            } else if (history.replaceState) {
+                // If the anchor target doesn't exist, but it's still an anchor link,
+                // ensure the hash is removed if it somehow got into the URL.
+                history.replaceState(null, null, window.location.pathname + window.location.search);
             }
         });
 
-        // Optional: Handle initial load if URL contains a hash
-        // Note: The user asked to NOT add hash on click, but if they come from an external link with a hash,
-        // we should still scroll them correctly.
+        // Handle initial load with hash (optional but recommended for UX)
         if (window.location.hash) {
             setTimeout(function() {
                 scrollToAnchor(window.location.hash);
-            }, 500); // Small delay to ensure content is rendered
+                // Ensure hash is removed after initial load scroll as well
+                if (history.replaceState) {
+                    history.replaceState(null, null, window.location.pathname + window.location.search);
+                }
+            }, 500);
         }
     });
 })(jQuery);

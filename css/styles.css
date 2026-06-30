@@ -864,7 +864,6 @@ div#footer-copyrights {
     display: block;
     font-style: italic;
     margin-bottom: 10px;
-    text-align: center;
     width: 100%;
     border: 1px solid #d9d9d9;
   }
@@ -912,10 +911,11 @@ div#footer-copyrights {
 
   header.sticky .navbar-default .cart {
     width: 20%;
+    justify-content: flex-end;
   }
 
   header.sticky .navbar-default .number {
-    width: 70%;
+    width: 80%;
     float: left;
     font-size: 20px;
   }
@@ -967,6 +967,7 @@ div#footer-copyrights {
   }
 
   .social {
+    width: 30px;
     margin-left: 5px !important;
   }
 
@@ -982,6 +983,23 @@ div#footer-copyrights {
 @media screen and (max-width: 467px) {
   .navbar-nav {
     margin: 0;
+  }
+
+  header.sticky .navbar-default .number {
+    flex-wrap: wrap;
+    max-width: 180px;
+    justify-content: center !important;
+    line-height: 40px !important;
+  }
+
+  .navbar-brand img {
+    height: 35px !important;
+    margin-left: 10%;
+    margin-top: 25px !important;
+  }
+
+  .cart {
+    top: -24px !important;
   }
 
   .slider {
@@ -1242,7 +1260,7 @@ button {
 }
 
 .font-geometria-light {
-  max-width: 95%;
+  max-width: 92%;
   float: right;
 }
 

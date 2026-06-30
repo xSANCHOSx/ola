@@ -18,7 +18,7 @@ $(function () {
     });
 
     menuItems.on('click', function (e) {
-        if ($('#bs-example-navbar-collapse-1').hasClass('in')) {
+        if ($('#bs-example-navbar-collapse-1').hasClass('show')) {
             $('.navbar-toggle').trigger('click');
         }
         var href = $(this).attr('href'),

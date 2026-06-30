@@ -746,7 +746,7 @@ div#footer-copyrights {
 }
 
 @media screen and (max-width: 992px) {
-  .navbar-collapse.collapse {
+  .navbar-collapse.collapse:not(.show) {
     display: none !important;
   }
 

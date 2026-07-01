@@ -190,6 +190,41 @@ header.sticky .navbar-default .navbar-brand {
   align-items: center;
 }
 
+/* BUGFIX: bootstrap.min.css was upgraded to v5 and no longer ships the
+   Bootstrap 3 ".hidden-xs/.hidden-sm/.hidden-md/.hidden-lg" helpers that the
+   markup still relies on (header.php, footer.php, single_product_template.php).
+   Without these rules BOTH the desktop and mobile header blocks (phone +
+   social icons) render at the same time on every screen size, which is why
+   the socials appeared duplicated/detached ("hang in the air") between
+   768px and 992px. Breakpoints match the original Bootstrap 3 grid. */
+@media (max-width: 767.98px) {
+
+  .hidden-xs {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+
+  .hidden-sm {
+    display: none !important;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+
+  .hidden-md {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1200px) {
+
+  .hidden-lg {
+    display: none !important;
+  }
+}
+
 header.sticky .navbar-default .cart {
   color: #363636 !important;
   font-weight: 600;
@@ -1624,9 +1659,18 @@ section.slider .flexslider picture {
 
 
 /* ==========================================================================
-   UNIFIED MOBILE HEADER BLOCK (760px)
+   UNIFIED MOBILE HEADER BLOCK (991px)
+   BUGFIX: widened from 760px -> 991px. .header-right-area-mobile is visible
+   for the whole "hidden-md hidden-lg" range (< 992px, see .hidden-* helpers
+   above), but this block that turns it into a clean flex row and resets the
+   legacy `position: absolute; left: 34%` rule (see the old
+   `@media screen and (max-width: 992px) { .number {...} }` block) only used
+   to run below 760px. Between 761px and 991px the socials/phone number were
+   still absolutely positioned against the fixed header and detached from
+   normal flow, which removed the space content needed below the header -
+   exactly the 768-992px glitch that was reported.
    ========================================================================== */
-@media (max-width: 760px) {
+@media (max-width: 991.98px) {
 
   /* Reset absolute positioning from legacy blocks */
   .number,

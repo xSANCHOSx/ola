@@ -9,7 +9,7 @@ require __DIR__ . '/templates/head.php';
 <body>
 	<?php include 'templates/header.php'; ?>
 	<!-- About us section -->
-	<section id="max-aboutus-section product">
+	<section id="max-aboutus-section product" style="margin-top:60px;">
 		<div class="max-section-title">
 			<h1>Информация о том как правильно использовать Олаплекс</h1>
 		</div>

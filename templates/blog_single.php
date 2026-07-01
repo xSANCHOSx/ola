@@ -249,6 +249,16 @@ function getSafeImagePath(string $path): ?string
 		white-space: nowrap;
 	}
 
+	@media (max-width: 768px) {
+		.blog-single-wrap {
+			padding-top: 150px;
+		}
+
+		.blog-article {
+			padding: 0 15px;
+		}
+	}
+
 	@media (max-width: 576px) {
 		.blog-single-wrap {
 			padding-top: 70px;

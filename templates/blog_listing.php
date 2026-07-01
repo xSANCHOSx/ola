@@ -83,13 +83,13 @@ $pageDescription = 'Читайте полезные статьи о восста
 <style>
 	/* Отступ для фиксированной шапки — как на странице отдельного поста (blog_single.php) */
 	.blog-listing-wrap {
-		padding-top: 90px;
+		padding-top: 80px;
 		padding-bottom: 60px;
 	}
 
-	@media (max-width: 576px) {
+	@media (max-width: 768px) {
 		.blog-listing-wrap {
-			padding-top: 80px;
+			padding-top: 140px;
 		}
 	}
 </style>

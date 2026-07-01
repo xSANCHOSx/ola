@@ -641,8 +641,8 @@ div#footer-copyrights {
   font-size: 91%;
 }
 
-.mt100 {
-  margin-top: 100px !important;
+.mt-block {
+  margin-top: 60px !important;
 }
 
 /*
@@ -899,8 +899,8 @@ div#footer-copyrights {
     padding-right: 20px;
   }
 
-  .mt100 {
-    margin-top: 140px !important;
+  .mt-block {
+    margin-top: 90px !important;
   }
 
   .navbar-default {

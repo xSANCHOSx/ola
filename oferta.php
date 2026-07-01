@@ -15,7 +15,7 @@ require __DIR__ . '/templates/head.php';
 
 
 	<!-- About us section -->
-	<section id="max-aboutus-section" class="mt100">
+	<section id="max-aboutus-section" class="mt-block">
 		<div class="max-section-title">
 			<h2>Соглашение на обработку персональный данных</h2>
 		</div>

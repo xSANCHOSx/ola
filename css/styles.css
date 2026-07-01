@@ -1853,6 +1853,10 @@ section.slider .flexslider picture {
     margin-top: 0 !important;
   }
 
+  #max-aboutus-section .container {
+    width: 100%;
+  }
+
   /* Reset legacy offsets */
   .slider {
     margin-top: 0 !important;

@@ -15,7 +15,7 @@ require __DIR__ . '/templates/head.php';
 
 
 	<!-- About us section -->
-	<section id="max-aboutus-section" style="margin-top:60px;">
+	<section id="max-aboutus-section mt100">
 		<div class="max-section-title">
 			<h2>Политика конфиденциальности персональных данных</h2>
 		</div>

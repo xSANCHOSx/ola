@@ -641,6 +641,10 @@ div#footer-copyrights {
   font-size: 91%;
 }
 
+.mt100 {
+  margin-top: 100px;
+}
+
 /*
 -----------------------------------------------
 	17) Responsive
@@ -893,6 +897,10 @@ div#footer-copyrights {
   #aboutus-section {
     padding-left: 20px;
     padding-right: 20px;
+  }
+
+  .mt100 {
+    margin-top: 140px;
   }
 
   .navbar-default {

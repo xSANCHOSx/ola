@@ -13,7 +13,7 @@ require __DIR__ . '/templates/head.php';
 	<?php include 'templates/header.php'; ?>
 
 	<!-- About us section -->
-	<section id="max-aboutus-section mt100">
+	<section id="max-aboutus-section" class="mt100">
 		<div class="max-section-title">
 			<h2>ОПЛАТА И ДОСТАВКА</h2>
 		</div>

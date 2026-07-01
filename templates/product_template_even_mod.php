@@ -5,7 +5,7 @@
 				<?= webp_img($product['image'], $product['name'], '', ['loading' => 'lazy', 'width' => 400, 'height' => 400]) ?>
 			</div>
 		</div>
-		<div class="col-sm-12 col-md-6 tovar-name animated fadeInDown" data-id="">
+		<div class="col-sm-12 col-md-6 tovar-name animated fadeInDown" data-id="<?= htmlspecialchars((string)$product['id']) ?>">
 			<h2><a class="name_link" href="<?= $product['link'] ?>">
 					<?php if (!empty($product['cat_number'])): ?>
 						<strong><?= $product['cat_number'] ?></strong><br />

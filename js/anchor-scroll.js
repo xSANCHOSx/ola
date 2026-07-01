@@ -13,25 +13,26 @@
 
     $(function () {
         /**
-         * Calculate current header height dynamically.
-         * For mobile (<= 760px), it includes both rows of the header.
+         * Calculate current header height dynamically + 20px buffer.
          */
         function getHeaderHeight() {
-            const $header = $('header');
-            const $navHeader = $('.navbar-header');
-            const $mobileArea = $('.header-right-area-mobile');
-            
+            const mainHeader = $('header');
+            // On mobile, .navbar-header (logo + burger button) is a SIBLING of the
+            // collapsible menu (#bs-example-navbar-collapse-1), not its parent.
+            // It has a fixed height in CSS and never changes when the menu
+            // opens/closes/animates, so it's the only reliable thing to measure.
+            // (header .navbar would include the dropdown menu's height too,
+            // which is what was causing the huge gap after scrolling.)
+            const mobileHeaderBar = $('header .navbar-header');
             let height = 0;
-            
-            if ($(window).width() <= 760) {
-                // On mobile, the header height is the sum of the logo row and the contact row
-                height = ($navHeader.outerHeight() || 0) + ($mobileArea.outerHeight() || 0);
-            } else if ($header.length) {
-                height = $header.outerHeight();
+
+            if ($(window).width() <= 760 && mobileHeaderBar.length) {
+                height = mobileHeaderBar.outerHeight();
+            } else if (mainHeader.length) {
+                height = mainHeader.outerHeight();
             }
-            
-            // If the calculated height is 0 (e.g. elements not found), fallback to a safe value
-            return height || 50;
+
+            return height + 20; // Add 20px extra offset as requested
         }
 
         /**

@@ -353,7 +353,16 @@ function getSafeImagePath(string $path): ?string
 	</div><!-- /.container -->
 
 	<?php require __DIR__ . '/footer.php'; ?>
+	<?php require __DIR__ . '/order_form.php'; ?>
 
+	<!-- All JavaScript libraries -->
+	<script defer src="/js/jquery-3.7.1.min.js"></script>
+	<script defer src="/js/bootstrap.min.js"></script>
+	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart-init.js"></script>
+	<!-- Custom JavaScript -->
+	<script defer src="/js/anchor-scroll.js"></script>
+	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/../js/main.js')); ?>"></script>
 </body>
 
 </html>

@@ -80,10 +80,24 @@ $pageDescription = 'Читайте полезные статьи о восста
 
 <?php require __DIR__ . '/head.php'; ?>
 
+<style>
+	/* Отступ для фиксированной шапки — как на странице отдельного поста (blog_single.php) */
+	.blog-listing-wrap {
+		padding-top: 90px;
+		padding-bottom: 60px;
+	}
+
+	@media (max-width: 576px) {
+		.blog-listing-wrap {
+			padding-top: 80px;
+		}
+	}
+</style>
+
 <body>
 	<?php require __DIR__ . '/header.php'; ?>
 
-	<div class="container" style="padding-top: 40px; padding-bottom: 60px;">
+	<div class="container blog-listing-wrap">
 		<div class="row">
 			<div class="col-md-8">
 
@@ -121,7 +135,7 @@ $pageDescription = 'Читайте полезные статьи о восста
 				<?php else: ?>
 					<?php foreach ($posts as $post): ?>
 
-						<article style="margin-bottom:40px; padding-bottom:30px; border-bottom:1px solid #eee;">
+						<article style="margin-bottom:40px; padding:0 20px 30px; border-bottom:1px solid #eee;">
 
 							<?php if (!empty($post['featured_image'])): ?>
 								<a href="/blog/<?= htmlspecialchars((string)$post['slug']) ?>">
@@ -247,7 +261,16 @@ $pageDescription = 'Читайте полезные статьи о восста
 	</div><!-- /.container -->
 
 	<?php require __DIR__ . '/footer.php'; ?>
+	<?php require __DIR__ . '/order_form.php'; ?>
 
+	<!-- All JavaScript libraries -->
+	<script defer src="/js/jquery-3.7.1.min.js"></script>
+	<script defer src="/js/bootstrap.min.js"></script>
+	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart-init.js"></script>
+	<!-- Custom JavaScript -->
+	<script defer src="/js/anchor-scroll.js"></script>
+	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/../js/main.js')); ?>"></script>
 </body>
 
 </html>

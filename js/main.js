@@ -1,17 +1,18 @@
+'use strict'
+
 $(function () {
     /**
      * Header Height Calculation
      * Used for scroll-spy and other layout logic.
-     * For mobile (<= 760px), it includes both rows of the header.
      */
     function getHeaderHeight() {
-        if ($(window).width() <= 760) {
-            const $navHeader = $('.navbar-header');
-            const $mobileArea = $('.header-right-area-mobile');
-            return ($navHeader.outerHeight() || 0) + ($mobileArea.outerHeight() || 0);
-        } else {
-            return $('header').outerHeight() || 50;
-        }
+        // .navbar-header (logo + burger) is a sibling of the collapsible mobile
+        // menu, not its parent — measuring "header .navbar" (old code) included
+        // the dropdown menu's height whenever it was open, throwing off the
+        // scroll-spy active-item calculation. Kept in sync with anchor-scroll.js.
+        return ($(window).width() > 760)
+            ? ($('header').height() || 0)
+            : ($('header .navbar-header').height() || 0);
     }
 
     var lastId,
@@ -99,36 +100,119 @@ jQuery(document).ready(function ($) {
 });
 
 /**
- * E-commerce Analytics & Helpers
+ * Promotional Timer
  */
+function updateTimer(uniqueId) {
+    const timerElement = document.querySelector(`#timer-${uniqueId}`);
+    if (!timerElement || !timerElement.dataset.end) return;
+    
+    let end = parseFloat(timerElement.dataset.end);
+    if (isNaN(end)) return;
 
-/**
- * Discount Timer (Flip Clock)
- * Обновляет блоки `.expire_date[data-end]`, выводя количество дней,
- * оставшихся до конца акции, в элемент `.flip-unit .days`.
- * Разметка генерируется в templates/helpers.php (функция getDiscountTimer).
- */
-function updateTimer() {
-    var now = Math.floor(Date.now() / 1000);
+    let now = new Date().getTime() / 1000;
+    let timeLeft = end - now;
+    
+    if (timeLeft <= 0) {
+        end = now + 15 * 24 * 60 * 60;
+        timerElement.dataset.end = end;
+        timeLeft = end - now;
+    }
 
-    $('.expire_date[data-end]').each(function () {
-        var $timer = $(this);
-        var endTime = parseInt($timer.attr('data-end'), 10);
+    let days = Math.floor(timeLeft / (24 * 60 * 60));
+    let dayWord = days === 1 ? 'День' : days >= 2 && days <= 4 ? 'Дня' : 'Дней';
 
-        if (isNaN(endTime)) {
-            return;
-        }
-
-        var diff = endTime - now;
-        var days = diff > 0 ? Math.floor(diff / 86400) : 0;
-
-        $timer.find('.flip-unit .days').text(days);
-    });
+    const daysElement = timerElement.querySelector('.days');
+    const labelElement = timerElement.querySelector('.flip-label');
+    if (daysElement && labelElement) {
+        daysElement.innerText = days;
+        labelElement.innerText = dayWord;
+    }
 }
 
-jQuery(function ($) {
-    if ($('.expire_date[data-end]').length) {
-        updateTimer();
-        setInterval(updateTimer, 60000);
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.expire_date').forEach(timer => {
+        const uniqueId = timer.id.replace('timer-', '');
+        updateTimer(uniqueId);
+        setInterval(() => updateTimer(uniqueId), 3600000);
+    });
+});
+
+/**
+ * Cookie Consent
+ */
+function acceptCookies() {
+    document.cookie = 'cookie_accepted=true; max-age=31536000; path=/';
+    const notice = document.getElementById('cookie-notice');
+    if (notice) notice.style.display = 'none';
+}
+
+window.addEventListener('load', function () {
+    const notice = document.getElementById('cookie-notice');
+    if (notice) {
+        notice.style.display = document.cookie.indexOf('cookie_accepted=true') === -1 ? 'block' : 'none';
     }
+});
+
+/**
+ * Contact Form Logic
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const radios = document.querySelectorAll('input[name="contact_method"]');
+    const wrapper = document.getElementById('contact-username-wrapper');
+    const input = document.getElementById('contact_username');
+
+    if (!wrapper || !input) return;
+
+    function updateField(value) {
+        if (value === 'email') {
+            wrapper.style.display = 'none';
+            input.removeAttribute('required');
+        } else {
+            wrapper.style.display = 'block';
+            input.setAttribute('required', 'required');
+
+            let placeholder = '@username';
+            if (value === 'whatsapp') placeholder = 'Номер WhatsApp';
+            if (value === 'telegram') placeholder = '@telegram_username';
+            if (value === 'max') placeholder = '@max_username';
+
+            input.placeholder = placeholder;
+        }
+    }
+
+    radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            updateField(this.value);
+        });
+    });
+
+    const checked = document.querySelector('input[name="contact_method"]:checked');
+    if (checked) updateField(checked.value);
+});
+
+/**
+ * Phone Input Mask
+ */
+document.addEventListener('DOMContentLoaded', function () {
+    var phone = document.getElementById('phoneNumber');
+    if (!phone) return;
+
+    phone.addEventListener('input', function (e) {
+        var val = e.target.value.replace(/\D/g, '');
+        if (val.startsWith('7') || val.startsWith('8')) val = val.slice(1);
+        var result = '+7(';
+        if (val.length > 0) result += val.slice(0, 3);
+        if (val.length >= 3) result += ')' + val.slice(3, 6);
+        if (val.length >= 6) result += '-' + val.slice(6, 8);
+        if (val.length >= 8) result += '-' + val.slice(8, 10);
+        e.target.value = result;
+    });
+
+    phone.addEventListener('keydown', function (e) {
+        if (e.key === 'Backspace' && phone.value === '+7(') e.preventDefault();
+    });
+
+    phone.addEventListener('focus', function () {
+        if (!phone.value) phone.value = '+7(';
+    });
 });

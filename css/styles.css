@@ -879,6 +879,19 @@ div#footer-copyrights {
   }
 }
 
+/* Fix: боковые отступы на карточке товара отсутствовали в диапазоне 768–991px
+   (планшетный breakpoint). .max-feature-section-list зануляет padding
+   контейнера через !important, а margin у .row / padding у .col-* взаимно
+   компенсируются, из-за чего текст и кнопка "Купить" упирались в края экрана.
+   Ниже 768px тот же эффект не проявлялся благодаря дополнительным
+   элементам разметки, поэтому фикс точечно нацелен на 768–991.98px. */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .max-feature-section-list {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+}
+
 @media screen and (max-width: 735px) {
   .popup {
     background: none repeat scroll 0 0 #f2f2f2;

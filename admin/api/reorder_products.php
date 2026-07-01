@@ -63,6 +63,7 @@ try {
     echo json_encode(['success' => true]);
 } catch (Throwable $e) {
     $pdo->rollBack();
+    error_log('Reorder products error: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    echo json_encode(['error' => 'Database error']);
 }

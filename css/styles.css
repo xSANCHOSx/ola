@@ -603,7 +603,7 @@ div#max-team {
   width: 100% !important;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-around;
+  justify-content: space-evenly;
 }
 
 div#footer-copyrights {
@@ -1707,6 +1707,10 @@ section.slider .flexslider picture {
   .navbar-brand img {
     height: 30px !important;
     margin: 0 !important;
+  }
+
+  .navbar-brand .whatsapp {
+    margin-left: 10px !important;
   }
 
   /* Cart on the right */

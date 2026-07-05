@@ -759,6 +759,10 @@ div#footer-copyrights {
     padding: 15px 10px;
   }
 
+  .mob_email_wrap {
+    padding-top: 0 !important;
+  }
+
   .navbar-link-email {
     font-size: 12px;
   }
@@ -1883,5 +1887,9 @@ section.slider .flexslider picture {
   /* Reset legacy offsets */
   .slider {
     margin-top: 0 !important;
+  }
+
+  .mob_email_wrap {
+    padding-top: 15px !important;
   }
 }

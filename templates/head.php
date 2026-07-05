@@ -29,8 +29,11 @@ $cssBust = function (string $f) {
 	<link rel="preload" href="/css/styles.css?v=<?= $cssBust('css/styles.css') ?>" as="style">
 
 	<!-- CSS Loading -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css"
-		integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+	<!-- BUGFIX: was loading Bootstrap 3.4.1 from CDN while /js/bootstrap.min.js
+	     (and the rest of the project, incl. admin) is Bootstrap 5.3.3. That
+	     v3-CSS / v5-JS mismatch is what broke things like the burger menu.
+	     Now using the same local v5.3.3 stylesheet as everywhere else. -->
+	<link rel="stylesheet" href="/css/bootstrap.min.css?v=<?= $cssBust('css/bootstrap.min.css') ?>">
 
 	<link rel="stylesheet" href="/css/styles.css?v=<?= $cssBust('css/styles.css') ?>">
 	<link rel="stylesheet" href="/css/wicart.css?v=<?= $cssBust('css/wicart.css') ?>" media="print"

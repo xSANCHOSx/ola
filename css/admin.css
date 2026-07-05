@@ -1,14 +1,4 @@
 /* ============================================================
-   Bootstrap 3/4 -> 5 compatibility shim
-   Bootstrap 5 dropped ".form-group" (used in admin/login.php and other
-   admin forms); this restores its original spacing so form fields don't
-   lose their bottom margin.
-   ============================================================ */
-.form-group {
-    margin-bottom: 1rem;
-}
-
-/* ============================================================
    Admin Navigation Styles
    ============================================================ */
 

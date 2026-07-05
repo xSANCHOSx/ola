@@ -121,3 +121,10 @@ foreach ($products as $product) {
 
 <!-- Analytics moved to end of body -->
 <?php require __DIR__ . '/analytics.php'; ?>
+
+<!-- Scroll to Top Button -->
+<a href="#" id="scroll-to-top" title="Наверх">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+</a>

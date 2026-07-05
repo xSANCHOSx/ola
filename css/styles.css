@@ -145,6 +145,7 @@ img {
 .navbar-header {
   float: left;
   width: 22%;
+  display: block;
 }
 
 .navbar-nav {
@@ -1949,5 +1950,60 @@ section.slider .flexslider picture {
         right: 20px;
         width: 40px;
         height: 40px;
+    }
+}
+
+/* 
+   Fix for Bootstrap 3 hidden-* classes when used with newer Bootstrap or custom styles 
+   Ensures visibility classes work correctly across all breakpoints
+*/
+
+@media (max-width: 767px) {
+    .hidden-xs {
+        display: none !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .hidden-sm {
+        display: none !important;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    .hidden-md {
+        display: none !important;
+    }
+}
+
+@media (min-width: 1200px) {
+    .hidden-lg {
+        display: none !important;
+    }
+}
+
+/* Ensure mobile-specific elements are hidden on desktop if they use these classes */
+.visible-xs, .visible-sm, .visible-md, .visible-lg {
+    display: none !important;
+}
+
+@media (max-width: 767px) {
+    .visible-xs {
+        display: block !important;
+    }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+    .visible-sm {
+        display: block !important;
+    }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+    .visible-md {
+        display: block !important;
+    }
+}
+@media (min-width: 1200px) {
+    .visible-lg {
+        display: block !important;
     }
 }

@@ -59,11 +59,7 @@ $(function () {
         e.stopPropagation();
     });
 
-<<<<<<< HEAD
-     // Close mobile menu when clicking outside of it
-=======
     // Close mobile menu when clicking outside of it
->>>>>>> 2aed052401f770ad1c8cc54a133dc8652fe18bfa
     $(document).on('click', function(e) {
         const $mobileMenu = $('#bs-example-navbar-collapse-1');
         const $navbar = $('.navbar');

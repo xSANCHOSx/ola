@@ -1847,7 +1847,6 @@ section.slider .flexslider picture {
 
   /* Content Offsets - Updated for two-row header (approx 60 + 56 = 116px) */
   section.slider,
-  #max-aboutus-section,
   .product {
     padding-top: 120px !important;
     margin-top: 0 !important;

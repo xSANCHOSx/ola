@@ -24,7 +24,10 @@ foreach ($products as $product) {
 						<li><a href="/#max-work-section">Как использовать</a></li>
 						<li><a href="/delivery">Доставка и оплата</a></li>
 						<li><a href="/info">Справка</a></li>
-						<li class="hidden-md hidden-lg"><a href='tel:+74950322929'>+7 (495) 032-29-29</a></li>
+						<li class="hidden-md hidden-lg"> <a href="tel:+74950322929">+7 (495) 032-29-29</a>
+							<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"
+									loading="lazy"></a>
+						</li>
 						<li class="hidden-md hidden-lg"><a href="mailto:admin@olaplex-shop.ru"
 								class="navbar-link-email">admin@olaplex-shop.ru</a><a href="mailto:client@olaplex-shop.ru"
 								class="navbar-link-email">client@olaplex-shop.ru</a></li>
@@ -124,7 +127,8 @@ foreach ($products as $product) {
 
 <!-- Scroll to Top Button -->
 <a href="#" id="scroll-to-top" title="Наверх">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="18 15 12 9 6 15"></polyline>
-    </svg>
+	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+		stroke-linecap="round" stroke-linejoin="round">
+		<polyline points="18 15 12 9 6 15"></polyline>
+	</svg>
 </a>

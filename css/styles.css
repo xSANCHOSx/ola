@@ -917,9 +917,6 @@ div#footer-copyrights {
 @media screen and (max-width: 768px) {
   .mob_email_wrap {
     padding-top: 20px !important;
-    flex-wrap: wrap;
-    line-height: 3;
-    font-size: 14px;
   }
 
 }

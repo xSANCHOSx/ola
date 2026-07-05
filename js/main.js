@@ -58,6 +58,21 @@ $(function () {
     $('.navbar-toggle').on('click', function(e) {
         e.stopPropagation();
     });
+
+    // Close mobile menu when clicking outside of it
+    $(document).on('click', function(e) {
+        const $mobileMenu = $('#bs-example-navbar-collapse-1');
+        const $navbar = $('.navbar');
+        
+        // Check if menu is open
+        if ($mobileMenu.hasClass('show') || $mobileMenu.hasClass('in')) {
+            // Check if click was outside the navbar
+            if (!$navbar.find(e.target).length && !$navbar.has(e.target).length) {
+                // Close the menu by triggering the toggle button click
+                $('.navbar-toggle, .navbar-toggler').trigger('click');
+            }
+        }
+    });
 });
 
 /**

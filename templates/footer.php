@@ -24,7 +24,7 @@ foreach ($products as $product) {
 						<li><a href="/#max-work-section">Как использовать</a></li>
 						<li><a href="/delivery">Доставка и оплата</a></li>
 						<li><a href="/info">Справка</a></li>
-						<li class="hidden-md hidden-lg"> <a href="tel:+74950322929">+7 (495) 032-29-29</a>
+						<li class="navbar-brandhidden-md hidden-lg"> <a href="tel:+74950322929">+7 (495) 032-29-29</a>
 							<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"
 									loading="lazy"></a>
 						</li>

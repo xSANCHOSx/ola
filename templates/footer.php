@@ -25,16 +25,18 @@ foreach ($products as $product) {
 						<li><a href="/delivery">Доставка и оплата</a></li>
 						<li><a href="/info">Справка</a></li>
 						<li class="hidden-md hidden-lg"><a href='tel:+74950322929'>+7 (495) 032-29-29</a></li>
-						<li class="hidden-md hidden-lg"><a href="mailto:admin@olaplex-shop.ru">admin@olaplex-shop.ru</a><a
-								href="mailto:client@olaplex-shop.ru">client@olaplex-shop.ru</a></li>
+						<li class="hidden-md hidden-lg"><a href="mailto:admin@olaplex-shop.ru"
+								class="navbar-link-email">admin@olaplex-shop.ru</a><a href="mailto:client@olaplex-shop.ru"
+								class="navbar-link-email">client@olaplex-shop.ru</a></li>
 					</ul>
 					<div class="number navbar-brand hidden-sm hidden-xs">
 						<a href="tel:+74950322929">+7 (495) 032-29-29</a>
-						<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp" loading="lazy"></a>
+						<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"
+								loading="lazy"></a>
 					</div>
-					<div class="number navbar-brand hidden-sm hidden-xs" style="padding-left:15px;"><a
-							href="mailto:admin@olaplex-shop.ru">admin@olaplex-shop.ru</a></br><a
-							href="mailto:client@olaplex-shop.ru">client@olaplex-shop.ru</a></div>
+					<div class="number navbar-brand hidden-sm hidden-xs mob_email_wrap"><a href="mailto:admin@olaplex-shop.ru"
+							class="navbar-link-email">admin@olaplex-shop.ru</a></br><a href="mailto:client@olaplex-shop.ru"
+							class="navbar-link-email">client@olaplex-shop.ru</a></div>
 				</nav>
 			</div>
 		</div>
@@ -49,11 +51,11 @@ foreach ($products as $product) {
 			<nav class="navbar navbar-default ">
 				<ul class="nav navbar-nav menu_footer">
 					<?php foreach ($menuItems as $item): ?>
-						<?php if ($currentUrl == $item['href']): ?>
-							<li class="active_footer"><?= htmlspecialchars($item['name']) ?></li>
-						<?php else: ?>
-							<li><a href="<?= htmlspecialchars($item['href']) ?>"><?= htmlspecialchars($item['name']) ?></a></li>
-						<?php endif; ?>
+					<?php if ($currentUrl == $item['href']): ?>
+					<li class="active_footer"><?= htmlspecialchars($item['name']) ?></li>
+					<?php else: ?>
+					<li><a href="<?= htmlspecialchars($item['href']) ?>"><?= htmlspecialchars($item['name']) ?></a></li>
+					<?php endif; ?>
 					<?php endforeach; ?>
 				</ul>
 			</nav>
@@ -79,24 +81,28 @@ foreach ($products as $product) {
 
 <!-- Top.Mail.Ru counter -->
 <script type="text/javascript">
-(function () {
-  function loadTMR() {
-    var _tmr = window._tmr || (window._tmr = []);
-    _tmr.push({ id: "3629866", type: "pageView", start: (new Date()).getTime() });
-    if (document.getElementById('tmr-code')) return;
-    var ts = document.createElement("script");
-    ts.type = "text/javascript";
-    ts.async = true;
-    ts.id = "tmr-code";
-    ts.src = "https://top-fwz1.mail.ru/js/code.js";
-    var s = document.getElementsByTagName("script")[0];
-    s.parentNode.insertBefore(ts, s);
-  }
-  if (window.requestIdleCallback) {
-    requestIdleCallback(loadTMR);
-  } else {
-    setTimeout(loadTMR, 1500);
-  }
+(function() {
+	function loadTMR() {
+		var _tmr = window._tmr || (window._tmr = []);
+		_tmr.push({
+			id: "3629866",
+			type: "pageView",
+			start: (new Date()).getTime()
+		});
+		if (document.getElementById('tmr-code')) return;
+		var ts = document.createElement("script");
+		ts.type = "text/javascript";
+		ts.async = true;
+		ts.id = "tmr-code";
+		ts.src = "https://top-fwz1.mail.ru/js/code.js";
+		var s = document.getElementsByTagName("script")[0];
+		s.parentNode.insertBefore(ts, s);
+	}
+	if (window.requestIdleCallback) {
+		requestIdleCallback(loadTMR);
+	} else {
+		setTimeout(loadTMR, 1500);
+	}
 })();
 </script>
 <noscript>
@@ -105,9 +111,13 @@ foreach ($products as $product) {
 </noscript>
 
 <!-- Envybox callback widget -->
-<link rel="preload" href="https://cdn.envybox.io/widget/cbk.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css"></noscript>
-<script src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4d8a7b33dcf97067342ac246b5aecaa" charset="UTF-8" async defer></script>
+<link rel="preload" href="https://cdn.envybox.io/widget/cbk.css" as="style"
+	onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+	<link rel="stylesheet" href="https://cdn.envybox.io/widget/cbk.css">
+</noscript>
+<script src="https://cdn.envybox.io/widget/cbk.js?wcb_code=e4d8a7b33dcf97067342ac246b5aecaa" charset="UTF-8" async
+	defer></script>
 
 <!-- Analytics moved to end of body -->
 <?php require __DIR__ . '/analytics.php'; ?>

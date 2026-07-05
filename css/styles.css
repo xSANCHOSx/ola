@@ -554,7 +554,7 @@ div#max-team {
 
 .member-profile img {
   position: relative;
-  max-height: 260px;
+  max-height: 100%;
 }
 
 /*
@@ -733,7 +733,11 @@ div#footer-copyrights {
   }
 
   header.sticky .navbar-default .cart {
-    width: 7%;
+    width: 12%;
+  }
+
+  .navbar-link-email {
+    font-size: 12px;
   }
 }
 
@@ -748,6 +752,10 @@ div#footer-copyrights {
 
   .navbar-brand {
     padding: 15px 10px;
+  }
+
+  .navbar-link-email {
+    font-size: 12px;
   }
 
   .number {
@@ -889,6 +897,17 @@ div#footer-copyrights {
   .max-feature-section-list {
     padding-left: 20px !important;
     padding-right: 20px !important;
+  }
+
+  .mob_email_wrap {
+    padding-left: 15px !important;
+    padding-top: 0;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .mob_email_wrap {
+    padding-top: 20px !important;
   }
 }
 

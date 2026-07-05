@@ -736,6 +736,11 @@ div#footer-copyrights {
     width: 12%;
   }
 
+  .mob_email_wrap {
+    padding-left: 15px !important;
+    padding-top: 0 !important;
+  }
+
   .navbar-link-email {
     font-size: 12px;
   }

@@ -20,38 +20,27 @@ jobs:
           debug: true          # ← добавь это
           command_timeout: 30s # ← добавь явный таймаут
           script: |
-            # Путь к файлам
+            set -euxo pipefail
+
             SITE_ROOT="/home/c/cs16144/www452"
             TEMP_DIR="$SITE_ROOT/temp"
-            BASE_DIR="$SITE_ROOT/public_html"
-            REPO="git@github.com:xSANCHOSx/ola.git"
 
-            # Создаём структуру файлов
-            mkdir -p $TEMP_DIR
-            mkdir -p $BASE_DIR
-            cd $TEMP_DIR
+            echo "===== USER ====="
+            whoami
 
-            # Инициализация или обновление репозитория
-            if [ ! -d ".git" ]; then
-              git clone $REPO .
-            else
-              git fetch origin main
-              git reset --hard origin/main
-            fi
+            echo "===== CURRENT DIR ====="
+            pwd
 
-            # Удаляем мусор перед копированием
-            find . -name ".DS_Store" -delete
-            find . -name "Thumbs.db" -delete
+            echo "===== HOME ====="
+            echo "$HOME"
 
-            # Синхронизация из temp/ в public_html/
-            rsync -avz --delete \
-              --exclude='.git/' \
-              --exclude='.github/' \
-              --exclude='.gitignore' \
-              --exclude='.gitattributes' \
-              --exclude='log/' \
-              --exclude='images/' \
-              --exclude='data/images/' \
-              --exclude='data/uploads/' ./ $BASE_DIR/
+            echo "===== SITE ROOT ====="
+            ls -ld "$SITE_ROOT"
 
-            echo "Деплой выполнен успешно."
+            echo "===== CREATE TEMP ====="
+            mkdir -pv "$TEMP_DIR"
+
+            echo "===== CONTENT ====="
+            ls -la "$SITE_ROOT"
+
+            echo "===== DONE ====="

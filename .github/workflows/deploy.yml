@@ -24,7 +24,7 @@ jobs:
             SITE_ROOT="/home/c/cs16144/www452"
             TEMP_DIR="$SITE_ROOT/temp"
             BASE_DIR="$SITE_ROOT/public_html"
-            REPO="git@github.com:xSANCHOSx/ola.git"
+            REPO="https://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@github.com/xSANCHOSx/ola.git"
 
             # Создаём структуру файлов
             mkdir -p $TEMP_DIR

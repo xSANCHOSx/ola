@@ -17,13 +17,40 @@ jobs:
           username: ${{ secrets.USERNAME2 }}
           key: ${{ secrets.SSH_PASS }}
           port: 22
-          debug: true
-          script_stop: true
-          command_timeout: 2m
+          debug: true          # ← добавь это
+          command_timeout: 30s # ← добавь явный таймаут
           script: |
-            echo "TEST_MARKER_START "
-            whoami
-            pwd
-            date
-            ls -la /home/c/cs16144/www452 2>&1 || echo "PATH_NOT_FOUND"
-            echo "TEST_MARKER_END"
+            # Путь к файлам
+            SITE_ROOT="/home/c/cs16144/test.olaplex-shop.ru"
+            TEMP_DIR="$SITE_ROOT/temp"
+            BASE_DIR="$SITE_ROOT/public_html"
+            REPO="git@github.com:xSANCHOSx/ola.git"
+
+            # Создаём структуру файлов
+            mkdir -p $TEMP_DIR
+            mkdir -p $BASE_DIR
+            cd $TEMP_DIR
+
+            # Инициализация или обновление репозитория
+            if [ ! -d ".git" ]; then
+              git clone $REPO .
+            else
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+
+            # Удаляем мусор перед копированием
+            find . -name ".DS_Store" -delete
+            find . -name "Thumbs.db" -delete
+
+            # Синхронизация из temp/ в public_html/
+            rsync -avz --delete \
+              --exclude='.git/' \
+              --exclude='.github/' \
+              --exclude='.gitignore' \
+              --exclude='.gitattributes' \
+
+              --exclude='log/' \
+              --exclude='images/' \
+              --exclude='data/images/' \
+              --exclude='data/uploads/' ./ $BASE_DIR/

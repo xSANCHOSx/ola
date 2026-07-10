@@ -42,7 +42,7 @@ function get_products(): array
             $stmt = $pdo->query(
                 'SELECT p.external_id, p.cat_number, p.name, p.old_price, p.price,
                         p.image, p.link, p.short_desc, p.`desc`, p.full_desc,
-                        p.in_stock, p.status, p.seo_title, p.seo_description, p.sort_order
+                        p.in_stock, p.status, p.seo_title, p.seo_description, p.sort_order, p.volume
                  FROM products p
                  WHERE p.status = "active"
                  ORDER BY p.sort_order ASC'
@@ -63,8 +63,9 @@ function get_products(): array
                     'sort_order'      => (int)$row['sort_order'],
                     'status'          => $row['status'] !== null ? (string)$row['status'] : null,
                     'seo_title'       => $row['seo_title'] !== null ? (string)$row['seo_title'] : '',
-                    'seo_description' => $row['seo_description'] !== null ? (string)$row['seo_description'] : '',
-                ];
+'seo_description' => $row['seo_description'] !== null ? (string)$row['seo_description'] : '',
+                        'volume'          => $row['volume'] !== null ? (string)$row['volume'] : '',
+                    ];
             }
         } catch (Throwable $e) {
             dev_log_runtime('Products load from DB failed: ' . $e->getMessage());

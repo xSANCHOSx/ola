@@ -47,9 +47,10 @@ function amo_send_order(array $post): bool
             if ($quantity) {
                 $resultSumm += ($price * $quantity);
             }
-            $orderBasketString .= ($basketItem['name'] ?? '') . ', '
-                . ($basketItem['id'] ?? '') . ', '
-                . $price . ' руб. - ' . $quantity . " шт\n";
+$volume = !empty($basketItem['volume']) ? ' (' . $basketItem['volume'] . ')' : '';
+	            $orderBasketString .= ($basketItem['name'] ?? '') . $volume . ', '
+	                . ($basketItem['id'] ?? '') . ', '
+	                . $price . ' руб. - ' . $quantity . " шт\n";
         }
 
         $utmSource   = $_COOKIE['utm_source']   ?? '';

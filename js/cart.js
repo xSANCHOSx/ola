@@ -57,13 +57,14 @@
 			if (!this.items[key]) {
 				this.items[key] = {
 					id: key,
-					catalogNumber: params.catalogNumber || '-',
-					name: params.name || '',
-					price: parseFloat(params.price) || 0,
-					img: params.img || '',
-					num: qty,
-					url: params.url || window.location.href,
-				}
+catalogNumber: params.catalogNumber || '-',
+						name: params.name || '',
+						price: parseFloat(params.price) || 0,
+						img: params.img || '',
+						num: qty,
+						url: params.url || window.location.href,
+						volume: params.volume || '',
+					}
 				this.ids.push(key)
 			} else {
 				this.items[key].num += qty
@@ -129,15 +130,16 @@
 			}
 			return sum
 		}
-		asOrderItems() {
-			return Object.values(this.items).map(item => ({
-				id: item.id,
-				catalogNumber: item.catalogNumber || '-',
-				name: item.name,
-				price: item.price,
-				num: item.num,
-			}))
-		}
+asOrderItems() {
+				return Object.values(this.items).map(item => ({
+					id: item.id,
+					catalogNumber: item.catalogNumber || '-',
+					name: item.name,
+					price: item.price,
+					num: item.num,
+					volume: item.volume || '',
+				}))
+			}
 	}
 
 	class CartUI {
@@ -290,14 +292,15 @@
 					<div class="minicart-item" data-id="${escHtml(item.id)}">
 						<div class="minicart-item__img">${imgHtml}</div>
 
-						<div class="minicart-item__info">
-							<a href="${escHtml(item.url || '#')}" class="minicart-item__name">
-								${escHtml(item.name)}
-							</a>
-							<div class="minicart-item__price">
-								${parseFloat(item.price).toFixed(2)} ₽
+<div class="minicart-item__info">
+								<a href="${escHtml(item.url || '#')}" class="minicart-item__name">
+									${escHtml(item.name)}
+								</a>
+								${item.volume ? `<div class="minicart-item__volume">${escHtml(item.volume)}</div>` : ''}
+								<div class="minicart-item__price">
+									${parseFloat(item.price).toFixed(2)} ₽
+								</div>
 							</div>
-						</div>
 
 						<div class="minicart-item__qty">
 							<button class="minicart-qty-btn" data-op="minus"
@@ -307,11 +310,10 @@
 											data-id="${item.id}">+</button>
 						</div>
 
-						<button class="minicart-item__remove" data-op="del"
-										data-id="${item.id}" title="Удалить">
-							${trashIcon}
-							Удалить
-						</button>
+<button class="minicart-item__remove" data-op="del"
+											data-id="${item.id}" title="Удалить">
+								${trashIcon}
+							</button>
 					</div>
 				`)
 			})
@@ -434,10 +436,11 @@
 				name: p.name || '',
 				price: p.price || 0,
 				img: p.image || p.img || '',
-				catalogNumber: p.cat_number || p.catalogNumber || '-',
-				url: p.link || window.location.href,
-				qty,
-			})
+catalogNumber: p.cat_number || p.catalogNumber || '-',
+					url: p.link || window.location.href,
+					volume: p.volume || '',
+					qty,
+				})
 			this.ui.updateWidgets(this.widgetSelector)
 			this.showToast('Товар добавлено в корзину!')
 			if (this.CONFIG.showAfterAdd) this.showWinow('bcontainer', 1)

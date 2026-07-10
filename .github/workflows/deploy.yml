@@ -20,6 +20,7 @@ jobs:
           debug: true          # ← добавь это
           command_timeout: 30s # ← добавь явный таймаут
           script: |
+            set -e
             # Путь к файлам
             SITE_ROOT="/home/c/cs16144/www452"
             TEMP_DIR="$SITE_ROOT/temp"
@@ -53,5 +54,9 @@ jobs:
               --exclude='images/' \
               --exclude='data/images/' \
               --exclude='data/uploads/' ./ $BASE_DIR/
+              
+            echo "=== Дата изменения css на сервере ==="
+            ls -la $BASE_DIR/css/wicart.css
+
 
             echo "Деплой выполнен успешно."

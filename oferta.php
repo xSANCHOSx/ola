@@ -79,7 +79,7 @@ require __DIR__ . '/templates/head.php';
 	<!-- All JavaScript libraries -->
 	<script defer src="/js/jquery-3.7.1.min.js"></script>
 	<script defer src="/js/bootstrap.min.js"></script>
-	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart.js?v=<?= $cssBust('js/cart.js') ?>"></script>
 	<script defer src="/js/cart-init.js"></script>
 	<?php include 'templates/order_form.php'; ?>
 

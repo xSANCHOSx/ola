@@ -157,7 +157,7 @@ require __DIR__ . '/head.php'; ?>
 		?>
 		window.PRODUCTS = <?= json_encode($_productMap, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
 	</script>
-	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart.js?v=<?= $cssBust('js/cart.js') ?>"></script>
 	<script defer src="/js/cart-init.js"></script>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script defer src="/js/main.js?v=<?= date('Ymd', filemtime(__DIR__ . '/../js/main.js')) ?>"></script>

@@ -424,7 +424,7 @@ require __DIR__ . '/templates/head.php'; ?>
 		?>
 		window.PRODUCTS = <?= json_encode($_productsById, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>;
 	</script>
-	<script defer src="/js/cart.js"></script>
+	<script defer src="/js/cart.js?v=<?= $cssBust('js/cart.js') ?>"></script>
 	<script defer src="/js/cart-init.js"></script>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script defer src="/js/anchor-scroll.js"></script>

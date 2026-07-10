@@ -21,7 +21,7 @@ jobs:
           command_timeout: 30s # ← добавь явный таймаут
           script: |
             # Путь к файлам
-            SITE_ROOT="/home/c/cs16144/www452 "
+            SITE_ROOT="/home/c/cs16144/www452"
             TEMP_DIR="$SITE_ROOT/temp"
             BASE_DIR="$SITE_ROOT/public_html"
             REPO="git@github.com:xSANCHOSx/ola.git"

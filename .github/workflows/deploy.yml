@@ -20,16 +20,18 @@ jobs:
           debug: true          # ← добавь это
           command_timeout: 30s # ← добавь явный таймаут
           script: |
-            set -e
+            # Путь к файлам
             SITE_ROOT="/home/c/cs16144/www452"
             TEMP_DIR="$SITE_ROOT/temp"
             BASE_DIR="$SITE_ROOT/public_html"
             REPO="git@github.com:xSANCHOSx/ola.git"
 
+            # Создаём структуру файлов
             mkdir -p $TEMP_DIR
             mkdir -p $BASE_DIR
             cd $TEMP_DIR
 
+            # Инициализация или обновление репозитория
             if [ ! -d ".git" ]; then
               git clone $REPO .
             else
@@ -37,13 +39,12 @@ jobs:
               git reset --hard origin/main
             fi
 
-            echo "=== Текущий коммит после reset ==="
-            git log -1 --oneline
-
+            # Удаляем мусор перед копированием
             find . -name ".DS_Store" -delete
             find . -name "Thumbs.db" -delete
 
-            rsync -avzi --delete \
+            # Синхронизация из temp/ в public_html/
+            rsync -avz --delete \
               --exclude='.git/' \
               --exclude='.github/' \
               --exclude='.gitignore' \
@@ -52,8 +53,5 @@ jobs:
               --exclude='images/' \
               --exclude='data/images/' \
               --exclude='data/uploads/' ./ $BASE_DIR/
-
-            echo "=== Дата изменения css на сервере ==="
-            ls -la $BASE_DIR/css/wicart.css
 
             echo "Деплой выполнен успешно."

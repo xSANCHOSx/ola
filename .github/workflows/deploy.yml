@@ -49,8 +49,8 @@ jobs:
               --exclude='.github/' \
               --exclude='.gitignore' \
               --exclude='.gitattributes' \
-
               --exclude='log/' \
               --exclude='images/' \
               --exclude='data/images/' \
-              --exclude='data/uploads/' ./ $BASE_DIR/
+              --exclude='data/uploads/' \
+              ./ "$BASE_DIR/"

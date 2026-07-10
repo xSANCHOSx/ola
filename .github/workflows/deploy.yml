@@ -17,10 +17,13 @@ jobs:
           username: ${{ secrets.USERNAME2 }}
           key: ${{ secrets.SSH_PASS }}
           port: 22
-          debug: true          # ← добавь это
-          command_timeout: 30s # ← добавь явный таймаут
+          debug: true
+          script_stop: true
+          command_timeout: 2m
           script: |
-            echo "HELLO"
+            echo "TEST_MARKER_START"
             whoami
             pwd
-            ls
+            date
+            ls -la /home/c/cs16144/www452 2>&1 || echo "PATH_NOT_FOUND"
+            echo "TEST_MARKER_END"

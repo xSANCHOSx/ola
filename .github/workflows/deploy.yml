@@ -21,7 +21,7 @@ jobs:
           script_stop: true
           command_timeout: 2m
           script: |
-            echo "TEST_MARKER_START"
+            echo "TEST_MARKER_START "
             whoami
             pwd
             date

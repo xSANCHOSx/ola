@@ -365,8 +365,37 @@ asOrderItems() {
 		}
 	}
 
+	// Сопоставление текста ошибки от сервера с полем формы, которое нужно подсветить
+	const FIELD_ERROR_MAP = [
+		{ test: /имя/i,      selector: '#formToSend input#fio' },
+		{ test: /телефон/i,  selector: '#formToSend input#phoneNumber' },
+		{ test: /email|почт/i, selector: '#formToSend input#email' },
+	]
+
+	function clearFieldErrors() {
+		$('#formToSend input, #formToSend textarea').removeClass('field-error')
+	}
+
+	function showFormError(msg) {
+		$('.valid-text2').text(msg).show()
+		clearFieldErrors()
+		for (var i = 0; i < FIELD_ERROR_MAP.length; i++) {
+			if (FIELD_ERROR_MAP[i].test.test(msg)) {
+				$(FIELD_ERROR_MAP[i].selector).addClass('field-error').trigger('focus')
+				break
+			}
+		}
+	}
+
+	// Снимаем подсветку с поля, как только пользователь начинает его исправлять
+	$(document).on('input', '#formToSend input, #formToSend textarea', function () {
+		$(this).removeClass('field-error')
+	})
+
 	class CheckoutService {
 		submit(orderItems, coupon, onDone) {
+			$('.valid-text2').hide()
+			clearFieldErrors()
 			$('#send').prop('disabled', true).val('Отправка...')
 			$.post('sendmail.php?subj=Order_Olaplex', {
 				name: $('#formToSend input#fio').val() || '',
@@ -388,14 +417,28 @@ asOrderItems() {
 				if (typeof onDone === 'function') onDone(data)
 				if (data !== 'ok') {
 					var msg = (data && data.error) ? data.error : 'Ошибка отправки. Попробуйте снова.'
-					$('.valid-text2').text(msg).show()
+					showFormError(msg)
 				}
 			})
 			.fail(function(xhr) {
-				var msg = 'Ошибка соединения. Проверьте интернет и попробуйте ещё раз.'
-				if (xhr.status === 429) msg = 'Слишком много попыток. Подождите минуту.'
-				if (xhr.status === 403) msg = 'Ошибка безопасности. Обновите страницу.'
-				$('.valid-text2').text(msg).show()
+				// Сервер мог ответить 400/403/429/500 с телом вида {"error": "..."}.
+				// jQuery считает такие статусы неудачей и не парсит JSON сам — делаем это вручную,
+				// чтобы показать пользователю настоящую причину, а не общий текст.
+				var msg = null
+				if (xhr.responseJSON && xhr.responseJSON.error) {
+					msg = xhr.responseJSON.error
+				} else if (xhr.responseText) {
+					try {
+						var parsed = JSON.parse(xhr.responseText)
+						if (parsed && parsed.error) msg = parsed.error
+					} catch (e) { /* тело не JSON — используем запасной текст ниже */ }
+				}
+				if (!msg) {
+					msg = 'Ошибка соединения. Проверьте интернет и попробуйте ещё раз.'
+					if (xhr.status === 429) msg = 'Слишком много попыток. Подождите минуту.'
+					if (xhr.status === 403) msg = 'Ошибка безопасности. Обновите страницу.'
+				}
+				showFormError(msg)
 			})
 			.always(function () {
 				$('#send').prop('disabled', false).val('Отправить')
@@ -624,6 +667,11 @@ catalogNumber: p.cat_number || p.catalogNumber || '-',
 			const form = document.getElementById('formToSend')
 			if (form && !form.checkValidity()) {
 				form.reportValidity()
+				return
+			}
+			const phoneDigits = ($('#formToSend input#phoneNumber').val() || '').replace(/\D/g, '')
+			if (phoneDigits.length < 10) {
+				showFormError('Неверный номер телефона')
 				return
 			}
 			const items = this.store.asOrderItems()

@@ -1995,3 +1995,16 @@ section.slider .flexslider picture {
     display: block !important;
   }
 }
+/* Подсветка обязательных/невалидных полей формы заказа (#formToSend) */
+#formToSend input.field-error,
+#formToSend textarea.field-error {
+  border: 1px solid #d9534f !important;
+  background-color: #fdf2f2;
+  outline: none;
+}
+
+.valid-text2 {
+  color: #d9534f;
+  font-weight: 600;
+  margin-bottom: 10px;
+}

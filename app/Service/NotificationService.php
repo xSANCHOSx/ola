@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../amo/order.php';
 
 class NotificationService
 {
-    private const DOMAIN = 'olaplex.ru';
+    private const DOMAIN = 'olaplex-shop.ru';
 
     public function send(
         array  $payload,
@@ -18,10 +18,20 @@ class NotificationService
         float  $discountAmount = 0.0
     ): array {
         $shopTemplate   = EmailView::buildTemplate(
-            $payload, $subject, $orderResult, $totalSum, $baseTotal, $discountAmount
+            $payload,
+            $subject,
+            $orderResult,
+            $totalSum,
+            $baseTotal,
+            $discountAmount
         );
         $clientTemplate = EmailView::buildClientTemplate(
-            $payload, $subject, $orderResult, $totalSum, $baseTotal, $discountAmount
+            $payload,
+            $subject,
+            $orderResult,
+            $totalSum,
+            $baseTotal,
+            $discountAmount
         );
         $headers  = $this->buildHeaders();
         $recipients = $this->getRecipients();

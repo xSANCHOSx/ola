@@ -80,7 +80,7 @@ class NotificationService
         p2log(['AMO_SENT' => $amoResult ? '1' : '0']);
 
         return [
-            'email' => $emailToShop && $emailToUser,
+            'email' => (bool) $emailToShop,
             'crm'   => (bool) $crmSent,
             'amo'   => (bool) $amoResult,
         ];

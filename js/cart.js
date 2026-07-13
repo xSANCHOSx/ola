@@ -621,6 +621,11 @@ catalogNumber: p.cat_number || p.catalogNumber || '-',
 			})
 		}
 		sendOrder() {
+			const form = document.getElementById('formToSend')
+			if (form && !form.checkValidity()) {
+				form.reportValidity()
+				return
+			}
 			const items = this.store.asOrderItems()
 			this.checkout.submit(items, this.store.coupon, data => {
 				if (data === 'ok') {

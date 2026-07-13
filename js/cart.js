@@ -296,7 +296,7 @@ asOrderItems() {
 								<a href="${escHtml(item.url || '#')}" class="minicart-item__name">
 									${escHtml(item.name)}
 								</a>
-								${item.volume ? `<div class="minicart-item__volume">Объём: ${escHtml(item.volume)}</div>` : ''}
+								${item.volume ? `<div class="minicart-item__volume">Объём: ${escHtml(item.volume)} ml</div>` : ''}
 								<div class="minicart-item__price">
 									${parseFloat(item.price).toFixed(2)} ₽
 								</div>

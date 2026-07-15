@@ -60,7 +60,7 @@ class EmailView
     }
 
     /**
-     * Клієнтський лист — персоналізований, без технічних деталей адмін-формату.
+     * Клиентское письмо — персонализированное, без технических деталей админ-формату.
      */
     public static function buildClientTemplate(
         array  $payload,
@@ -76,7 +76,7 @@ class EmailView
         if (!empty($payload['coupon']) && $discountAmount > 0.0) {
             $couponHtml = '<p style="margin-top:12px;">'
                 . '<strong>Купон:</strong> ' . htmlspecialchars($payload['coupon'])
-                . ' &mdash; знижка <strong>' . number_format($discountAmount, 2, '.', '') . ' грн.</strong>'
+                . ' &mdash; скидка <strong>' . number_format($discountAmount, 2, '.', '') . ' руб.</strong>'
                 . '</p>';
         }
         $color = self::PRIMARY_COLOR;
@@ -92,22 +92,20 @@ class EmailView
             </style>
         </head>
         <body>
-            <h1>Дякуємо за замовлення, {$name}!</h1>
-            <p>Ваше замовлення отримано та буде оброблено найближчим часом.<br>
-               Ми зв'яжемось з вами для підтвердження.</p>
-            <h2 style="margin-top:20px;">Склад замовлення</h2>
+            <h1>Спасибо за заказ, {$name}!</h1>
+            <p>Ваш заказ получен и будет обработан в ближайшее время.<br>
+               Мы свяжемся с вами для подтверждения.</p>
+            <h2 style="margin-top:20px;">Состав заказа</h2>
             {$productTable}
             {$couponHtml}
             <p style="margin-top:24px;color:#999;font-size:13px;">
-                З повагою, команда Olaplex Ukraine.<br>
-                Якщо у вас є питання — відповідайте на цей лист або звертайтесь до підтримки.
+                С уважением, команда Olaplex.<br>
+                Если у вас есть вопросы — отвечайте на это письмо или обращайтесь в поддержку.
             </p>
         </body>
         </html>
         HTML;
     }
-
-
 
     private static function buildCustomerTable(array $payload): string
     {
@@ -143,13 +141,13 @@ class EmailView
         $color = self::PRIMARY_COLOR;
         $thStyle = "padding:8px;border:1px solid #ddd;background:{$color};color:#fff;";
 
-$thead = '<thead><tr>'
-	            . "<th style=\"{$thStyle}\">Код</th>"
-	            . "<th style=\"{$thStyle}\">Название</th>"
-	            . "<th style=\"{$thStyle}\">Объем</th>"
-	            . "<th style=\"{$thStyle}\">Цена</th>"
-	            . "<th style=\"{$thStyle}\">Кол-во</th>"
-	            . '</tr></thead>';
+        $thead = '<thead><tr>'
+            . "<th style=\"{$thStyle}\">Код</th>"
+            . "<th style=\"{$thStyle}\">Название</th>"
+            . "<th style=\"{$thStyle}\">Объем</th>"
+            . "<th style=\"{$thStyle}\">Цена</th>"
+            . "<th style=\"{$thStyle}\">Кол-во</th>"
+            . '</tr></thead>';
 
         $tbody = '<tbody>';
         foreach ($orderResult as $item) {
@@ -157,29 +155,29 @@ $thead = '<thead><tr>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
                     . htmlspecialchars((string) ($item['catalogNumber'] ?? '-')) . '</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:left;">'
-. htmlspecialchars((string) ($item['name'] ?? '')) . '</td>'
-	                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:80px;white-space:nowrap;">'
-	                    . htmlspecialchars((string) ($item['volume'] ?? '-')) . '</td>'
-	                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:90px;white-space:nowrap;">'
-	                    . htmlspecialchars((string) ($item['price'] ?? 0)) . ' руб.</td>'
-	                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
-	                    . htmlspecialchars((string) ($item['num'] ?? 0)) . '</td>'
-	                . '</tr>';
+                    . htmlspecialchars((string) ($item['name'] ?? '')) . '</td>'
+                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:80px;white-space:nowrap;">'
+                    . htmlspecialchars((string) ($item['volume'] ?? '-')) . '</td>'
+                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:90px;white-space:nowrap;">'
+                    . htmlspecialchars((string) ($item['price'] ?? 0)) . ' руб.</td>'
+                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
+                    . htmlspecialchars((string) ($item['num'] ?? 0)) . '</td>'
+                . '</tr>';
         }
         $tbody .= '</tbody>';
 
         $discountRow = '';
-if ($discountAmount > 0.0) {
-	            $discountRow = '<tr style="color:#ba385c;">'
-	                . '<td colspan="4" style="padding:8px;border:1px solid #ddd;">Скидка по купону:</td>'
+        if ($discountAmount > 0.0) {
+            $discountRow = '<tr style="color:#ba385c;">'
+                . '<td colspan="4" style="padding:8px;border:1px solid #ddd;">Скидка по купону:</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;">−'
                     . number_format($discountAmount, 2, '.', '') . ' руб.</td>'
                 . '</tr>';
         }
 
-$tfoot = '<tfoot>' . $discountRow
-	            . '<tr style="font-weight:bold;background:#f9f9f9;">'
-	            . '<td colspan="4" style="padding:8px;border:1px solid #ddd;">Итого к оплате:</td>'
+        $tfoot = '<tfoot>' . $discountRow
+            . '<tr style="font-weight:bold;background:#f9f9f9;">'
+            . '<td colspan="4" style="padding:8px;border:1px solid #ddd;">Итого к оплате:</td>'
             . '<td style="padding:8px;border:1px solid #ddd;">'
                 . number_format($totalSum, 2, '.', '') . ' руб.</td>'
             . '</tr></tfoot>';

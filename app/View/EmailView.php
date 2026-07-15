@@ -154,7 +154,7 @@ class EmailView
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
                 . htmlspecialchars((string) ($item['catalogNumber'] ?? '-')) . '</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:left;">'
-                . htmlspecialchars((string) ($item['name'] ?? '')) . ' - ' . htmlspecialchars((string) ($item['volume'] ?? '-')) . '</td>'
+                . htmlspecialchars((string) ($item['name'] ?? '')) . ' - ' . htmlspecialchars((string) ($item['volume'] ?? '-')) . 'ml</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:90px;white-space:nowrap;">'
                 . htmlspecialchars((string) ($item['price'] ?? 0)) . ' руб.</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
@@ -174,8 +174,8 @@ class EmailView
 
         $tfoot = '<tfoot>' . $discountRow
             . '<tr style="font-weight:bold;background:#f9f9f9;">'
-            . '<td colspan="4" style="padding:8px;border:1px solid #ddd;">Итого к оплате:</td>'
-            . '<td style="padding:8px;border:1px solid #ddd;">'
+            . '<td colspan="2" style="padding:8px;border:1px solid #ddd;">Итого к оплате:</td>'
+            . '<td  colspan="2" style="padding:8px;border:1px solid #ddd;text-align:center;">'
             . number_format($totalSum, 2, '.', '') . ' руб.</td>'
             . '</tr></tfoot>';
 

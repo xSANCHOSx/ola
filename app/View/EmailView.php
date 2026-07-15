@@ -99,8 +99,7 @@ class EmailView
             {$productTable}
             {$couponHtml}
             <p style="margin-top:24px;color:#999;font-size:13px;">
-                С уважением, команда Olaplex.<br>
-                Если у вас есть вопросы — отвечайте на это письмо или обращайтесь в поддержку.
+                С уважением, команда Olaplex.
             </p>
         </body>
         </html>

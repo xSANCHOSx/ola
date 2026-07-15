@@ -143,12 +143,13 @@ class EmailView
         $color = self::PRIMARY_COLOR;
         $thStyle = "padding:8px;border:1px solid #ddd;background:{$color};color:#fff;";
 
-        $thead = '<thead><tr>'
-            . "<th style=\"{$thStyle}\">Код</th>"
-            . "<th style=\"{$thStyle}\">Название</th>"
-            . "<th style=\"{$thStyle}\">Цена</th>"
-            . "<th style=\"{$thStyle}\">Кол-во</th>"
-            . '</tr></thead>';
+$thead = '<thead><tr>'
+	            . "<th style=\"{$thStyle}\">Код</th>"
+	            . "<th style=\"{$thStyle}\">Название</th>"
+	            . "<th style=\"{$thStyle}\">Объем</th>"
+	            . "<th style=\"{$thStyle}\">Цена</th>"
+	            . "<th style=\"{$thStyle}\">Кол-во</th>"
+	            . '</tr></thead>';
 
         $tbody = '<tbody>';
         foreach ($orderResult as $item) {
@@ -156,27 +157,29 @@ class EmailView
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
                     . htmlspecialchars((string) ($item['catalogNumber'] ?? '-')) . '</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:left;">'
-                    . htmlspecialchars((string) ($item['name'] ?? '')) . '</td>'
-                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:90px;white-space:nowrap;">'
-                    . htmlspecialchars((string) ($item['price'] ?? 0)) . ' руб.</td>'
-                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
-                    . htmlspecialchars((string) ($item['num'] ?? 0)) . '</td>'
-                . '</tr>';
+. htmlspecialchars((string) ($item['name'] ?? '')) . '</td>'
+	                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:80px;white-space:nowrap;">'
+	                    . htmlspecialchars((string) ($item['volume'] ?? '-')) . '</td>'
+	                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:90px;white-space:nowrap;">'
+	                    . htmlspecialchars((string) ($item['price'] ?? 0)) . ' руб.</td>'
+	                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
+	                    . htmlspecialchars((string) ($item['num'] ?? 0)) . '</td>'
+	                . '</tr>';
         }
         $tbody .= '</tbody>';
 
         $discountRow = '';
-        if ($discountAmount > 0.0) {
-            $discountRow = '<tr style="color:#ba385c;">'
-                . '<td colspan="3" style="padding:8px;border:1px solid #ddd;">Скидка по купону:</td>'
+if ($discountAmount > 0.0) {
+	            $discountRow = '<tr style="color:#ba385c;">'
+	                . '<td colspan="4" style="padding:8px;border:1px solid #ddd;">Скидка по купону:</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;">−'
                     . number_format($discountAmount, 2, '.', '') . ' руб.</td>'
                 . '</tr>';
         }
 
-        $tfoot = '<tfoot>' . $discountRow
-            . '<tr style="font-weight:bold;background:#f9f9f9;">'
-            . '<td colspan="3" style="padding:8px;border:1px solid #ddd;">Итого к оплате:</td>'
+$tfoot = '<tfoot>' . $discountRow
+	            . '<tr style="font-weight:bold;background:#f9f9f9;">'
+	            . '<td colspan="4" style="padding:8px;border:1px solid #ddd;">Итого к оплате:</td>'
             . '<td style="padding:8px;border:1px solid #ddd;">'
                 . number_format($totalSum, 2, '.', '') . ' руб.</td>'
             . '</tr></tfoot>';

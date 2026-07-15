@@ -258,7 +258,7 @@ header.sticky {
   width: 100%;
   color: #363636 !important;
   transition: 0.5s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 header.sticky .navbar-default .navbar-nav>li>a {
@@ -2085,6 +2085,7 @@ section.slider .flexslider picture {
     display: block !important;
   }
 }
+
 /* Подсветка обязательных/невалидных полей формы заказа (#formToSend) */
 #formToSend input.field-error,
 #formToSend textarea.field-error {

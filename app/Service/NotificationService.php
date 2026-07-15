@@ -37,13 +37,28 @@ class NotificationService
         $recipients = $this->getRecipients();
 
         // ── Email до магазину ─────────────────────────────────────────────────
+        // Обгортаємо в try/catch про всяк випадок (напр. якщо колись mail()
+        // заміниться на SMTP-бібліотеку, яка кидає винятки на невалідний адресат).
+        // Помилка листа НІКОЛИ не повинна ронити оформлення замовлення.
         OlaLogger::debug('MAIL_SHOP_START', ['to' => $recipients]);
-        $emailToShop = mail($recipients, $subject, $shopTemplate, $headers);
+        try {
+            $emailToShop = mail($recipients, $subject, $shopTemplate, $headers);
+        } catch (Throwable $e) {
+            OlaLogger::error('MAIL_SHOP_EXCEPTION', ['msg' => $e->getMessage()]);
+            $emailToShop = false;
+        }
         OlaLogger::info('MAIL_SHOP_DONE', ['result' => $emailToShop]);
 
         // ── Email клиенту ─────────────────────────────────────────────────────
+        // Некоректна/неіснуюча адреса клієнта НЕ повинна ламати оформлення
+        // замовлення — це лише best-effort сповіщення.
         OlaLogger::debug('MAIL_USER_START', ['to' => $payload['email']]);
-        $emailToUser = mail($payload['email'], $subject, $clientTemplate, $headers);
+        try {
+            $emailToUser = mail($payload['email'], $subject, $clientTemplate, $headers);
+        } catch (Throwable $e) {
+            OlaLogger::error('MAIL_USER_EXCEPTION', ['msg' => $e->getMessage(), 'email' => $payload['email']]);
+            $emailToUser = false;
+        }
         OlaLogger::info('MAIL_USER_DONE', ['result' => $emailToUser]);
 
         // ── Bitrix CRM ────────────────────────────────────────────────────────
@@ -63,6 +78,17 @@ class NotificationService
             'MAIL_USER' => 'Result = ' . ($emailToUser ? '1' : '0'),
             'CRM_SENT'  => $crmSent ? '1' : '0',
         ]);
+
+        if (!$emailToUser) {
+            // Раніше цей факт ніде не фіксувався — статус магазинного листа
+            // помилково повертався під ключем 'email' і перекривав інформацію
+            // про клієнтський лист. Логуємо явно, щоб можна було діагностувати
+            // недоставку (SPF/DKIM домену, неіснуюча скринька тощо).
+            OlaLogger::warn('MAIL_USER_NOT_DELIVERED', [
+                'order_number' => $orderNumber,
+                'email'        => preg_replace('/(?<=.).(?=[^@]*@)/', '*', $payload['email']),
+            ]);
+        }
 
         // ── AMO CRM — явний масив з $payload (нормалізовані дані) ─────────────
         // Використовуємо $payload (нормалізований у sendmail.php) замість $_POST,
@@ -90,9 +116,15 @@ class NotificationService
         p2log(['AMO_SENT' => $amoResult ? '1' : '0']);
 
         return [
-            'email' => (bool) $emailToShop,
-            'crm'   => (bool) $crmSent,
-            'amo'   => (bool) $amoResult,
+            // 'email' — статус листа КЛІЄНТУ (саме це пишеться в
+            // orders.outbound_email_sent і показується в адмінці).
+            // Раніше тут помилково повертався статус листа в магазин,
+            // через що адмінка завжди показувала "лист відправлено",
+            // навіть коли клієнт нічого не отримував.
+            'email'       => (bool) $emailToUser,
+            'email_shop'  => (bool) $emailToShop,
+            'crm'         => (bool) $crmSent,
+            'amo'         => (bool) $amoResult,
         ];
     }
 

@@ -166,7 +166,18 @@ try {
 // ── Dispatch ──────────────────────────────────────────────────────────────────
 
 $controller = new OrderController($pdo, $cfg);
-$result     = $controller->handle($payload, $orderResult);
+
+try {
+    $result = $controller->handle($payload, $orderResult);
+} catch (Throwable $e) {
+    OlaLogger::error('HANDLE_EXCEPTION', [
+        'msg'   => $e->getMessage(),
+        'file'  => $e->getFile() . ':' . $e->getLine(),
+        'trace' => substr($e->getTraceAsString(), 0, 800),
+    ]);
+    dev_log_runtime('Order handle() threw: ' . $e->getMessage());
+    $result = ['success' => false];
+}
 
 OlaLogger::info('SENDMAIL_DONE', ['success' => $result['success']]);
 

@@ -88,8 +88,13 @@ class OrderController
         if ($this->pdo instanceof PDO) {
             OlaLogger::debug('DB_SAVE_START', ['order_number' => $orderNumber]);
             $dbOrderId = $this->saveToDb(
-                $payload, $orderResult, $orderNumber,
-                $totalSum, $priceVerified, $couponData, $discountAmount
+                $payload,
+                $orderResult,
+                $orderNumber,
+                $totalSum,
+                $priceVerified,
+                $couponData,
+                $discountAmount
             );
             $dbSaved = $dbOrderId !== null;
             OlaLogger::info('DB_SAVE_DONE', ['db_order_id' => $dbOrderId, 'saved' => $dbSaved]);
@@ -104,8 +109,13 @@ class OrderController
 
         $notifier = new NotificationService();
         $sent     = $notifier->send(
-            $payload, $orderResult, $totalSum, $subject, $orderNumber,
-            $baseTotal, $discountAmount
+            $payload,
+            $orderResult,
+            $totalSum,
+            $subject,
+            $orderNumber,
+            $baseTotal,
+            $discountAmount
         );
 
         OlaLogger::info('NOTIFICATION_DONE', [
@@ -123,7 +133,12 @@ class OrderController
 
         // ── 6. Результат ──────────────────────────────────────────────────────
 
-        $success = $dbSaved || $sent['email'];
+        // Успіх замовлення НІКОЛИ не повинен залежати від того, чи дійшов лист
+        // клієнту (неправильна/неіснуюча пошта — не привід повертати 500,
+        // замовлення вже потрапило в БД). Якщо ж БД недоступна — єдиний
+        // fallback-сигнал, що хтось хоча б дізнається про замовлення, це лист
+        // у магазин (не клієнту).
+        $success = $dbSaved || $sent['email_shop'];
 
         OlaLogger::info('ORDER_RESULT', [
             'success'      => $success,
@@ -198,8 +213,13 @@ class OrderController
 
             OlaLogger::debug('ORDER_INSERT_START', ['order_number' => $orderNumber, 'total' => $finalTotalSum]);
             $dbOrderId = OrderModel::save(
-                $this->pdo, $orderNumber, $customerId,
-                $payload, $finalTotalSum, $priceVerified, $idempotency,
+                $this->pdo,
+                $orderNumber,
+                $customerId,
+                $payload,
+                $finalTotalSum,
+                $priceVerified,
+                $idempotency,
                 $finalCouponData ? (int)$finalCouponData['id'] : null,
                 $finalDiscountAmount
             );
@@ -222,7 +242,7 @@ class OrderController
                 $stmt->execute([(int)$finalCouponData['id'], $dbOrderId, $customerId, $finalDiscountAmount]);
 
                 $this->pdo->prepare('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?')
-                          ->execute([(int)$finalCouponData['id']]);
+                    ->execute([(int)$finalCouponData['id']]);
 
                 OlaLogger::info('COUPON_USAGE_QUEUED', [
                     'coupon_id'       => $finalCouponData['id'],
@@ -235,7 +255,6 @@ class OrderController
             OlaLogger::info('TRANSACTION_COMMITTED', ['db_order_id' => $dbOrderId]);
 
             return $dbOrderId;
-
         } catch (Throwable $e) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();

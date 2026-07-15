@@ -115,7 +115,7 @@ class EmailView
             'Телефон'    => $payload['phone'],
             'Мессенджер' => $payload['contact_method'],
             'Аккаунт'    => $payload['contact_username'],
-            'Комментарии'=> $payload['comments'],
+            'Комментарии' => $payload['comments'],
         ];
 
         $html = '<table style="border-collapse:collapse;margin-top:20px;width:100%;">';
@@ -123,7 +123,7 @@ class EmailView
             $html .= self::tableRow(
                 '<td style="padding:8px;border:1px solid #ddd;font-weight:bold;width:120px;">'
                     . htmlspecialchars($label) . '</td>'
-                . '<td style="padding:8px;border:1px solid #ddd;">'
+                    . '<td style="padding:8px;border:1px solid #ddd;">'
                     . htmlspecialchars($value) . '</td>'
             );
         }
@@ -144,7 +144,6 @@ class EmailView
         $thead = '<thead><tr>'
             . "<th style=\"{$thStyle}\">Код</th>"
             . "<th style=\"{$thStyle}\">Название</th>"
-            . "<th style=\"{$thStyle}\">Объем</th>"
             . "<th style=\"{$thStyle}\">Цена</th>"
             . "<th style=\"{$thStyle}\">Кол-во</th>"
             . '</tr></thead>';
@@ -153,15 +152,13 @@ class EmailView
         foreach ($orderResult as $item) {
             $tbody .= '<tr>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
-                    . htmlspecialchars((string) ($item['catalogNumber'] ?? '-')) . '</td>'
+                . htmlspecialchars((string) ($item['catalogNumber'] ?? '-')) . '</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:left;">'
-                    . htmlspecialchars((string) ($item['name'] ?? '')) . '</td>'
-                . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:80px;white-space:nowrap;">'
-                    . htmlspecialchars((string) ($item['volume'] ?? '-')) . '</td>'
+                . htmlspecialchars((string) ($item['name'] ?? '')) . ' - ' . htmlspecialchars((string) ($item['volume'] ?? '-')) . '</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:90px;white-space:nowrap;">'
-                    . htmlspecialchars((string) ($item['price'] ?? 0)) . ' руб.</td>'
+                . htmlspecialchars((string) ($item['price'] ?? 0)) . ' руб.</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
-                    . htmlspecialchars((string) ($item['num'] ?? 0)) . '</td>'
+                . htmlspecialchars((string) ($item['num'] ?? 0)) . '</td>'
                 . '</tr>';
         }
         $tbody .= '</tbody>';
@@ -171,7 +168,7 @@ class EmailView
             $discountRow = '<tr style="color:#ba385c;">'
                 . '<td colspan="4" style="padding:8px;border:1px solid #ddd;">Скидка по купону:</td>'
                 . '<td style="padding:8px;border:1px solid #ddd;">−'
-                    . number_format($discountAmount, 2, '.', '') . ' руб.</td>'
+                . number_format($discountAmount, 2, '.', '') . ' руб.</td>'
                 . '</tr>';
         }
 
@@ -179,7 +176,7 @@ class EmailView
             . '<tr style="font-weight:bold;background:#f9f9f9;">'
             . '<td colspan="4" style="padding:8px;border:1px solid #ddd;">Итого к оплате:</td>'
             . '<td style="padding:8px;border:1px solid #ddd;">'
-                . number_format($totalSum, 2, '.', '') . ' руб.</td>'
+            . number_format($totalSum, 2, '.', '') . ' руб.</td>'
             . '</tr></tfoot>';
 
         return '<table style="border-collapse:collapse;margin-top:20px;width:100%;">'

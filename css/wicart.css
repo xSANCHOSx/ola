@@ -691,6 +691,8 @@
     width: calc(100% - 32px);
     left: 16px;
     margin-left: 0;
+    max-height: calc(100% - 60px);
+    overflow-y: scroll;
   }
 }
 

@@ -127,6 +127,15 @@ function dev_app_config(): array
 }
 
 /**
+ * Домен магазину (SITE_DOMAIN в .env). Використовується замість
+ * хардкоду 'olaplex-shop.ru' у листах, AMO CRM, фідах та футері.
+ */
+function site_domain(): string
+{
+    return dev_app_config()['site_domain'];
+}
+
+/**
  * Log runtime messages to file
  */
 function dev_log_runtime(string $message): void

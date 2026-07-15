@@ -6,7 +6,6 @@ require_once __DIR__ . '/../../amo/order.php';
 
 class NotificationService
 {
-    private const DOMAIN = 'olaplex-shop.ru';
 
     public function send(
         array  $payload,
@@ -136,7 +135,7 @@ class NotificationService
 
     private function buildHeaders(): string
     {
-        $from = 'no-reply@' . self::DOMAIN;
+        $from = 'no-reply@' . site_domain();
 
         return implode("\r\n", [
             "From: {$from}",

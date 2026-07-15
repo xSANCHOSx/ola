@@ -3,6 +3,9 @@ require_once __DIR__ . '/../data/products.php';
 
 $currentUrl = $_SERVER['REQUEST_URI']; // Получаем текущий URL
 
+$adminEmail  = 'admin@'  . site_domain();
+$clientEmail = 'client@' . site_domain();
+
 $menuItems = [];
 foreach ($products as $product) {
 	$menuItems[] = [
@@ -28,18 +31,21 @@ foreach ($products as $product) {
 							<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"
 									loading="lazy"></a>
 						</li>
-						<li class="hidden-md hidden-lg"><a href="mailto:admin@olaplex-shop.ru"
-								class="navbar-link-email">admin@olaplex-shop.ru</a><a href="mailto:client@olaplex-shop.ru"
-								class="navbar-link-email">client@olaplex-shop.ru</a></li>
+						<li class="hidden-md hidden-lg"><a href="mailto:<?= htmlspecialchars($adminEmail) ?>"
+								class="navbar-link-email"><?= htmlspecialchars($adminEmail) ?></a><a
+								href="mailto:<?= htmlspecialchars($clientEmail) ?>"
+								class="navbar-link-email"><?= htmlspecialchars($clientEmail) ?></a></li>
 					</ul>
 					<div class="number navbar-brand hidden-sm hidden-xs">
 						<a href="tel:+74950322929">+7 (495) 032-29-29</a>
 						<a href="https://wa.me/79096962720"><img src="/images/whatsapp.svg" class="whatsapp" alt="whatsapp"
 								loading="lazy"></a>
 					</div>
-					<div class="number navbar-brand hidden-sm hidden-xs mob_email_wrap"><a href="mailto:admin@olaplex-shop.ru"
-							class="navbar-link-email">admin@olaplex-shop.ru</a></br><a href="mailto:client@olaplex-shop.ru"
-							class="navbar-link-email">client@olaplex-shop.ru</a></div>
+					<div class="number navbar-brand hidden-sm hidden-xs mob_email_wrap"><a
+							href="mailto:<?= htmlspecialchars($adminEmail) ?>"
+							class="navbar-link-email"><?= htmlspecialchars($adminEmail) ?></a></br><a
+							href="mailto:<?= htmlspecialchars($clientEmail) ?>"
+							class="navbar-link-email"><?= htmlspecialchars($clientEmail) ?></a></div>
 				</nav>
 			</div>
 		</div>
@@ -54,11 +60,11 @@ foreach ($products as $product) {
 			<nav class="navbar navbar-default ">
 				<ul class="nav navbar-nav menu_footer">
 					<?php foreach ($menuItems as $item): ?>
-					<?php if ($currentUrl == $item['href']): ?>
-					<li class="active_footer"><?= htmlspecialchars($item['name']) ?></li>
-					<?php else: ?>
-					<li><a href="<?= htmlspecialchars($item['href']) ?>"><?= htmlspecialchars($item['name']) ?></a></li>
-					<?php endif; ?>
+						<?php if ($currentUrl == $item['href']): ?>
+							<li class="active_footer"><?= htmlspecialchars($item['name']) ?></li>
+						<?php else: ?>
+							<li><a href="<?= htmlspecialchars($item['href']) ?>"><?= htmlspecialchars($item['name']) ?></a></li>
+						<?php endif; ?>
 					<?php endforeach; ?>
 				</ul>
 			</nav>
@@ -84,29 +90,29 @@ foreach ($products as $product) {
 
 <!-- Top.Mail.Ru counter -->
 <script type="text/javascript">
-(function() {
-	function loadTMR() {
-		var _tmr = window._tmr || (window._tmr = []);
-		_tmr.push({
-			id: "3629866",
-			type: "pageView",
-			start: (new Date()).getTime()
-		});
-		if (document.getElementById('tmr-code')) return;
-		var ts = document.createElement("script");
-		ts.type = "text/javascript";
-		ts.async = true;
-		ts.id = "tmr-code";
-		ts.src = "https://top-fwz1.mail.ru/js/code.js";
-		var s = document.getElementsByTagName("script")[0];
-		s.parentNode.insertBefore(ts, s);
-	}
-	if (window.requestIdleCallback) {
-		requestIdleCallback(loadTMR);
-	} else {
-		setTimeout(loadTMR, 1500);
-	}
-})();
+	(function() {
+		function loadTMR() {
+			var _tmr = window._tmr || (window._tmr = []);
+			_tmr.push({
+				id: "3629866",
+				type: "pageView",
+				start: (new Date()).getTime()
+			});
+			if (document.getElementById('tmr-code')) return;
+			var ts = document.createElement("script");
+			ts.type = "text/javascript";
+			ts.async = true;
+			ts.id = "tmr-code";
+			ts.src = "https://top-fwz1.mail.ru/js/code.js";
+			var s = document.getElementsByTagName("script")[0];
+			s.parentNode.insertBefore(ts, s);
+		}
+		if (window.requestIdleCallback) {
+			requestIdleCallback(loadTMR);
+		} else {
+			setTimeout(loadTMR, 1500);
+		}
+	})();
 </script>
 <noscript>
 	<div><img src="https://top-fwz1.mail.ru/counter?id=3629866;js=na" style="position:absolute;left:-9999px;"

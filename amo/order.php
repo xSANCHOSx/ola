@@ -37,7 +37,7 @@ function amo_send_order(array $post): bool
         $userPhone = strip_tags($post['phone']  ?? '');
         $userEmail = strip_tags($post['email']  ?? '');
 
-        $siteName        = 'olaplex-shop.ru';
+        $siteName        = site_domain();
         $orderBasketString = '';
         $resultSumm      = 0;
 

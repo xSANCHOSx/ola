@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/config/db.php';
 
+$domain  = site_domain();
+$baseUrl = 'https://' . $domain;
+
 $products = [];
 $pdo = dev_db_connection();
 if ($pdo instanceof PDO) {
@@ -33,9 +36,9 @@ $xml = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?>
 </yml_catalog>');
 
 $shop = $xml->addChild('shop');
-$shop->addChild('name', 'olaplex-shop.ru');
+$shop->addChild('name', $domain);
 $shop->addChild('company', 'Olaplex');
-$shop->addChild('url', 'https://olaplex-shop.ru');
+$shop->addChild('url', $baseUrl);
 
 // Добавляем валюту
 $currencies = $shop->addChild('currencies');
@@ -71,8 +74,8 @@ foreach ($products as $product) {
 		$offer->addAttribute('available', $available);
 	}
 
-	$offer->addChild('url', 'https://olaplex-shop.ru' . $product['link']);
-	$offer->addChild('picture', 'https://olaplex-shop.ru/' . $product['image']);
+	$offer->addChild('url', $baseUrl . $product['link']);
+	$offer->addChild('picture', $baseUrl . '/' . $product['image']);
 	$offer->addChild('name', $product['name']);
 	$offer->addChild('description', htmlspecialchars($product['desc']));
 	$offer->addChild('sales_notes', 'Бесплатная доставка по МСК при заказе от 5000р.');
@@ -100,7 +103,7 @@ $dom->loadXML($xml->asXML());
 $dom->save($file);
 
 echo 'Фид успешно создан и сохранен. Для просмотра перейдите по ссылке <a
-	href="https://olaplex-shop.ru/yandex_feed.xml">yandex_feed.xml</a>';
+	href="' . $baseUrl . '/yandex_feed.xml">yandex_feed.xml</a>';
 
 // Создаем объект XMLWriter
 $xml = new XMLWriter();
@@ -117,8 +120,8 @@ $xml->writeAttribute('xmlns:g', 'http://base.google.com/ns/1.0');
 $xml->startElement('channel');
 
 // Основная информация о магазине
-$xml->writeElement('title', 'olaplex-shop.ru');
-$xml->writeElement('link', 'https://olaplex-shop.ru/');
+$xml->writeElement('title', $domain);
+$xml->writeElement('link', $baseUrl . '/');
 $xml->writeElement('description', 'Описание вашего магазина');
 
 // Добавляем товары
@@ -128,8 +131,8 @@ foreach ($products as $product) {
 	$xml->writeElement('g:id', $product['id']);
 	$xml->writeElement('g:title', $product['name']);
 	$xml->writeElement('g:description', htmlspecialchars($product['desc']));
-	$xml->writeElement('g:link', 'https://olaplex-shop.ru' . $product['link']);
-	$xml->writeElement('g:image_link', 'https://olaplex-shop.ru/' . $product['image']);
+	$xml->writeElement('g:link', $baseUrl . $product['link']);
+	$xml->writeElement('g:image_link', $baseUrl . '/' . $product['image']);
 
 	if (!empty($product['status']) && $product['status'] === 'preorder') {
 		$availability = 'preorder';
@@ -181,4 +184,4 @@ $xml->endDocument();
 $xml->flush();
 echo '<br>';
 echo 'Фид успешно создан и сохранен. Для просмотра перейдите по ссылке <a
-	href="https://olaplex-shop.ru/google_feed.xml">google_feed.xml</a>';
+	href="' . $baseUrl . '/google_feed.xml">google_feed.xml</a>';

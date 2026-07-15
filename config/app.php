@@ -14,6 +14,7 @@ return [
     // Токен для веб-запуска setup.php. Задайте через env: SETUP_TOKEN=<random>
     // Сгенерируйте: php -r "echo bin2hex(random_bytes(16));"
     // Значение '' — доступ закрыт (fail-closed по умолчанию).
+    'site_domain' => getenv('SITE_DOMAIN') ?: 'olaplex-shop.ru',
     'setup_token' => getenv('SETUP_TOKEN') ?: '',
     // Получатели писем о новых заказах. Задайте через env: ORDER_NOTIFY_EMAILS
     'order_notification_emails' => getenv('ORDER_NOTIFY_EMAILS') ?: '',

@@ -92,98 +92,6 @@ img {
 	2) Top Navigation bar
 -----------------------------------------------
 */
-.wrapper {
-  max-width: 1170px;
-  margin: 0 auto;
-  padding: 0 15px;
-}
-
-.header-flex {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-}
-
-.menu-container {
-  flex: 0 0 auto;
-  margin: 0 20px;
-}
-
-.menu-flex {
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  background-color: #1882e7;
-  background-image: linear-gradient(to top, #1a7ec3 0%, #00b7f4 100%);
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  height: 38px;
-  align-items: center;
-}
-
-.menu-flex li {
-  padding: 0 15px;
-}
-
-.menu-flex li a {
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 14px;
-  text-decoration: none;
-  text-transform: uppercase;
-  transition: 0.3s;
-}
-
-.menu-flex li a:hover {
-  color: #ffdb00;
-}
-
-.header-contacts {
-  flex: 0 0 auto;
-  text-align: right;
-  font-size: 13px;
-  line-height: 1.2;
-  color: #3e3e3f;
-  font-family: sans-serif;
-}
-
-.header-contacts .contact-item {
-  margin-bottom: 2px;
-}
-
-.header-contacts .address {
-  background: #3e3e3f;
-  color: #fff;
-  padding: 2px 5px;
-  display: inline-block;
-}
-
-.header-contacts .phone a {
-  font-size: 20px;
-  font-weight: 700;
-  color: #3e3e3f;
-  text-decoration: none;
-}
-
-.header-contacts .email a {
-  color: #fff;
-  background: #3e3e3f;
-  padding: 1px 4px;
-  text-decoration: none;
-}
-
-.header-contacts .schedule {
-  font-size: 11px;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
 .navbar-default {
   background-color: transparent;
   border-color: transparent;
@@ -235,12 +143,15 @@ img {
 }
 
 .navbar-header {
-  display: none;
+  float: left;
+  width: 22%;
+  display: block;
 }
 
 .navbar-nav {
-  float: none;
+  float: left;
   margin: 0;
+  width: 53%;
 }
 
 header {
@@ -253,12 +164,11 @@ header {
 
 header.sticky {
   background: #fff;
-  min-height: 70px;
-  padding: 10px 0;
+  height: 50px;
+  line-height: 50px;
   width: 100%;
   color: #363636 !important;
   transition: 0.5s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 header.sticky .navbar-default .navbar-nav>li>a {

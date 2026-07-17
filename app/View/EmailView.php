@@ -149,18 +149,34 @@ class EmailView
             . '</tr></thead>';
 
         $tbody = '<tbody>';
+
         foreach ($orderResult as $item) {
             $tbody .= '<tr>'
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
-                . htmlspecialchars((string) ($item['catalogNumber'] ?? '-')) . '</td>'
+                . htmlspecialchars((string)($item['id'] ?? '-'))
+                . '</td>'
+
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:left;">'
-                . htmlspecialchars((string) ($item['name'] ?? '')) . ' - ' . htmlspecialchars((string) ($item['volume'] ?? '-')) . 'ml</td>'
+                . htmlspecialchars((string)($item['catalogNumber'] ?? ''))
+                . ' '
+                . htmlspecialchars((string)($item['name'] ?? ''))
+                . ' - '
+                . htmlspecialchars((string)($item['volume'] ?? '-'))
+                . ' ml'
+                . '</td>'
+
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:90px;white-space:nowrap;">'
-                . htmlspecialchars((string) ($item['price'] ?? 0)) . ' руб.</td>'
+                . htmlspecialchars((string)($item['price'] ?? 0))
+                . ' руб.'
+                . '</td>'
+
                 . '<td style="padding:8px;border:1px solid #ddd;text-align:center;width:70px;white-space:nowrap;">'
-                . htmlspecialchars((string) ($item['num'] ?? 0)) . '</td>'
+                . htmlspecialchars((string)($item['num'] ?? 0))
+                . '</td>'
+
                 . '</tr>';
         }
+
         $tbody .= '</tbody>';
 
         $discountRow = '';

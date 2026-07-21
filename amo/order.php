@@ -48,7 +48,7 @@ function amo_send_order(array $post): bool
                 $resultSumm += ($price * $quantity);
             }
             $volume = !empty($basketItem['volume']) ? $basketItem['volume'] : '';
-            $orderBasketString .= ($basketItem['id'] ?? '') . ' - ' . ($basketItem['cat_number'] ?? '') . ' ' . ($basketItem['name'] ?? '') . $volume . 'ml, '
+            $orderBasketString .= ($basketItem['id'] ?? '') . ' - ' . ($basketItem['catalogNumber'] ?? '') . ' ' . ($basketItem['name'] ?? '') . $volume . 'ml, '
                 . $price . ' руб. - ' . $quantity . " шт\n";
         }
 

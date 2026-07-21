@@ -227,6 +227,43 @@ document.addEventListener('DOMContentLoaded', function() {
     if (checked) updateField(checked.value);
 });
 
+/*-------------------------------------------------------------
+ * Электронная коммерция — просмотр товара (Яндекс.Метрика)
+ * IntersectionObserver вместо mouseenter: наведения нет на тач-устройствах,
+ * а появление карточки в зоне видимости — надёжный сигнал "увидел товар"
+ * что на мобильном, что на десктопе.
+ *-------------------------------------------------------------*/
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.OlaEcommerce) return;
+
+    // Каталог/главная: карточки товара помечены data-id (см. templates/product_template_even_mod.php)
+    var cards = document.querySelectorAll('.tovar-name[data-id]');
+    if (cards.length && 'IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                window.OlaEcommerce.pushDetail(entry.target.getAttribute('data-id'));
+                observer.unobserve(entry.target); // товар "просмотрен" один раз — дальше не следим
+            });
+        }, { threshold: 0.5 }); // считаем просмотром, когда видно от половины карточки
+
+        cards.forEach(function (card) {
+            observer.observe(card);
+        });
+    } else if (cards.length) {
+        // Старые браузеры без IntersectionObserver — просто фиксируем все карточки на странице сразу
+        cards.forEach(function (card) {
+            window.OlaEcommerce.pushDetail(card.getAttribute('data-id'));
+        });
+    }
+
+    // Страница одного товара: карточка своя, без data-id — товар известен через window.PRODUCTS
+    if (document.body.classList.contains('single') && window.PRODUCTS) {
+        var onlyId = Object.keys(window.PRODUCTS)[0];
+        if (onlyId) window.OlaEcommerce.pushDetail(onlyId, window.PRODUCTS[onlyId]);
+    }
+});
+
 /**
  * Phone Input Mask
  */

@@ -72,6 +72,9 @@ $payload = [
     'coupon'           => trim((string) ($_POST['coupon']           ?? '')),
     'id_product'       => trim((string) ($_POST['id_product']       ?? '')),
     'client_order_uuid' => trim((string) ($_POST['client_order_uuid'] ?? '')),
+    // Яндекс.Метрика ClientID (cookie _ym_uid) — сохраняется в raw_payload заказа
+    // для последующей выгрузки через Offline Conversions API (см. admin/export_offline_conversions.php).
+    'ym_client_id'     => preg_replace('/[^0-9]/', '', (string) ($_POST['ym_client_id'] ?? '')),
 ];
 
 $orderResultRaw = (string) ($_POST['order_result'] ?? '');

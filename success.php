@@ -97,6 +97,51 @@ require __DIR__ . '/templates/head.php';
 
 	<?php include 'templates/footer.php'; ?>
 
+	<?php
+	// Итоговая сумма заказа с учётом скидки купона (если купона не было — просто base_total)
+	$order_revenue = $base_total > 0 ? ($base_total - $discount_amount) : 0;
+	?>
+	<script>
+		(function() {
+			// Состав корзины кладёт js/cart.js (ModernCart.sendOrder) прямо перед
+			// редиректом на эту страницу — здесь мы дочитываем его и отправляем
+			// событие purchase вместе с реальным номером заказа с сервера.
+			var raw;
+			try {
+				raw = sessionStorage.getItem('ola_pending_purchase');
+			} catch (e) {
+				raw = null;
+			}
+			if (!raw) return;
+
+			try {
+				sessionStorage.removeItem('ola_pending_purchase');
+			} catch (e) {}
+
+			var staged;
+			try {
+				staged = JSON.parse(raw);
+			} catch (e) {
+				return;
+			}
+			if (!staged || !staged.products || !staged.products.length) return;
+
+			window.dataLayer = window.dataLayer || [];
+			window.dataLayer.push({
+				ecommerce: {
+					currencyCode: 'RUB',
+					purchase: {
+						actionField: {
+							id: <?= json_encode((string)$order_id, JSON_UNESCAPED_UNICODE) ?>,
+							revenue: (<?= json_encode($order_revenue) ?> || staged.revenue || 0)
+						},
+						products: staged.products
+					}
+				}
+			});
+		})();
+	</script>
+
 </body>
 
 </html>

@@ -14,6 +14,139 @@
 			.replace(/'/g, '&#039;')
 	}
 
+	// Яндекс.Метрика хранит ClientID посетителя в cookie _ym_uid. Сохраняем его
+	// вместе с заказом (см. sendmail.php), чтобы позже иметь возможность
+	// сматчить оффлайн-заказ с визитом через Offline Conversions API —
+	// без этого purchase-событие теряется у части пользователей с блокировщиками.
+	function getYmClientId() {
+		const m = document.cookie.match(/(?:^|;\s*)_ym_uid=([^;]+)/)
+		return m ? decodeURIComponent(m[1]) : ''
+	}
+
+	/*-------------------------------------------------------------
+	 * Электронная коммерция — Яндекс.Метрика (dataLayer)
+	 * Формат: https://yandex.ru/support/metrica/data/e-commerce.html
+	 * window.dataLayer объявляется синхронно в templates/analytics.php,
+	 * до подключения этого файла, но на всякий случай подстраховываемся.
+	 *-------------------------------------------------------------*/
+	const ECOM_BRAND = 'Olaplex'
+	const ECOM_CURRENCY = 'RUB'
+	const ECOM_PENDING_PURCHASE_KEY = 'ola_pending_purchase'
+
+	const Ecommerce = {
+		_seenDetail: new Set(),
+		_dl() {
+			window.dataLayer = window.dataLayer || []
+			return window.dataLayer
+		},
+		// Тот же алгоритм подбора товара, что и в ModernCart.addToCart —
+		// сначала пробуем id без ведущих нулей, потом id как есть.
+		resolveProduct(id) {
+			const key = String(id).replace(/^0+/, '') || String(id)
+			return window.PRODUCTS?.[key] ?? window.PRODUCTS?.[id] ?? null
+		},
+		// Просмотр карточки товара (наведение в каталоге / открытие страницы товара)
+		pushDetail(id, product) {
+			const p = product || this.resolveProduct(id)
+			if (!p) return
+			const key = String(id)
+			if (this._seenDetail.has(key)) return // не дублируем повторные наведения
+			this._seenDetail.add(key)
+			this._dl().push({
+				ecommerce: {
+					currencyCode: ECOM_CURRENCY,
+					detail: {
+						products: [{
+							id: key,
+							name: p.name || '',
+							price: Number(p.price) || 0,
+							brand: ECOM_BRAND,
+						}],
+					},
+				},
+			})
+		},
+		// Добавление товара в корзину
+		pushAdd(id, product, qty) {
+			const p = product || this.resolveProduct(id)
+			if (!p) return
+			this._dl().push({
+				ecommerce: {
+					currencyCode: ECOM_CURRENCY,
+					add: {
+						products: [{
+							id: String(id),
+							name: p.name || '',
+							price: Number(p.price) || 0,
+							brand: ECOM_BRAND,
+							quantity: Number(qty) || 1,
+						}],
+					},
+				},
+			})
+		},
+		// Уменьшение количества / удаление товара из корзины — симметрично pushAdd
+		pushRemove(id, item, qty) {
+			if (!item) return
+			this._dl().push({
+				ecommerce: {
+					currencyCode: ECOM_CURRENCY,
+					remove: {
+						products: [{
+							id: String(id),
+							name: item.name || '',
+							price: Number(item.price) || 0,
+							brand: ECOM_BRAND,
+							quantity: Number(qty) || 1,
+						}],
+					},
+				},
+			})
+		},
+		// Открытие формы оформления заказа — начало чекаута (шаг перед purchase)
+		pushCheckout(orderItems, revenue) {
+			if (!orderItems || !orderItems.length) return
+			this._dl().push({
+				ecommerce: {
+					currencyCode: ECOM_CURRENCY,
+					checkout: {
+						actionField: { step: 1 },
+						products: orderItems.map(item => ({
+							id: String(item.id),
+							name: item.name || '',
+							price: Number(item.price) || 0,
+							brand: ECOM_BRAND,
+							quantity: Number(item.num) || 1,
+						})),
+					},
+				},
+			})
+		},
+		// Покупка не может быть отправлена напрямую: страница успеха открывается
+		// уже после редиректа, а реальный номер заказа известен только на сервере.
+		// Поэтому мы сохраняем состав корзины во sessionStorage — success.php
+		// дочитает его и отправит в dataLayer вместе с server-side order_id.
+		stagePurchase(orderItems, revenue) {
+			try {
+				const products = (orderItems || []).map(item => ({
+					id: String(item.id),
+					name: item.name || '',
+					price: Number(item.price) || 0,
+					brand: ECOM_BRAND,
+					quantity: Number(item.num) || 1,
+				}))
+				sessionStorage.setItem(ECOM_PENDING_PURCHASE_KEY, JSON.stringify({
+					products,
+					revenue: Number(revenue) || 0,
+				}))
+			} catch (e) {
+				// приватный режим браузера и т.п. — не критично, просто не будет purchase-события
+			}
+		},
+	}
+
+	window.OlaEcommerce = Ecommerce
+
 	class CartStore {
 		constructor(storageKey) {
 			this.storageKey = storageKey
@@ -73,14 +206,16 @@ catalogNumber: params.catalogNumber || '-',
 		}
 		updateQty(id, delta) {
 			if (!this.items[id]) return
-			this.items[id].num = Math.max(
-				1,
-				(parseInt(this.items[id].num, 10) || 1) + delta,
-			)
+			const prevNum = parseInt(this.items[id].num, 10) || 1
+			this.items[id].num = Math.max(1, prevNum + delta)
+			if (delta < 0) {
+				Ecommerce.pushRemove(id, this.items[id], Math.min(-delta, prevNum))
+			}
 			this.persist()
 		}
 		remove(id) {
 			if (!this.items[id]) return
+			Ecommerce.pushRemove(id, this.items[id], this.items[id].num)
 			delete this.items[id]
 			this.ids = this.ids.filter(x => x !== id)
 			this.persist()
@@ -412,6 +547,7 @@ asOrderItems() {
 				coupon: coupon || '',
 				client_order_uuid: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2)),
 				csrf_token: $('#formToSend input[name="csrf_token"]').val() || '',
+				ym_client_id: getYmClientId(),
 			})
 			.done(function(data) {
 				if (typeof onDone === 'function') onDone(data)
@@ -484,6 +620,7 @@ catalogNumber: p.cat_number || p.catalogNumber || '-',
 					volume: p.volume || '',
 					qty,
 				})
+			Ecommerce.pushAdd(id, p, qty)
 			this.ui.updateWidgets(this.widgetSelector)
 			this.showToast('Товар добавлено в корзину!')
 			if (this.CONFIG.showAfterAdd) this.showWinow('bcontainer', 1)
@@ -524,6 +661,7 @@ catalogNumber: p.cat_number || p.catalogNumber || '-',
 		}
 		showWinow(win, blind) {
 			if (win === 'bcontainer') this.renderBasket()
+			if (win === 'order') Ecommerce.pushCheckout(this.store.asOrderItems(), this.store.totalPrice())
 			const $container = $('#' + win)
 			const $blind = $('#blindLayer')
 			$container.show()
@@ -675,8 +813,10 @@ catalogNumber: p.cat_number || p.catalogNumber || '-',
 				return
 			}
 			const items = this.store.asOrderItems()
+			const revenue = this.store.totalPrice()
 			this.checkout.submit(items, this.store.coupon, data => {
 				if (data === 'ok') {
+					Ecommerce.stagePurchase(items, revenue)
 					this.clearBasket() 
 					window.location.href = '/success.php'
 				}

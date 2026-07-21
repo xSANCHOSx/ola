@@ -1,3 +1,11 @@
+<script type="text/javascript">
+    // dataLayer объявляется синхронно и как можно раньше: события электронной
+    // коммерции (detail/add/purchase) из cart.js и main.js могут сработать ещё
+    // до полной загрузки страницы (например наведение на карточку товара).
+    // Яндекс.Метрика обработает уже накопленный к моменту инициализации массив.
+    window.dataLayer = window.dataLayer || [];
+</script>
+
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
     window.addEventListener('load', function() {

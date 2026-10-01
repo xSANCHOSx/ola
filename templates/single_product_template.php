@@ -27,6 +27,11 @@ foreach (array_merge([(string)($currentProduct['image'] ?? '')], (array)($curren
 		$productImages[] = $productImage;
 	}
 }
+$appConfig = function_exists('dev_app_config') ? dev_app_config() : [];
+$siteDomain = trim((string)($appConfig['site_domain'] ?? ($_SERVER['HTTP_HOST'] ?? 'localhost')));
+$siteDomain = preg_replace('#^https?://#', '', $siteDomain);
+$siteBaseUrl = 'https://' . rtrim((string)$siteDomain, '/');
+$absoluteProductImages = array_map(static fn(string $image): string => $siteBaseUrl . '/' . ltrim($image, '/'), $productImages);
 ?>
 
 <!DOCTYPE html>
@@ -40,7 +45,7 @@ $productSchema = [
 	'@context' => 'https://schema.org',
 	'@type' => 'Product',
 	'name' => $currentProduct['name'],
-	'image' => $productImages,
+	'image' => $absoluteProductImages,
 	'description' => $currentProduct['short_desc'] ?: $currentProduct['desc'],
 	'sku' => $currentProduct['cat_number'] ?: $currentProduct['id'],
 	'brand' => [
@@ -49,7 +54,7 @@ $productSchema = [
 	],
 	'offers' => [
 		'@type' => 'Offer',
-		'url' => $currentProduct['link'],
+		'url' => $siteBaseUrl . '/' . ltrim((string)$currentProduct['link'], '/'),
 		'priceCurrency' => 'RUB',
 		'price' => (string)$currentProduct['price'],
 		'availability' => $currentProduct['in_stock'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
@@ -88,12 +93,15 @@ require __DIR__ . '/head.php'; ?>
 									<button type="button" class="product-gallery-nav" data-gallery-nav="-1" aria-label="Предыдущие фото">⌃</button>
 									<div class="product-gallery-thumbs" data-gallery-thumbs role="list">
 										<?php foreach ($productImages as $imageIndex => $productImage): ?>
+											<?php $webpProductImage = webp_image_source($productImage); ?>
 											<button type="button" class="product-gallery-thumb <?= $imageIndex === 0 ? 'is-active' : '' ?>"
 												data-gallery-image="<?= htmlspecialchars($productImage, ENT_QUOTES, 'UTF-8') ?>"
-												aria-label="Фото <?= $imageIndex + 1 ?>" aria-selected="<?= $imageIndex === 0 ? 'true' : 'false' ?>">
-												<img src="/<?= htmlspecialchars($productImage, ENT_QUOTES, 'UTF-8') ?>"
-													alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?> — фото <?= $imageIndex + 1 ?>"
-													loading="lazy">
+												data-gallery-webp="<?= htmlspecialchars((string)$webpProductImage, ENT_QUOTES, 'UTF-8') ?>"
+												aria-label="Фото <?= $imageIndex + 1 ?>" aria-selected="<?= $imageIndex === 0 ? 'true' : 'false' ?>" aria-current="<?= $imageIndex === 0 ? 'true' : 'false' ?>">
+												<picture>
+													<?php if ($webpProductImage): ?><source srcset="/<?= htmlspecialchars($webpProductImage, ENT_QUOTES, 'UTF-8') ?>" type="image/webp"><?php endif; ?>
+													<img src="/<?= htmlspecialchars($productImage, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?> — фото <?= $imageIndex + 1 ?>" loading="lazy">
+												</picture>
 											</button>
 										<?php endforeach; ?>
 									</div>
@@ -101,8 +109,11 @@ require __DIR__ . '/head.php'; ?>
 								</div>
 								<div class="product-gallery-main">
 									<button type="button" class="product-gallery-main-nav product-gallery-main-prev" data-gallery-main-nav="-1" aria-label="Предыдущее фото">‹</button>
-									<img data-gallery-main src="/<?= htmlspecialchars($productImages[0], ENT_QUOTES, 'UTF-8') ?>"
-										alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" width="600" height="600">
+									<?php $mainWebpImage = webp_image_source($productImages[0]); ?>
+									<picture>
+										<?php if ($mainWebpImage): ?><source data-gallery-main-webp srcset="/<?= htmlspecialchars($mainWebpImage, ENT_QUOTES, 'UTF-8') ?>" type="image/webp"><?php endif; ?>
+										<img data-gallery-main src="/<?= htmlspecialchars($productImages[0], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" width="600" height="600">
+									</picture>
 									<button type="button" class="product-gallery-main-nav product-gallery-main-next" data-gallery-main-nav="1" aria-label="Следующее фото">›</button>
 								</div>
 							<?php else: ?>
@@ -192,6 +203,7 @@ require __DIR__ . '/head.php'; ?>
 				document.querySelectorAll('[data-product-gallery]').forEach(function(gallery) {
 					var thumbs = Array.prototype.slice.call(gallery.querySelectorAll('[data-gallery-image]'));
 					var mainImage = gallery.querySelector('[data-gallery-main]');
+					var mainWebp = gallery.querySelector('[data-gallery-main-webp]');
 					var thumbsContainer = gallery.querySelector('[data-gallery-thumbs]');
 					if (!mainImage || !thumbs.length) return;
 
@@ -203,10 +215,15 @@ require __DIR__ . '/head.php'; ?>
 						currentIndex = (index + thumbs.length) % thumbs.length;
 						var activeThumb = thumbs[currentIndex];
 						mainImage.src = imageUrl(activeThumb.getAttribute('data-gallery-image'));
+						if (mainWebp) {
+							var webpPath = activeThumb.getAttribute('data-gallery-webp');
+							mainWebp.srcset = webpPath ? imageUrl(webpPath) : '';
+						}
 						thumbs.forEach(function(thumb, thumbIndex) {
 							var isActive = thumbIndex === currentIndex;
 							thumb.classList.toggle('is-active', isActive);
 							thumb.setAttribute('aria-selected', isActive ? 'true' : 'false');
+							thumb.setAttribute('aria-current', isActive ? 'true' : 'false');
 						});
 						activeThumb.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
 					};
@@ -221,6 +238,30 @@ require __DIR__ . '/head.php'; ?>
 						button.addEventListener('click', function() {
 							showImage(currentIndex + parseInt(button.getAttribute('data-gallery-main-nav'), 10));
 						});
+					});
+					gallery.setAttribute('tabindex', '0');
+					gallery.addEventListener('keydown', function(event) {
+						if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+							event.preventDefault();
+							showImage(currentIndex - 1);
+						} else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+							event.preventDefault();
+							showImage(currentIndex + 1);
+						}
+					});
+					var touchStartX = null;
+					gallery.addEventListener('touchstart', function(event) {
+						touchStartX = event.changedTouches[0].clientX;
+					}, { passive: true });
+					gallery.addEventListener('touchend', function(event) {
+						if (touchStartX === null) return;
+						var deltaX = event.changedTouches[0].clientX - touchStartX;
+						touchStartX = null;
+						if (Math.abs(deltaX) >= 40) showImage(currentIndex + (deltaX < 0 ? 1 : -1));
+					}, { passive: true });
+					mainImage.addEventListener('error', function() {
+						mainImage.alt = 'Изображение товара недоступно';
+						gallery.classList.add('has-image-error');
 					});
 
 					gallery.querySelectorAll('[data-gallery-nav]').forEach(function(button) {

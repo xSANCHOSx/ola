@@ -120,3 +120,16 @@ function webp_img(string $src, string $alt = '', string $class = '', array $attr
 
     return '<img src="' . htmlspecialchars($src) . '"' . $altStr . $attrStr . '>';
 }
+
+/**
+ * Возвращает путь к WebP-версии изображения, если она существует.
+ */
+function webp_image_source(string $src): ?string
+{
+    $webpSrc = preg_replace('/\.(jpe?g|png)$/i', '.webp', $src);
+    if (!is_string($webpSrc) || $webpSrc === $src) {
+        return null;
+    }
+    $webpPath = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/') . '/' . ltrim($webpSrc, '/');
+    return is_file($webpPath) ? $webpSrc : null;
+}

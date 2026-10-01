@@ -5,31 +5,70 @@ require __DIR__ . '/_bootstrap.php';
 admin_require_auth();
 $pdo = dev_db_connection();
 
-function save_product_image_upload(array $file): ?string
+function save_product_image_upload(array $file, array &$errors = [], array &$createdFiles = []): ?string
 {
-	if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
-		|| empty($file['tmp_name'])
-		|| !is_uploaded_file($file['tmp_name'])) {
+	$error = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
+	if ($error !== UPLOAD_ERR_OK) {
+		if ($error !== UPLOAD_ERR_NO_FILE) {
+			$errors[] = 'Не удалось загрузить файл «' . (string)($file['name'] ?? '') . '». Код ошибки: ' . $error . '.';
+		}
+		return null;
+	}
+	if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+		$errors[] = 'Загруженный файл не прошёл проверку безопасности.';
 		return null;
 	}
 	if ((int)($file['size'] ?? 0) > 5 * 1024 * 1024) {
+		$errors[] = 'Файл «' . (string)($file['name'] ?? '') . '» превышает лимит 5 МБ.';
 		return null;
 	}
 	$ext = strtolower(pathinfo((string)($file['name'] ?? ''), PATHINFO_EXTENSION));
-	if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true) || @getimagesize($file['tmp_name']) === false) {
+	$allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+	$finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : false;
+	$mime = $finfo ? finfo_file($finfo, $file['tmp_name']) : null;
+	if ($finfo) {
+		finfo_close($finfo);
+	}
+	if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)
+		|| ($mime !== null && !in_array($mime, $allowedMimes, true))
+		|| @getimagesize($file['tmp_name']) === false) {
+		$errors[] = 'Файл «' . (string)($file['name'] ?? '') . '» имеет неподдерживаемый формат.';
 		return null;
 	}
 	$dir = __DIR__ . '/../data/uploads/products';
 	if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+		$errors[] = 'Не удалось создать каталог загрузок изображений.';
 		return null;
+	}
+	$htaccess = $dir . '/.htaccess';
+	if (!is_file($htaccess)) {
+		@file_put_contents($htaccess, "php_flag engine off\nAddType text/plain .php .phtml .phar\n");
 	}
 	$fileName = bin2hex(random_bytes(10)) . '.' . $ext;
 	$target = $dir . '/' . $fileName;
 	if (!move_uploaded_file($file['tmp_name'], $target)) {
+		$errors[] = 'Не удалось сохранить файл «' . (string)($file['name'] ?? '') . '».';
 		return null;
 	}
+	@chmod($target, 0644);
 	convert_to_webp($target);
+	$createdFiles[] = 'data/uploads/products/' . $fileName;
 	return 'data/uploads/products/' . $fileName;
+}
+
+function product_images_table_exists(PDO $pdo): bool
+{
+	try {
+		$pdo->query('SELECT 1 FROM product_images LIMIT 1');
+		return true;
+	} catch (Throwable $e) {
+		return false;
+	}
+}
+
+function product_flash(string $message, string $type = 'success'): void
+{
+	$_SESSION['product_flash'] = ['message' => $message, 'type' => $type];
 }
 
 function delete_product_image_file(string $image): void
@@ -74,56 +113,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 
 	];
 
-	$mainImage = save_product_image_upload($_FILES['image_upload'] ?? []);
+	$uploadErrors = [];
+	$createdFiles = [];
+	$oldImage = '';
+	$mainImage = save_product_image_upload($_FILES['image_upload'] ?? [], $uploadErrors, $createdFiles);
 	if ($mainImage !== null) {
 		$data['image'] = $mainImage;
 	}
-
-	if ($id > 0) {
-		$data['id'] = $id;
-		$sql = 'UPDATE products SET external_id=:external_id, cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, image=:image, link=:link, short_desc=:short_desc, `desc`=:desc, full_desc=:full_desc, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume, sort_order=:sort_order WHERE id=:id';
-	} else {
-		$sql = 'INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:status,:seo_title,:seo_description,:volume,:sort_order)';
+	$mainCreatedFilesCount = count($createdFiles);
+	$galleryFiles = $_FILES['gallery_uploads'] ?? [];
+	$galleryCount = is_array($galleryFiles['name'] ?? null) ? count($galleryFiles['name']) : 0;
+	if ($galleryCount > 10) {
+		$uploadErrors[] = 'Можно загрузить не более 10 дополнительных фотографий за один раз.';
+		$galleryCount = 10;
 	}
-	$stmt = $pdo->prepare($sql);
-	$stmt->execute($data);
-	$productId = $id > 0 ? $id : (int)$pdo->lastInsertId();
-
-	if ($productId > 0) {
-		$deleteIds = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['delete_gallery'] ?? [])))));
-		if ($deleteIds) {
-			$placeholders = implode(',', array_fill(0, count($deleteIds), '?'));
-			$selectImages = $pdo->prepare("SELECT image FROM product_images WHERE product_id = ? AND id IN ($placeholders)");
-			$selectImages->execute(array_merge([$productId], $deleteIds));
-			foreach ($selectImages->fetchAll() as $galleryImage) {
-				delete_product_image_file((string)$galleryImage['image']);
-			}
-			$deleteGallery = $pdo->prepare("DELETE FROM product_images WHERE product_id = ? AND id IN ($placeholders)");
-			$deleteGallery->execute(array_merge([$productId], $deleteIds));
+	$deletedImages = [];
+	try {
+		$pdo->beginTransaction();
+		if ($id > 0) {
+			$oldStmt = $pdo->prepare('SELECT image FROM products WHERE id = ? FOR UPDATE');
+			$oldStmt->execute([$id]);
+			$oldImage = (string)($oldStmt->fetchColumn() ?: '');
+			$data['id'] = $id;
+			$sql = 'UPDATE products SET external_id=:external_id, cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, image=:image, link=:link, short_desc=:short_desc, `desc`=:desc, full_desc=:full_desc, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume, sort_order=:sort_order WHERE id=:id';
+		} else {
+			$sql = 'INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:status,:seo_title,:seo_description,:volume,:sort_order)';
 		}
-
-		$galleryFiles = $_FILES['gallery_uploads'] ?? [];
-		$galleryCount = is_array($galleryFiles['name'] ?? null) ? count($galleryFiles['name']) : 0;
-		if ($galleryCount > 0) {
-			$nextSort = (int)$pdo->query('SELECT COALESCE(MAX(sort_order), -1) + 1 FROM product_images WHERE product_id = ' . $productId)->fetchColumn();
-			$insertGallery = $pdo->prepare('INSERT INTO product_images (product_id, image, sort_order) VALUES (:product_id, :image, :sort_order)');
-			for ($i = 0; $i < $galleryCount; $i++) {
-				$galleryFile = [
-					'name' => $galleryFiles['name'][$i] ?? '',
-					'tmp_name' => $galleryFiles['tmp_name'][$i] ?? '',
-					'size' => $galleryFiles['size'][$i] ?? 0,
-					'error' => $galleryFiles['error'][$i] ?? UPLOAD_ERR_NO_FILE,
-				];
-				$galleryImage = save_product_image_upload($galleryFile);
-				if ($galleryImage !== null) {
-					$insertGallery->execute([
-						'product_id' => $productId,
-						'image' => $galleryImage,
-						'sort_order' => $nextSort++,
-					]);
+		$pdo->prepare($sql)->execute($data);
+		$productId = $id > 0 ? $id : (int)$pdo->lastInsertId();
+		$galleryAvailable = product_images_table_exists($pdo);
+		if ($galleryAvailable && $productId > 0) {
+			$deleteIds = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['delete_gallery'] ?? [])))));
+			if ($deleteIds) {
+				$placeholders = implode(',', array_fill(0, count($deleteIds), '?'));
+				$selectImages = $pdo->prepare("SELECT image FROM product_images WHERE product_id = ? AND id IN ($placeholders)");
+				$selectImages->execute(array_merge([$productId], $deleteIds));
+				$deletedImages = array_map(static fn(array $row): string => (string)$row['image'], $selectImages->fetchAll());
+				$pdo->prepare("DELETE FROM product_images WHERE product_id = ? AND id IN ($placeholders)")->execute(array_merge([$productId], $deleteIds));
+			}
+			$galleryOrder = json_decode((string)($_POST['gallery_order'] ?? ''), true);
+			if (is_array($galleryOrder)) {
+				$updateGalleryOrder = $pdo->prepare('UPDATE product_images SET sort_order = :sort_order WHERE id = :id AND product_id = :product_id');
+				foreach (array_values(array_filter(array_map('intval', $galleryOrder))) as $sortOrder => $galleryImageId) {
+					$updateGalleryOrder->execute(['sort_order' => $sortOrder, 'id' => $galleryImageId, 'product_id' => $productId]);
 				}
 			}
+			if ($galleryCount > 0) {
+				$nextSort = (int)$pdo->query('SELECT COALESCE(MAX(sort_order), -1) + 1 FROM product_images WHERE product_id = ' . (int)$productId)->fetchColumn();
+				$insertGallery = $pdo->prepare('INSERT INTO product_images (product_id, image, sort_order) VALUES (:product_id, :image, :sort_order)');
+				for ($i = 0; $i < $galleryCount; $i++) {
+					$galleryFile = ['name' => $galleryFiles['name'][$i] ?? '', 'tmp_name' => $galleryFiles['tmp_name'][$i] ?? '', 'size' => $galleryFiles['size'][$i] ?? 0, 'error' => $galleryFiles['error'][$i] ?? UPLOAD_ERR_NO_FILE];
+					$galleryImage = save_product_image_upload($galleryFile, $uploadErrors, $createdFiles);
+					if ($galleryImage !== null) {
+						$insertGallery->execute(['product_id' => $productId, 'image' => $galleryImage, 'sort_order' => $nextSort++]);
+					}
+				}
+			}
+		} elseif (!$galleryAvailable && ($galleryCount > 0 || !empty($_POST['delete_gallery'] ?? []))) {
+			foreach (array_slice($createdFiles, $mainCreatedFilesCount) as $createdFile) {
+				delete_product_image_file($createdFile);
+			}
+			$createdFiles = array_slice($createdFiles, 0, $mainCreatedFilesCount);
+			product_flash('Товар сохранён, но галерея недоступна: примените database/migration_product_images.sql.', 'warning');
 		}
+		$pdo->commit();
+	} catch (Throwable $e) {
+		if ($pdo->inTransaction()) {
+			$pdo->rollBack();
+		}
+		foreach ($createdFiles as $createdFile) {
+			delete_product_image_file($createdFile);
+		}
+		product_flash('Товар не сохранён: произошла ошибка базы данных.', 'danger');
+		header('Location: /admin/products.php');
+		exit;
+	}
+	if ($oldImage !== '' && $oldImage !== $data['image']) {
+		delete_product_image_file($oldImage);
+	}
+	foreach ($deletedImages as $deletedImage) {
+		delete_product_image_file($deletedImage);
+	}
+	if ($uploadErrors) {
+		product_flash('Товар сохранён. ' . implode(' ', $uploadErrors), 'warning');
+	} elseif (!isset($_SESSION['product_flash'])) {
+		product_flash('Товар успешно сохранён.');
 	}
 	header('Location: /admin/products.php');
 	exit;
@@ -138,7 +212,7 @@ if ($pdo instanceof PDO) {
 }
 $edit = null;
 $gallery = [];
-if (isset($_GET['edit'])) {
+	if (isset($_GET['edit'])) {
 	$editId = (int)$_GET['edit'];
 	$edit = []; // пустой массив = новый товар; null = список без формы
 	foreach ($products as $p) {
@@ -148,11 +222,21 @@ if (isset($_GET['edit'])) {
 		}
 	}
 	if (!empty($edit['id']) && $pdo instanceof PDO) {
-		$galleryStmt = $pdo->prepare('SELECT id, image, sort_order FROM product_images WHERE product_id = :product_id ORDER BY sort_order ASC, id ASC');
-		$galleryStmt->execute(['product_id' => (int)$edit['id']]);
-		$gallery = $galleryStmt->fetchAll();
+		if (!product_images_table_exists($pdo)) {
+				product_flash('Галерея недоступна: примените database/migration_product_images.sql.', 'warning');
+		} else {
+			try {
+				$galleryStmt = $pdo->prepare('SELECT id, image, sort_order FROM product_images WHERE product_id = :product_id ORDER BY sort_order ASC, id ASC');
+				$galleryStmt->execute(['product_id' => (int)$edit['id']]);
+				$gallery = $galleryStmt->fetchAll();
+			} catch (Throwable $e) {
+				product_flash('Галерея недоступна: примените database/migration_product_images.sql.', 'warning');
+			}
+			}
+		}
 	}
-}
+		$productFlash = $_SESSION['product_flash'] ?? null;
+	unset($_SESSION['product_flash']);
 ?>
 <!doctype html>
 <html lang="ru">
@@ -340,6 +424,22 @@ if (isset($_GET['edit'])) {
 			gap: 3px;
 			font-size: 11px;
 			font-weight: 400;
+		}
+
+		.gallery-order-buttons {
+			display: flex;
+			gap: 4px;
+			margin-bottom: 4px;
+		}
+
+		.gallery-move {
+			flex: 1;
+			padding: 2px 4px;
+			border: 1px solid #ced4da;
+			border-radius: 3px;
+			background: #fff;
+			cursor: pointer;
+			line-height: 1;
 		}
 
 		.form-group-wrapper {
@@ -679,6 +779,11 @@ if (isset($_GET['edit'])) {
 	<div class="container">
 		<?php require __DIR__ . '/_nav.php'; ?>
 		<h3>Товары</h3>
+		<?php if (is_array($productFlash)): ?>
+			<div class="alert alert-<?= admin_h((string)($productFlash['type'] ?? 'info')) ?>">
+				<?= admin_h((string)($productFlash['message'] ?? '')) ?>
+			</div>
+		<?php endif; ?>
 
 		<?php if ($edit !== null): ?>
 			<form id="productForm" method="post" enctype="multipart/form-data">
@@ -797,12 +902,17 @@ if (isset($_GET['edit'])) {
 									<input type="file" id="galleryUploads" class="gallery-upload-input"
 										name="gallery_uploads[]" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
 									<small class="gallery-help">Можно выбрать несколько файлов. Максимум 5 МБ на фото.</small>
-									<?php if ($gallery): ?>
-										<div class="gallery-existing">
-											<?php foreach ($gallery as $galleryImage): ?>
-												<div class="gallery-existing-item">
-													<img src="/<?= admin_h((string)$galleryImage['image']) ?>" alt="Дополнительное фото">
-													<label>
+								<?php if ($gallery): ?>
+									<input type="hidden" name="gallery_order" id="galleryOrder" value="<?= admin_h(json_encode(array_column($gallery, 'id'))) ?>">
+									<div class="gallery-existing">
+										<?php foreach ($gallery as $galleryImage): ?>
+											<div class="gallery-existing-item" data-gallery-id="<?= (int)$galleryImage['id'] ?>">
+												<img src="/<?= admin_h((string)$galleryImage['image']) ?>" alt="Дополнительное фото">
+												<div class="gallery-order-buttons">
+													<button type="button" class="gallery-move" data-gallery-move="up" aria-label="Выше">↑</button>
+													<button type="button" class="gallery-move" data-gallery-move="down" aria-label="Ниже">↓</button>
+												</div>
+												<label>
 														<input type="checkbox" name="delete_gallery[]" value="<?= (int)$galleryImage['id'] ?>">
 														Удалить
 													</label>
@@ -1012,6 +1122,31 @@ if (isset($_GET['edit'])) {
 					editors.forEach(function(item) {
 						item.textarea.value = item.editor.getData();
 					});
+				});
+			})();
+
+			/* ====== Порядок дополнительных фото ====== */
+			(function() {
+				var orderInput = document.getElementById('galleryOrder');
+				var galleryList = document.querySelector('.gallery-existing');
+				if (!orderInput || !galleryList) return;
+				function syncGalleryOrder() {
+					var ids = Array.prototype.map.call(galleryList.querySelectorAll('[data-gallery-id]'), function(item) {
+						return parseInt(item.getAttribute('data-gallery-id'), 10);
+					});
+					orderInput.value = JSON.stringify(ids);
+				}
+				galleryList.addEventListener('click', function(event) {
+					var button = event.target.closest('[data-gallery-move]');
+					if (!button) return;
+					var item = button.closest('[data-gallery-id]');
+					if (!item) return;
+					if (button.getAttribute('data-gallery-move') === 'up' && item.previousElementSibling) {
+						galleryList.insertBefore(item, item.previousElementSibling);
+					} else if (button.getAttribute('data-gallery-move') === 'down' && item.nextElementSibling) {
+						galleryList.insertBefore(item.nextElementSibling, item);
+					}
+					syncGalleryOrder();
 				});
 			})();
 

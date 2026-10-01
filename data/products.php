@@ -40,15 +40,18 @@ function get_products(): array
             // ИСПРАВЛЕНО: ORDER BY p.sort_order — явная ссылка на колонку таблицы,
             //             а не на алиас из SELECT (MySQL иначе сортирует по алиасу)
             $stmt = $pdo->query(
-                'SELECT p.external_id, p.cat_number, p.name, p.old_price, p.price,
+                'SELECT p.id AS db_id, p.external_id, p.cat_number, p.name, p.old_price, p.price,
                         p.image, p.link, p.short_desc, p.`desc`, p.full_desc,
                         p.in_stock, p.status, p.seo_title, p.seo_description, p.sort_order, p.volume
                  FROM products p
                  WHERE p.status = "active"
                  ORDER BY p.sort_order ASC'
             );
+            $productIndexes = [];
             foreach ($stmt->fetchAll() as $row) {
+                $productIndexes[(int)$row['db_id']] = count($cache);
                 $cache[] = [
+                    'db_id'           => (int)$row['db_id'],
                     'id'              => (string)$row['external_id'],
                     'cat_number'      => (string)($row['cat_number'] ?? ''),
                     'name'            => (string)$row['name'],
@@ -59,6 +62,7 @@ function get_products(): array
                     'short_desc'      => (string)($row['short_desc'] ?? ''),
                     'desc'            => (string)($row['desc'] ?? ''),
                     'full_desc'       => (string)($row['full_desc'] ?? ''),
+                    'gallery'         => [],
                     'in_stock'        => (bool)$row['in_stock'],
                     'sort_order'      => (int)$row['sort_order'],
                     'status'          => $row['status'] !== null ? (string)$row['status'] : null,
@@ -66,6 +70,27 @@ function get_products(): array
 'seo_description' => $row['seo_description'] !== null ? (string)$row['seo_description'] : '',
                         'volume'          => $row['volume'] !== null ? (string)$row['volume'] : '',
                     ];
+            }
+
+            if ($productIndexes) {
+                try {
+                    $placeholders = implode(',', array_fill(0, count($productIndexes), '?'));
+                    $galleryStmt = $pdo->prepare(
+                        "SELECT product_id, image FROM product_images
+                         WHERE product_id IN ($placeholders)
+                         ORDER BY sort_order ASC, id ASC"
+                    );
+                    $galleryStmt->execute(array_keys($productIndexes));
+                    foreach ($galleryStmt->fetchAll() as $galleryRow) {
+                        $productId = (int)$galleryRow['product_id'];
+                        if (isset($productIndexes[$productId])) {
+                            $cache[$productIndexes[$productId]]['gallery'][] = (string)$galleryRow['image'];
+                        }
+                    }
+                } catch (Throwable $e) {
+                    // До применения миграции дополнительные фото просто отсутствуют.
+                    dev_log_runtime('Product gallery load skipped: ' . $e->getMessage());
+                }
             }
         } catch (Throwable $e) {
             dev_log_runtime('Products load from DB failed: ' . $e->getMessage());

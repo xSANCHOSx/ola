@@ -20,6 +20,13 @@ $defaultTitle = htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') .
 $defaultDescription = generate_product_seo_description($currentProduct);
 $pageTitle = !empty($currentProduct['seo_title']) ? htmlspecialchars((string)$currentProduct['seo_title'], ENT_QUOTES, 'UTF-8') : generate_product_seo_title($currentProduct);
 $pageDescription = !empty($currentProduct['seo_description']) ? htmlspecialchars((string)$currentProduct['seo_description'], ENT_QUOTES, 'UTF-8') : $defaultDescription;
+$productImages = [];
+foreach (array_merge([(string)($currentProduct['image'] ?? '')], (array)($currentProduct['gallery'] ?? [])) as $productImage) {
+	$productImage = trim((string)$productImage);
+	if ($productImage !== '' && !in_array($productImage, $productImages, true)) {
+		$productImages[] = $productImage;
+	}
+}
 ?>
 
 <!DOCTYPE html>
@@ -33,7 +40,7 @@ $productSchema = [
 	'@context' => 'https://schema.org',
 	'@type' => 'Product',
 	'name' => $currentProduct['name'],
-	'image' => $currentProduct['image'],
+	'image' => $productImages,
 	'description' => $currentProduct['short_desc'] ?: $currentProduct['desc'],
 	'sku' => $currentProduct['cat_number'] ?: $currentProduct['id'],
 	'brand' => [
@@ -73,18 +80,36 @@ require __DIR__ . '/head.php'; ?>
 		</div>
 		<div class="max-feature-section-list container-fluid even3">
 			<div class="row">
-				<!-- Фото: desktop -->
-				<div class="col-sm-12 col-md-5 offset-md-1 hidden-xs hidden-sm">
-					<div class="img animated fadeInDown">
-						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
+					<!-- Галерея товара: миниатюры сбоку от большого фото -->
+					<div class="col-sm-12 col-md-5 offset-md-1">
+						<div class="product-gallery animated fadeInDown" data-product-gallery>
+							<?php if ($productImages): ?>
+								<div class="product-gallery-thumbs-wrap">
+									<button type="button" class="product-gallery-nav" data-gallery-nav="-1" aria-label="Предыдущие фото">⌃</button>
+									<div class="product-gallery-thumbs" data-gallery-thumbs role="list">
+										<?php foreach ($productImages as $imageIndex => $productImage): ?>
+											<button type="button" class="product-gallery-thumb <?= $imageIndex === 0 ? 'is-active' : '' ?>"
+												data-gallery-image="<?= htmlspecialchars($productImage, ENT_QUOTES, 'UTF-8') ?>"
+												aria-label="Фото <?= $imageIndex + 1 ?>" aria-selected="<?= $imageIndex === 0 ? 'true' : 'false' ?>">
+												<img src="/<?= htmlspecialchars($productImage, ENT_QUOTES, 'UTF-8') ?>"
+													alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?> — фото <?= $imageIndex + 1 ?>"
+													loading="lazy">
+											</button>
+										<?php endforeach; ?>
+									</div>
+									<button type="button" class="product-gallery-nav" data-gallery-nav="1" aria-label="Следующие фото">⌄</button>
+								</div>
+								<div class="product-gallery-main">
+									<button type="button" class="product-gallery-main-nav product-gallery-main-prev" data-gallery-main-nav="-1" aria-label="Предыдущее фото">‹</button>
+									<img data-gallery-main src="/<?= htmlspecialchars($productImages[0], ENT_QUOTES, 'UTF-8') ?>"
+										alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" width="600" height="600">
+									<button type="button" class="product-gallery-main-nav product-gallery-main-next" data-gallery-main-nav="1" aria-label="Следующее фото">›</button>
+								</div>
+							<?php else: ?>
+								<div class="product-gallery-empty">Фото товара пока не добавлено</div>
+							<?php endif; ?>
+						</div>
 					</div>
-				</div>
-				<!-- Фото: mobile -->
-				<div class="col-sm-12 hidden-md hidden-lg">
-					<div class="image">
-						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
-					</div>
-				</div>
 				<!-- Информация о товаре -->
 				<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
 					<span></span>
@@ -162,9 +187,58 @@ require __DIR__ . '/head.php'; ?>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script defer src="/js/main.js?v=<?= date('Ymd', filemtime(__DIR__ . '/../js/main.js')) ?>"></script>
 
-	<script>
-		window.addEventListener('DOMContentLoaded', function() {
-			// tiny helper function to add breakpoints
+		<script>
+			window.addEventListener('DOMContentLoaded', function() {
+				document.querySelectorAll('[data-product-gallery]').forEach(function(gallery) {
+					var thumbs = Array.prototype.slice.call(gallery.querySelectorAll('[data-gallery-image]'));
+					var mainImage = gallery.querySelector('[data-gallery-main]');
+					var thumbsContainer = gallery.querySelector('[data-gallery-thumbs]');
+					if (!mainImage || !thumbs.length) return;
+
+					var currentIndex = 0;
+					var imageUrl = function(path) {
+						return path.charAt(0) === '/' ? path : '/' + path;
+					};
+					var showImage = function(index) {
+						currentIndex = (index + thumbs.length) % thumbs.length;
+						var activeThumb = thumbs[currentIndex];
+						mainImage.src = imageUrl(activeThumb.getAttribute('data-gallery-image'));
+						thumbs.forEach(function(thumb, thumbIndex) {
+							var isActive = thumbIndex === currentIndex;
+							thumb.classList.toggle('is-active', isActive);
+							thumb.setAttribute('aria-selected', isActive ? 'true' : 'false');
+						});
+						activeThumb.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+					};
+
+					thumbs.forEach(function(thumb, index) {
+						thumb.addEventListener('click', function() {
+							showImage(index);
+						});
+					});
+
+					gallery.querySelectorAll('[data-gallery-main-nav]').forEach(function(button) {
+						button.addEventListener('click', function() {
+							showImage(currentIndex + parseInt(button.getAttribute('data-gallery-main-nav'), 10));
+						});
+					});
+
+					gallery.querySelectorAll('[data-gallery-nav]').forEach(function(button) {
+						button.addEventListener('click', function() {
+							var direction = parseInt(button.getAttribute('data-gallery-nav'), 10);
+							var isHorizontal = thumbsContainer.scrollWidth > thumbsContainer.clientWidth;
+							thumbsContainer.scrollBy(isHorizontal ? { left: direction * 150, behavior: 'smooth' } : { top: direction * 150, behavior: 'smooth' });
+						});
+					});
+
+					if (thumbs.length < 2) {
+						gallery.querySelectorAll('[data-gallery-nav], [data-gallery-main-nav]').forEach(function(button) {
+							button.hidden = true;
+						});
+					}
+				});
+
+				// tiny helper function to add breakpoints
 			function getGridSize() {
 				return (window.innerWidth < 600) ? 2 :
 					(window.innerWidth < 900) ? 3 : 4

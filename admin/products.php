@@ -5,6 +5,49 @@ require __DIR__ . '/_bootstrap.php';
 admin_require_auth();
 $pdo = dev_db_connection();
 
+function save_product_image_upload(array $file): ?string
+{
+	if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+		|| empty($file['tmp_name'])
+		|| !is_uploaded_file($file['tmp_name'])) {
+		return null;
+	}
+	if ((int)($file['size'] ?? 0) > 5 * 1024 * 1024) {
+		return null;
+	}
+	$ext = strtolower(pathinfo((string)($file['name'] ?? ''), PATHINFO_EXTENSION));
+	if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true) || @getimagesize($file['tmp_name']) === false) {
+		return null;
+	}
+	$dir = __DIR__ . '/../data/uploads/products';
+	if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+		return null;
+	}
+	$fileName = bin2hex(random_bytes(10)) . '.' . $ext;
+	$target = $dir . '/' . $fileName;
+	if (!move_uploaded_file($file['tmp_name'], $target)) {
+		return null;
+	}
+	convert_to_webp($target);
+	return 'data/uploads/products/' . $fileName;
+}
+
+function delete_product_image_file(string $image): void
+{
+	$relative = ltrim($image, '/');
+	if (strpos($relative, 'data/uploads/products/') !== 0) {
+		return;
+	}
+	$path = __DIR__ . '/../' . $relative;
+	if (is_file($path)) {
+		@unlink($path);
+	}
+	$webpPath = preg_replace('/\.(jpe?g|png)$/i', '.webp', $path);
+	if ($webpPath && $webpPath !== $path && is_file($webpPath)) {
+		@unlink($webpPath);
+	}
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 	if (!validate_csrf_token()) {
 		http_response_code(403);
@@ -31,21 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 
 	];
 
-	if (!empty($_FILES['image_upload']['tmp_name']) && is_uploaded_file($_FILES['image_upload']['tmp_name'])) {
-		$ext = strtolower(pathinfo((string)$_FILES['image_upload']['name'], PATHINFO_EXTENSION));
-		$allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-		if (in_array($ext, $allowed, true) && (int)$_FILES['image_upload']['size'] <= 5 * 1024 * 1024) {
-			$dir = __DIR__ . '/../data/uploads/products';
-			if (!is_dir($dir)) {
-				mkdir($dir, 0755, true);
-			}
-			$fileName = bin2hex(random_bytes(10)) . '.' . $ext;
-			$target = $dir . '/' . $fileName;
-			if (move_uploaded_file($_FILES['image_upload']['tmp_name'], $target)) {
-				$data['image'] = 'data/uploads/products/' . $fileName;
-				convert_to_webp($target);
-			}
-		}
+	$mainImage = save_product_image_upload($_FILES['image_upload'] ?? []);
+	if ($mainImage !== null) {
+		$data['image'] = $mainImage;
 	}
 
 	if ($id > 0) {
@@ -56,6 +87,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 	}
 	$stmt = $pdo->prepare($sql);
 	$stmt->execute($data);
+	$productId = $id > 0 ? $id : (int)$pdo->lastInsertId();
+
+	if ($productId > 0) {
+		$deleteIds = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['delete_gallery'] ?? [])))));
+		if ($deleteIds) {
+			$placeholders = implode(',', array_fill(0, count($deleteIds), '?'));
+			$selectImages = $pdo->prepare("SELECT image FROM product_images WHERE product_id = ? AND id IN ($placeholders)");
+			$selectImages->execute(array_merge([$productId], $deleteIds));
+			foreach ($selectImages->fetchAll() as $galleryImage) {
+				delete_product_image_file((string)$galleryImage['image']);
+			}
+			$deleteGallery = $pdo->prepare("DELETE FROM product_images WHERE product_id = ? AND id IN ($placeholders)");
+			$deleteGallery->execute(array_merge([$productId], $deleteIds));
+		}
+
+		$galleryFiles = $_FILES['gallery_uploads'] ?? [];
+		$galleryCount = is_array($galleryFiles['name'] ?? null) ? count($galleryFiles['name']) : 0;
+		if ($galleryCount > 0) {
+			$nextSort = (int)$pdo->query('SELECT COALESCE(MAX(sort_order), -1) + 1 FROM product_images WHERE product_id = ' . $productId)->fetchColumn();
+			$insertGallery = $pdo->prepare('INSERT INTO product_images (product_id, image, sort_order) VALUES (:product_id, :image, :sort_order)');
+			for ($i = 0; $i < $galleryCount; $i++) {
+				$galleryFile = [
+					'name' => $galleryFiles['name'][$i] ?? '',
+					'tmp_name' => $galleryFiles['tmp_name'][$i] ?? '',
+					'size' => $galleryFiles['size'][$i] ?? 0,
+					'error' => $galleryFiles['error'][$i] ?? UPLOAD_ERR_NO_FILE,
+				];
+				$galleryImage = save_product_image_upload($galleryFile);
+				if ($galleryImage !== null) {
+					$insertGallery->execute([
+						'product_id' => $productId,
+						'image' => $galleryImage,
+						'sort_order' => $nextSort++,
+					]);
+				}
+			}
+		}
+	}
 	header('Location: /admin/products.php');
 	exit;
 }
@@ -68,6 +137,7 @@ if ($pdo instanceof PDO) {
 	$products = $pdo->query('SELECT * FROM products ORDER BY sort_order ASC, id ASC LIMIT 500')->fetchAll();
 }
 $edit = null;
+$gallery = [];
 if (isset($_GET['edit'])) {
 	$editId = (int)$_GET['edit'];
 	$edit = []; // пустой массив = новый товар; null = список без формы
@@ -76,6 +146,11 @@ if (isset($_GET['edit'])) {
 			$edit = $p;
 			break;
 		}
+	}
+	if (!empty($edit['id']) && $pdo instanceof PDO) {
+		$galleryStmt = $pdo->prepare('SELECT id, image, sort_order FROM product_images WHERE product_id = :product_id ORDER BY sort_order ASC, id ASC');
+		$galleryStmt->execute(['product_id' => (int)$edit['id']]);
+		$gallery = $galleryStmt->fetchAll();
 	}
 }
 ?>
@@ -207,6 +282,64 @@ if (isset($_GET['edit'])) {
 		.image-upload-input {
 			display: none !important;
 			visibility: hidden !important;
+		}
+
+		.gallery-manager {
+			margin-top: 16px;
+			padding-top: 16px;
+			border-top: 1px solid #dee2e6;
+			text-align: left;
+		}
+
+		.gallery-manager label {
+			font-weight: 600;
+			color: #333;
+		}
+
+		.gallery-upload-input {
+			display: block;
+			width: 100%;
+			margin-top: 8px;
+			font-size: 13px;
+		}
+
+		.gallery-help {
+			display: block;
+			margin-top: 6px;
+			color: #777;
+			font-size: 12px;
+		}
+
+		.gallery-existing {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 8px;
+			margin-top: 12px;
+		}
+
+		.gallery-existing-item {
+			min-width: 0;
+			padding: 4px;
+			border: 1px solid #dee2e6;
+			border-radius: 5px;
+			background: #fff;
+			font-size: 11px;
+		}
+
+		.gallery-existing-item img {
+			display: block;
+			width: 100%;
+			height: 72px;
+			object-fit: contain;
+			margin-bottom: 4px;
+		}
+
+		.gallery-existing-item label {
+			display: flex;
+			align-items: center;
+			gap: 3px;
+			font-size: 11px;
+			font-weight: 400;
 		}
 
 		.form-group-wrapper {
@@ -659,6 +792,25 @@ if (isset($_GET['edit'])) {
 								</div>
 								<input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*"
 									style="display: none !important;">
+								<div class="gallery-manager">
+									<label for="galleryUploads">Дополнительные фото</label>
+									<input type="file" id="galleryUploads" class="gallery-upload-input"
+										name="gallery_uploads[]" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+									<small class="gallery-help">Можно выбрать несколько файлов. Максимум 5 МБ на фото.</small>
+									<?php if ($gallery): ?>
+										<div class="gallery-existing">
+											<?php foreach ($gallery as $galleryImage): ?>
+												<div class="gallery-existing-item">
+													<img src="/<?= admin_h((string)$galleryImage['image']) ?>" alt="Дополнительное фото">
+													<label>
+														<input type="checkbox" name="delete_gallery[]" value="<?= (int)$galleryImage['id'] ?>">
+														Удалить
+													</label>
+												</div>
+											<?php endforeach; ?>
+										</div>
+									<?php endif; ?>
+								</div>
 							</div>
 						</div>
 

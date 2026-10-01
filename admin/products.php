@@ -92,6 +92,8 @@ if (isset($_GET['edit'])) {
 	<link rel="stylesheet" href="/css/admin.css">
 	<!-- SortableJS — drag-and-drop библиотека для таблицы товаров -->
 	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+	<!-- CKEditor 5 — визуальный редактор, используемый в блоге -->
+	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
 	<style>
 		.product-form-wrapper {
 			display: flex;
@@ -345,6 +347,14 @@ if (isset($_GET['edit'])) {
 			min-height: 100px;
 		}
 
+		.descriptions-grid .ck-editor {
+			width: 100%;
+		}
+
+		.descriptions-grid .ck-content {
+			min-height: 180px;
+		}
+
 		.seo-section {
 			background: #e7f3ff;
 			border-left: 4px solid #007bff;
@@ -538,7 +548,7 @@ if (isset($_GET['edit'])) {
 		<h3>Товары</h3>
 
 		<?php if ($edit !== null): ?>
-			<form method="post" enctype="multipart/form-data">
+			<form id="productForm" method="post" enctype="multipart/form-data">
 				<input type="hidden" name="id" value="<?= admin_h((string)($edit['id'] ?? '')) ?>">
 				<input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 				<input type="hidden" name="image" id="imageInput" value="<?= admin_h((string)($edit['image'] ?? '')) ?>">
@@ -660,19 +670,19 @@ if (isset($_GET['edit'])) {
 						<div class="descriptions-grid">
 							<div class="form-group-wrapper">
 								<label for="short_desc">Краткое</label>
-								<textarea class="form-control" id="short_desc" rows="3"
+								<textarea class="form-control product-description-editor" id="short_desc" rows="3"
 									name="short_desc"><?= admin_h((string)($edit['short_desc'] ?? '')) ?></textarea>
 							</div>
 
 							<div class="form-group-wrapper">
 								<label for="desc">Обычное</label>
-								<textarea class="form-control" id="desc" rows="3"
+								<textarea class="form-control product-description-editor" id="desc" rows="3"
 									name="desc"><?= admin_h((string)($edit['desc'] ?? '')) ?></textarea>
 							</div>
 
 							<div class="form-group-wrapper">
 								<label for="full_desc">Полное</label>
-								<textarea class="form-control" id="full_desc" rows="3"
+								<textarea class="form-control product-description-editor" id="full_desc" rows="3"
 									name="full_desc"><?= admin_h((string)($edit['full_desc'] ?? '')) ?></textarea>
 							</div>
 						</div>
@@ -782,8 +792,78 @@ if (isset($_GET['edit'])) {
 		<?php endif; ?>
 	</div>
 
-	<script>
-		/* ====== Форма редактирования товара ====== */
+		<script>
+			/* ====== Визуальные редакторы описаний товара ====== */
+			(function() {
+				var form = document.getElementById('productForm');
+				var textareas = document.querySelectorAll('.product-description-editor');
+				if (!form || !textareas.length || typeof ClassicEditor === 'undefined') return;
+
+				var editors = [];
+				var editorConfig = {
+					toolbar: {
+						items: [
+							'undo', 'redo', '|', 'heading', '|',
+							'bold', 'italic', '|',
+							'bulletedList', 'numberedList', '|',
+							'link', 'imageUpload', 'blockQuote', 'insertTable', '|',
+							'removeFormat'
+						],
+						shouldNotGroupWhenFull: true
+					},
+					heading: {
+						options: [{
+								model: 'paragraph',
+								title: 'Параграф',
+								class: 'ck-heading_paragraph'
+							},
+							{
+								model: 'heading1',
+								view: 'h1',
+								title: 'Заголовок 1',
+								class: 'ck-heading_heading1'
+							},
+							{
+								model: 'heading2',
+								view: 'h2',
+								title: 'Заголовок 2',
+								class: 'ck-heading_heading2'
+							},
+							{
+								model: 'heading3',
+								view: 'h3',
+								title: 'Заголовок 3',
+								class: 'ck-heading_heading3'
+							}
+						]
+					},
+					simpleUpload: {
+						uploadUrl: '/admin/blog-upload.php'
+					},
+					table: {
+						contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+					},
+					language: 'ru'
+				};
+
+				Array.prototype.forEach.call(textareas, function(textarea) {
+					ClassicEditor.create(textarea, editorConfig)
+						.then(function(editor) {
+							editors.push({ editor: editor, textarea: textarea });
+						})
+						.catch(function(error) {
+							console.error('Не удалось загрузить редактор описания товара', error);
+						});
+				});
+
+				form.addEventListener('submit', function() {
+					editors.forEach(function(item) {
+						item.textarea.value = item.editor.getData();
+					});
+				});
+			})();
+
+			/* ====== Форма редактирования товара ====== */
 		(function() {
 			var imageUpload = document.getElementById('imageUpload');
 			if (!imageUpload) return; // форма отсутствует на странице

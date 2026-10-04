@@ -308,6 +308,7 @@ $gallery = [];
 			display: grid;
 			grid-template-columns: 1.5fr 1fr;
 			gap: 30px;
+			align-items: start;
 		}
 
 		.product-form-right {
@@ -333,8 +334,9 @@ $gallery = [];
 			position: relative;
 			display: block;
 			width: 100%;
-			height: 100%;
+			height: auto;
 			margin: 0 auto;
+			overflow: visible;
 		}
 
 		.image-placeholder {
@@ -413,6 +415,9 @@ $gallery = [];
 
 		.gallery-manager {
 			clear: both;
+			position: relative;
+			z-index: 1;
+			width: 100%;
 			margin-top: 24px;
 			padding: 20px 0 0;
 			border-top: 1px solid #dee2e6;
@@ -964,9 +969,8 @@ $gallery = [];
 											<line x1="6" y1="6" x2="18" y2="18"></line>
 										</svg>
 									</button>
-								</div>
-								<input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*"
-									style="display: none !important;">
+									<input type="file" id="imageUpload" class="image-upload-input" name="image_upload" accept="image/*"
+										style="display: none !important;">
 								<div class="gallery-manager">
 									<label for="galleryUploads">Дополнительные фото</label>
 									<input type="file" id="galleryUploads" class="gallery-upload-input"
@@ -995,9 +999,10 @@ $gallery = [];
 											</div>
 											<?php endforeach; ?>
 										</div>
-									<?php endif; ?>
+										<?php endif; ?>
+									</div>
 								</div>
-							</div>
+								</div>
 						</div>
 
 					</div>

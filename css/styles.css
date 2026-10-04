@@ -2019,6 +2019,10 @@ section.slider .flexslider picture {
   min-height: 420px;
 }
 
+.product-gallery-single {
+  justify-content: center;
+}
+
 .product-gallery-thumbs-wrap {
   display: flex;
   flex: 0 0 76px;
@@ -2116,6 +2120,10 @@ section.slider .flexslider picture {
   flex: 1 1 auto;
   min-width: 0;
   height: 520px;
+}
+
+.product-gallery-main-single {
+  width: 100%;
 }
 
 .product-gallery-main img {

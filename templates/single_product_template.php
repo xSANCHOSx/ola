@@ -87,9 +87,9 @@ require __DIR__ . '/head.php'; ?>
 			<div class="row">
 					<!-- Галерея товара: миниатюры сбоку от большого фото -->
 					<div class="col-sm-12 col-md-5 offset-md-1">
-						<div class="product-gallery animated fadeInDown" data-product-gallery>
-							<?php if ($productImages): ?>
-								<div class="product-gallery-thumbs-wrap">
+							<div class="product-gallery animated fadeInDown <?= count($productImages) < 2 ? 'product-gallery-single' : '' ?>" data-product-gallery>
+								<?php if (count($productImages) > 1): ?>
+									<div class="product-gallery-thumbs-wrap">
 									<button type="button" class="product-gallery-nav" data-gallery-nav="-1" aria-label="Предыдущие фото">⌃</button>
 									<div class="product-gallery-thumbs" data-gallery-thumbs role="list">
 										<?php foreach ($productImages as $imageIndex => $productImage): ?>
@@ -107,7 +107,7 @@ require __DIR__ . '/head.php'; ?>
 									</div>
 									<button type="button" class="product-gallery-nav" data-gallery-nav="1" aria-label="Следующие фото">⌄</button>
 								</div>
-								<div class="product-gallery-main">
+									<div class="product-gallery-main">
 									<button type="button" class="product-gallery-main-nav product-gallery-main-prev" data-gallery-main-nav="-1" aria-label="Предыдущее фото">‹</button>
 									<?php $mainWebpImage = webp_image_source($productImages[0]); ?>
 									<picture>
@@ -115,8 +115,16 @@ require __DIR__ . '/head.php'; ?>
 										<img data-gallery-main src="/<?= htmlspecialchars($productImages[0], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" width="600" height="600">
 									</picture>
 									<button type="button" class="product-gallery-main-nav product-gallery-main-next" data-gallery-main-nav="1" aria-label="Следующее фото">›</button>
-								</div>
-							<?php else: ?>
+									</div>
+								<?php elseif ($productImages): ?>
+									<?php $singleWebpImage = webp_image_source($productImages[0]); ?>
+									<div class="product-gallery-main product-gallery-main-single">
+										<picture>
+											<?php if ($singleWebpImage): ?><source srcset="/<?= htmlspecialchars($singleWebpImage, ENT_QUOTES, 'UTF-8') ?>" type="image/webp"><?php endif; ?>
+											<img src="/<?= htmlspecialchars($productImages[0], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" width="600" height="600">
+										</picture>
+									</div>
+								<?php else: ?>
 								<div class="product-gallery-empty">Фото товара пока не добавлено</div>
 							<?php endif; ?>
 						</div>

@@ -87,6 +87,49 @@ function delete_product_image_file(string $image): void
 	}
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_gallery_image') {
+	header('Content-Type: application/json; charset=utf-8');
+	if (!validate_csrf_token()) {
+		http_response_code(403);
+		echo json_encode(['success' => false, 'message' => 'CSRF check failed'], JSON_UNESCAPED_UNICODE);
+		exit;
+	}
+
+	$productId = (int)($_POST['product_id'] ?? 0);
+	$imageId = (int)($_POST['image_id'] ?? 0);
+	if ($productId <= 0 || $imageId <= 0 || !product_images_table_exists($pdo)) {
+		http_response_code(400);
+		echo json_encode(['success' => false, 'message' => 'Некорректные параметры изображения.'], JSON_UNESCAPED_UNICODE);
+		exit;
+	}
+
+	try {
+		$stmt = $pdo->prepare('SELECT image FROM product_images WHERE id = :id AND product_id = :product_id');
+		$stmt->execute(['id' => $imageId, 'product_id' => $productId]);
+		$image = $stmt->fetchColumn();
+		if ($image === false) {
+			http_response_code(404);
+			echo json_encode(['success' => false, 'message' => 'Изображение не найдено.'], JSON_UNESCAPED_UNICODE);
+			exit;
+		}
+
+		$pdo->beginTransaction();
+		$delete = $pdo->prepare('DELETE FROM product_images WHERE id = :id AND product_id = :product_id');
+		$delete->execute(['id' => $imageId, 'product_id' => $productId]);
+		$pdo->commit();
+		delete_product_image_file((string)$image);
+
+		echo json_encode(['success' => true], JSON_UNESCAPED_UNICODE);
+	} catch (Throwable $e) {
+		if ($pdo->inTransaction()) {
+			$pdo->rollBack();
+		}
+		http_response_code(500);
+		echo json_encode(['success' => false, 'message' => 'Не удалось удалить изображение.'], JSON_UNESCAPED_UNICODE);
+	}
+	exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 	if (!validate_csrf_token()) {
 		http_response_code(403);
@@ -369,8 +412,9 @@ $gallery = [];
 		}
 
 		.gallery-manager {
-			margin-top: 16px;
-			padding-top: 16px;
+			clear: both;
+			margin-top: 24px;
+			padding: 20px 0 0;
 			border-top: 1px solid #dee2e6;
 			text-align: left;
 		}
@@ -396,34 +440,60 @@ $gallery = [];
 
 		.gallery-existing {
 			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-			gap: 8px;
+			grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+			gap: 12px;
 			margin-top: 12px;
 		}
 
+		.gallery-upload-preview {
+			margin-top: 16px;
+		}
+
+		.gallery-upload-preview:empty {
+			display: none;
+		}
+
 		.gallery-existing-item {
+			position: relative;
 			min-width: 0;
-			padding: 4px;
+			min-height: 150px;
+			padding: 8px;
 			border: 1px solid #dee2e6;
-			border-radius: 5px;
+			border-radius: 8px;
 			background: #fff;
 			font-size: 11px;
+			overflow: hidden;
 		}
 
 		.gallery-existing-item img {
 			display: block;
 			width: 100%;
-			height: 72px;
+			height: 130px;
 			object-fit: contain;
-			margin-bottom: 4px;
+			margin-bottom: 8px;
 		}
 
-		.gallery-existing-item label {
-			display: flex;
-			align-items: center;
-			gap: 3px;
-			font-size: 11px;
-			font-weight: 400;
+		.gallery-existing-item .gallery-remove-image {
+			top: 6px;
+			right: 6px;
+			width: 30px;
+			height: 30px;
+		}
+
+		.gallery-existing-item .gallery-remove-image svg {
+			width: 16px;
+			height: 16px;
+		}
+
+		.gallery-upload-preview .gallery-existing-item {
+			border-style: dashed;
+		}
+
+		.gallery-upload-preview .gallery-existing-item small {
+			display: block;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 
 		.gallery-order-buttons {
@@ -902,21 +972,27 @@ $gallery = [];
 									<input type="file" id="galleryUploads" class="gallery-upload-input"
 										name="gallery_uploads[]" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
 									<small class="gallery-help">Можно выбрать несколько файлов. Максимум 5 МБ на фото.</small>
+									<div id="galleryUploadPreview" class="gallery-existing gallery-upload-preview" aria-live="polite"></div>
 								<?php if ($gallery): ?>
 									<input type="hidden" name="gallery_order" id="galleryOrder" value="<?= admin_h(json_encode(array_column($gallery, 'id'))) ?>">
 									<div class="gallery-existing">
 										<?php foreach ($gallery as $galleryImage): ?>
 											<div class="gallery-existing-item" data-gallery-id="<?= (int)$galleryImage['id'] ?>">
 												<img src="/<?= admin_h((string)$galleryImage['image']) ?>" alt="Дополнительное фото">
+												<button type="button" class="btn-remove-image show gallery-remove-image"
+													data-gallery-delete="<?= (int)$galleryImage['id'] ?>"
+													onclick="removeGalleryImage(event, <?= (int)$galleryImage['id'] ?>)"
+													aria-label="Удалить дополнительное фото">
+													<svg viewBox="0 0 24 24" fill="none">
+														<line x1="18" y1="6" x2="6" y2="18"></line>
+														<line x1="6" y1="6" x2="18" y2="18"></line>
+													</svg>
+												</button>
 												<div class="gallery-order-buttons">
 													<button type="button" class="gallery-move" data-gallery-move="up" aria-label="Выше">↑</button>
 													<button type="button" class="gallery-move" data-gallery-move="down" aria-label="Ниже">↓</button>
 												</div>
-												<label>
-														<input type="checkbox" name="delete_gallery[]" value="<?= (int)$galleryImage['id'] ?>">
-														Удалить
-													</label>
-												</div>
+											</div>
 											<?php endforeach; ?>
 										</div>
 									<?php endif; ?>
@@ -1136,7 +1212,7 @@ $gallery = [];
 					});
 					orderInput.value = JSON.stringify(ids);
 				}
-				galleryList.addEventListener('click', function(event) {
+					galleryList.addEventListener('click', function(event) {
 					var button = event.target.closest('[data-gallery-move]');
 					if (!button) return;
 					var item = button.closest('[data-gallery-id]');
@@ -1147,10 +1223,79 @@ $gallery = [];
 						galleryList.insertBefore(item.nextElementSibling, item);
 					}
 					syncGalleryOrder();
-				});
-			})();
+					});
+				})();
 
-			/* ====== Форма редактирования товара ====== */
+				/* ====== Предпросмотр новых дополнительных фото ====== */
+				(function() {
+					var galleryUpload = document.getElementById('galleryUploads');
+					var preview = document.getElementById('galleryUploadPreview');
+					if (!galleryUpload || !preview) return;
+
+					galleryUpload.addEventListener('change', function() {
+						preview.innerHTML = '';
+						Array.prototype.forEach.call(galleryUpload.files, function(file) {
+							if (!file.type || file.type.indexOf('image/') !== 0) return;
+							var item = document.createElement('div');
+							item.className = 'gallery-existing-item';
+							var image = document.createElement('img');
+							image.src = URL.createObjectURL(file);
+							image.alt = 'Предпросмотр нового фото';
+							var name = document.createElement('small');
+							name.textContent = file.name;
+							item.appendChild(image);
+							item.appendChild(name);
+							preview.appendChild(item);
+						});
+					});
+				})();
+
+				/* ====== Немедленное удаление дополнительного фото ====== */
+				window.removeGalleryImage = function(event, imageId) {
+					event.preventDefault();
+					event.stopPropagation();
+					var form = document.getElementById('productForm');
+					var item = event.currentTarget.closest('[data-gallery-id]');
+					if (!form || !item) return;
+
+					var body = new URLSearchParams();
+					body.set('action', 'delete_gallery_image');
+					body.set('product_id', form.querySelector('[name="id"]').value);
+					body.set('image_id', String(imageId));
+					body.set('csrf_token', form.querySelector('[name="csrf_token"]').value);
+					var button = event.currentTarget;
+					button.disabled = true;
+
+					fetch(window.location.href, {
+						method: 'POST',
+						headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+						body: body.toString()
+					})
+					.then(function(response) {
+						return response.json().then(function(result) {
+							if (!response.ok || !result.success) {
+								throw new Error(result.message || 'Не удалось удалить фото.');
+							}
+							return result;
+						});
+					})
+					.then(function() {
+						item.remove();
+						var orderInput = document.getElementById('galleryOrder');
+						var galleryList = document.querySelector('.gallery-existing:not(#galleryUploadPreview)');
+						if (orderInput && galleryList) {
+							orderInput.value = JSON.stringify(Array.prototype.map.call(galleryList.querySelectorAll('[data-gallery-id]'), function(row) {
+								return parseInt(row.getAttribute('data-gallery-id'), 10);
+							}));
+						}
+					})
+					.catch(function(error) {
+						button.disabled = false;
+						window.alert(error.message);
+					});
+				};
+
+				/* ====== Форма редактирования товара ====== */
 		(function() {
 			var imageUpload = document.getElementById('imageUpload');
 			if (!imageUpload) return; // форма отсутствует на странице
@@ -1177,7 +1322,7 @@ $gallery = [];
 			});
 
 			// Удаление фото
-			window.removeImage = function(event) {
+				window.removeImage = function(event) {
 				event.preventDefault();
 				event.stopPropagation();
 				document.getElementById('imageInput').value = '';

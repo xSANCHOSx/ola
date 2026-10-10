@@ -96,8 +96,7 @@ require __DIR__ . '/head.php'; ?>
 						</div>
 					</div>
 
-					<div class="product-info tovar-name" data-id="<?= htmlspecialchars((string)$currentProduct['id']) ?>">
-						<div class="product-eyebrow">Olaplex Professional</div>
+						<div class="product-info tovar-name" data-id="<?= htmlspecialchars((string)$currentProduct['id']) ?>">
 						<h1 id="product-title"><?= htmlspecialchars($currentProduct['cat_number'], ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?></h1>
 						<div class="product-rating"><span class="rating-stars">★★★★★</span> <span>5.0 · 30 отзывов</span></div>
 						<div class="product-divider"></div>
@@ -117,7 +116,7 @@ require __DIR__ . '/head.php'; ?>
 							<button class="b1c product-buy-button" <?php if (product_is_buyable($currentProduct)) { ?>onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id']) ?>')" <?php } else { ?>disabled<?php } ?>><?= product_button_label($currentProduct) ?><span>→</span></button>
 							<div class="product-benefits"><span>✓ Оригинал</span><span>✓ Безопасная оплата</span><span>✓ Поддержка стилиста</span></div>
 						</div>
-						<div class="product-accordions"><details open><summary>О продукте <span>+</span></summary><p><?= !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'] ?></p></details><details><summary>Доставка и возврат <span>+</span></summary><p>Доставляем по Москве, Санкт-Петербургу и регионам России. Условия доставки уточнит оператор после оформления заказа.</p></details></div>
+						<div class="product-description"><h2>О продукте</h2><div><?= !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'] ?></div></div>
 					</div>
 				</div>
 			</div>

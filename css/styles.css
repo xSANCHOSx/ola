@@ -1490,13 +1490,9 @@ section.slider {
 .product-buy-button { align-items: center; display: flex; font-size: 16px; justify-content: space-between; letter-spacing: .04em; padding: 14px 18px; text-transform: uppercase; }
 .product-buy-button span { font-size: 22px; line-height: 12px; }
 .product-benefits { color: #837876; display: flex; flex-wrap: wrap; font-size: 11px; gap: 8px 15px; line-height: 1.4; margin-top: 16px; }
-.product-accordions { margin-top: 23px; }
-.product-accordions details { border-top: 1px solid #eee5e3; color: #5d5553; padding: 15px 0; }
-.product-accordions summary { color: #2d2928; cursor: pointer; font-size: 14px; font-weight: 600; list-style: none; }
-.product-accordions summary::-webkit-details-marker { display: none; }
-.product-accordions summary span { color: #ba385c; float: right; font-size: 20px; font-weight: 300; }
-.product-accordions details[open] summary span { transform: rotate(45deg); }
-.product-accordions p { font-size: 13px; line-height: 1.65; margin: 13px 0 0; }
+.product-description { border-top: 1px solid #eee5e3; color: #5d5553; font-size: 13px; line-height: 1.65; margin-top: 23px; padding-top: 17px; }
+.product-description h2 { color: #2d2928; font-size: 14px; font-weight: 600; margin: 0 0 13px; }
+.product-description p { margin: 0 0 12px; }
 
 @media (max-width: 900px) {
   .product-layout { gap: 28px; grid-template-columns: minmax(0, 1fr) minmax(300px, .8fr); padding: 18px; }

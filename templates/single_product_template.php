@@ -20,6 +20,18 @@ $defaultTitle = htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') .
 $defaultDescription = generate_product_seo_description($currentProduct);
 $pageTitle = !empty($currentProduct['seo_title']) ? htmlspecialchars((string)$currentProduct['seo_title'], ENT_QUOTES, 'UTF-8') : generate_product_seo_title($currentProduct);
 $pageDescription = !empty($currentProduct['seo_description']) ? htmlspecialchars((string)$currentProduct['seo_description'], ENT_QUOTES, 'UTF-8') : $defaultDescription;
+$productImages = [];
+foreach (array_merge([(string)($currentProduct['image'] ?? '')], (array)($currentProduct['gallery'] ?? [])) as $productImage) {
+	$productImage = trim((string)$productImage);
+	if ($productImage !== '' && !in_array($productImage, $productImages, true)) {
+		$productImages[] = $productImage;
+	}
+}
+$appConfig = function_exists('dev_app_config') ? dev_app_config() : [];
+$siteDomain = trim((string)($appConfig['site_domain'] ?? ($_SERVER['HTTP_HOST'] ?? 'localhost')));
+$siteDomain = preg_replace('#^https?://#', '', $siteDomain);
+$siteBaseUrl = 'https://' . rtrim((string)$siteDomain, '/');
+$absoluteProductImages = array_map(static fn(string $image): string => $siteBaseUrl . '/' . ltrim($image, '/'), $productImages);
 ?>
 
 <!DOCTYPE html>
@@ -33,7 +45,7 @@ $productSchema = [
 	'@context' => 'https://schema.org',
 	'@type' => 'Product',
 	'name' => $currentProduct['name'],
-	'image' => $currentProduct['image'],
+	'image' => $absoluteProductImages,
 	'description' => $currentProduct['short_desc'] ?: $currentProduct['desc'],
 	'sku' => $currentProduct['cat_number'] ?: $currentProduct['id'],
 	'brand' => [
@@ -42,7 +54,7 @@ $productSchema = [
 	],
 	'offers' => [
 		'@type' => 'Offer',
-		'url' => $currentProduct['link'],
+		'url' => $siteBaseUrl . '/' . ltrim((string)$currentProduct['link'], '/'),
 		'priceCurrency' => 'RUB',
 		'price' => (string)$currentProduct['price'],
 		'availability' => $currentProduct['in_stock'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
@@ -73,18 +85,50 @@ require __DIR__ . '/head.php'; ?>
 		</div>
 		<div class="max-feature-section-list container-fluid even3">
 			<div class="row">
-				<!-- Фото: desktop -->
-				<div class="col-sm-12 col-md-5 offset-md-1 hidden-xs hidden-sm">
-					<div class="img animated fadeInDown">
-						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
+					<!-- Галерея товара: миниатюры сбоку от большого фото -->
+					<div class="col-sm-12 col-md-5 offset-md-1">
+							<div class="product-gallery animated fadeInDown <?= count($productImages) < 2 ? 'product-gallery-single' : '' ?>" data-product-gallery>
+								<?php if (count($productImages) > 1): ?>
+									<div class="product-gallery-thumbs-wrap">
+									<button type="button" class="product-gallery-nav" data-gallery-nav="-1" aria-label="Предыдущие фото">⌃</button>
+									<div class="product-gallery-thumbs" data-gallery-thumbs role="list">
+										<?php foreach ($productImages as $imageIndex => $productImage): ?>
+											<?php $webpProductImage = webp_image_source($productImage); ?>
+											<button type="button" class="product-gallery-thumb <?= $imageIndex === 0 ? 'is-active' : '' ?>"
+												data-gallery-image="<?= htmlspecialchars($productImage, ENT_QUOTES, 'UTF-8') ?>"
+												data-gallery-webp="<?= htmlspecialchars((string)$webpProductImage, ENT_QUOTES, 'UTF-8') ?>"
+												aria-label="Фото <?= $imageIndex + 1 ?>" aria-selected="<?= $imageIndex === 0 ? 'true' : 'false' ?>" aria-current="<?= $imageIndex === 0 ? 'true' : 'false' ?>">
+												<picture>
+													<?php if ($webpProductImage): ?><source srcset="/<?= htmlspecialchars($webpProductImage, ENT_QUOTES, 'UTF-8') ?>" type="image/webp"><?php endif; ?>
+													<img src="/<?= htmlspecialchars($productImage, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?> — фото <?= $imageIndex + 1 ?>" loading="lazy">
+												</picture>
+											</button>
+										<?php endforeach; ?>
+									</div>
+									<button type="button" class="product-gallery-nav" data-gallery-nav="1" aria-label="Следующие фото">⌄</button>
+								</div>
+									<div class="product-gallery-main">
+									<button type="button" class="product-gallery-main-nav product-gallery-main-prev" data-gallery-main-nav="-1" aria-label="Предыдущее фото">‹</button>
+									<?php $mainWebpImage = webp_image_source($productImages[0]); ?>
+									<picture>
+										<?php if ($mainWebpImage): ?><source data-gallery-main-webp srcset="/<?= htmlspecialchars($mainWebpImage, ENT_QUOTES, 'UTF-8') ?>" type="image/webp"><?php endif; ?>
+										<img data-gallery-main src="/<?= htmlspecialchars($productImages[0], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" width="600" height="600">
+									</picture>
+									<button type="button" class="product-gallery-main-nav product-gallery-main-next" data-gallery-main-nav="1" aria-label="Следующее фото">›</button>
+									</div>
+								<?php elseif ($productImages): ?>
+									<?php $singleWebpImage = webp_image_source($productImages[0]); ?>
+									<div class="product-gallery-main product-gallery-main-single">
+										<picture>
+											<?php if ($singleWebpImage): ?><source srcset="/<?= htmlspecialchars($singleWebpImage, ENT_QUOTES, 'UTF-8') ?>" type="image/webp"><?php endif; ?>
+											<img src="/<?= htmlspecialchars($productImages[0], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" width="600" height="600">
+										</picture>
+									</div>
+								<?php else: ?>
+								<div class="product-gallery-empty">Фото товара пока не добавлено</div>
+							<?php endif; ?>
+						</div>
 					</div>
-				</div>
-				<!-- Фото: mobile -->
-				<div class="col-sm-12 hidden-md hidden-lg">
-					<div class="image">
-						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
-					</div>
-				</div>
 				<!-- Информация о товаре -->
 				<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
 					<span></span>
@@ -162,9 +206,88 @@ require __DIR__ . '/head.php'; ?>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script defer src="/js/main.js?v=<?= date('Ymd', filemtime(__DIR__ . '/../js/main.js')) ?>"></script>
 
-	<script>
-		window.addEventListener('DOMContentLoaded', function() {
-			// tiny helper function to add breakpoints
+		<script>
+			window.addEventListener('DOMContentLoaded', function() {
+				document.querySelectorAll('[data-product-gallery]').forEach(function(gallery) {
+					var thumbs = Array.prototype.slice.call(gallery.querySelectorAll('[data-gallery-image]'));
+					var mainImage = gallery.querySelector('[data-gallery-main]');
+					var mainWebp = gallery.querySelector('[data-gallery-main-webp]');
+					var thumbsContainer = gallery.querySelector('[data-gallery-thumbs]');
+					if (!mainImage || !thumbs.length) return;
+
+					var currentIndex = 0;
+					var imageUrl = function(path) {
+						return path.charAt(0) === '/' ? path : '/' + path;
+					};
+					var showImage = function(index) {
+						currentIndex = (index + thumbs.length) % thumbs.length;
+						var activeThumb = thumbs[currentIndex];
+						mainImage.src = imageUrl(activeThumb.getAttribute('data-gallery-image'));
+						if (mainWebp) {
+							var webpPath = activeThumb.getAttribute('data-gallery-webp');
+							mainWebp.srcset = webpPath ? imageUrl(webpPath) : '';
+						}
+						thumbs.forEach(function(thumb, thumbIndex) {
+							var isActive = thumbIndex === currentIndex;
+							thumb.classList.toggle('is-active', isActive);
+							thumb.setAttribute('aria-selected', isActive ? 'true' : 'false');
+							thumb.setAttribute('aria-current', isActive ? 'true' : 'false');
+						});
+						activeThumb.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+					};
+
+					thumbs.forEach(function(thumb, index) {
+						thumb.addEventListener('click', function() {
+							showImage(index);
+						});
+					});
+
+					gallery.querySelectorAll('[data-gallery-main-nav]').forEach(function(button) {
+						button.addEventListener('click', function() {
+							showImage(currentIndex + parseInt(button.getAttribute('data-gallery-main-nav'), 10));
+						});
+					});
+					gallery.setAttribute('tabindex', '0');
+					gallery.addEventListener('keydown', function(event) {
+						if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+							event.preventDefault();
+							showImage(currentIndex - 1);
+						} else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+							event.preventDefault();
+							showImage(currentIndex + 1);
+						}
+					});
+					var touchStartX = null;
+					gallery.addEventListener('touchstart', function(event) {
+						touchStartX = event.changedTouches[0].clientX;
+					}, { passive: true });
+					gallery.addEventListener('touchend', function(event) {
+						if (touchStartX === null) return;
+						var deltaX = event.changedTouches[0].clientX - touchStartX;
+						touchStartX = null;
+						if (Math.abs(deltaX) >= 40) showImage(currentIndex + (deltaX < 0 ? 1 : -1));
+					}, { passive: true });
+					mainImage.addEventListener('error', function() {
+						mainImage.alt = 'Изображение товара недоступно';
+						gallery.classList.add('has-image-error');
+					});
+
+					gallery.querySelectorAll('[data-gallery-nav]').forEach(function(button) {
+						button.addEventListener('click', function() {
+							var direction = parseInt(button.getAttribute('data-gallery-nav'), 10);
+							var isHorizontal = thumbsContainer.scrollWidth > thumbsContainer.clientWidth;
+							thumbsContainer.scrollBy(isHorizontal ? { left: direction * 150, behavior: 'smooth' } : { top: direction * 150, behavior: 'smooth' });
+						});
+					});
+
+					if (thumbs.length < 2) {
+						gallery.querySelectorAll('[data-gallery-nav], [data-gallery-main-nav]').forEach(function(button) {
+							button.hidden = true;
+						});
+					}
+				});
+
+				// tiny helper function to add breakpoints
 			function getGridSize() {
 				return (window.innerWidth < 600) ? 2 :
 					(window.innerWidth < 900) ? 3 : 4

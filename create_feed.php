@@ -10,10 +10,13 @@ $baseUrl = 'https://' . $domain;
 $products = [];
 $pdo = dev_db_connection();
 if ($pdo instanceof PDO) {
-	$stmt = $pdo->query('SELECT external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status FROM products ORDER BY id ASC');
+	$stmt = $pdo->query('SELECT id AS db_id, external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status FROM products ORDER BY id ASC');
 	$rows = $stmt->fetchAll();
+	$productIndexes = [];
 	foreach ($rows as $row) {
+		$productIndexes[(int)$row['db_id']] = count($products);
 		$products[] = [
+			'db_id' => (int)$row['db_id'],
 			'id' => (string)$row['external_id'],
 			'cat_number' => (string)($row['cat_number'] ?? ''),
 			'name' => (string)$row['name'],
@@ -26,7 +29,37 @@ if ($pdo instanceof PDO) {
 			'full_desc' => (string)($row['full_desc'] ?? ''),
 			'in_stock' => (bool)$row['in_stock'],
 			'status' => $row['status'] !== null ? (string)$row['status'] : null,
+			'gallery' => [],
 		];
+	}
+	if ($productIndexes) {
+		try {
+			$placeholders = implode(',', array_fill(0, count($productIndexes), '?'));
+			$galleryStmt = $pdo->prepare(
+				"SELECT product_id, image FROM product_images
+				 WHERE product_id IN ($placeholders)
+				 ORDER BY sort_order ASC, id ASC"
+			);
+			$galleryStmt->execute(array_keys($productIndexes));
+			foreach ($galleryStmt->fetchAll() as $galleryRow) {
+				$productId = (int)$galleryRow['product_id'];
+				$productIndex = $productIndexes[$productId] ?? null;
+				$image = trim((string)($galleryRow['image'] ?? ''));
+				if ($productIndex !== null && $image !== ''
+					&& $image !== $products[$productIndex]['image']
+					&& !in_array($image, $products[$productIndex]['gallery'], true)) {
+					// Yandex и Google поддерживают до 10 дополнительных изображений.
+					if (count($products[$productIndex]['gallery']) < 10) {
+						$products[$productIndex]['gallery'][] = $image;
+					}
+				}
+			}
+		} catch (Throwable $e) {
+			// До применения миграции product_images фиды продолжают работать с главным фото.
+			if (function_exists('dev_log_runtime')) {
+				dev_log_runtime('Feed gallery load skipped: ' . $e->getMessage());
+			}
+		}
 	}
 }
 
@@ -75,7 +108,12 @@ foreach ($products as $product) {
 	}
 
 	$offer->addChild('url', $baseUrl . $product['link']);
-	$offer->addChild('picture', $baseUrl . '/' . $product['image']);
+	if ($product['image'] !== '') {
+		$offer->addChild('picture', $baseUrl . '/' . ltrim($product['image'], '/'));
+	}
+	foreach ($product['gallery'] as $galleryImage) {
+		$offer->addChild('picture', $baseUrl . '/' . ltrim($galleryImage, '/'));
+	}
 	$offer->addChild('name', $product['name']);
 	$offer->addChild('description', htmlspecialchars($product['desc']));
 	$offer->addChild('sales_notes', 'Бесплатная доставка по МСК при заказе от 5000р.');
@@ -132,7 +170,12 @@ foreach ($products as $product) {
 	$xml->writeElement('g:title', $product['name']);
 	$xml->writeElement('g:description', htmlspecialchars($product['desc']));
 	$xml->writeElement('g:link', $baseUrl . $product['link']);
-	$xml->writeElement('g:image_link', $baseUrl . '/' . $product['image']);
+	if ($product['image'] !== '') {
+		$xml->writeElement('g:image_link', $baseUrl . '/' . ltrim($product['image'], '/'));
+	}
+	foreach ($product['gallery'] as $galleryImage) {
+		$xml->writeElement('g:additional_image_link', $baseUrl . '/' . ltrim($galleryImage, '/'));
+	}
 
 	if (!empty($product['status']) && $product['status'] === 'preorder') {
 		$availability = 'preorder';

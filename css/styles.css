@@ -2619,3 +2619,19 @@ body.single #max-packages-section .delivery {
     padding: 8px 0;
   }
 }
+
+/* Mobile delivery cards: compact and equal vertical spacing. */
+@media (max-width: 767px) {
+  body.single #max-packages-section .row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  body.single #max-packages-section .b1c-good {
+    padding: 4px 0;
+  }
+
+  body.single #max-packages-section .delivery {
+    margin: 0;
+  }
+}

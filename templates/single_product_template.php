@@ -20,7 +20,9 @@ $defaultTitle = htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') .
 $defaultDescription = generate_product_seo_description($currentProduct);
 $pageTitle = !empty($currentProduct['seo_title']) ? htmlspecialchars((string)$currentProduct['seo_title'], ENT_QUOTES, 'UTF-8') : generate_product_seo_title($currentProduct);
 $pageDescription = !empty($currentProduct['seo_description']) ? htmlspecialchars((string)$currentProduct['seo_description'], ENT_QUOTES, 'UTF-8') : $defaultDescription;
-$breadcrumbs = [['label' => 'Каталог', 'url' => '/#max-featured-section'], ['label' => trim((string)$currentProduct['cat_number'] . ' ' . (string)$currentProduct['name'])]];
+$productBreadcrumbLabel = trim((string)$currentProduct['cat_number'] . ' ' . (string)$currentProduct['name']);
+$breadcrumbs = [['label' => 'Каталог', 'url' => '/#max-featured-section'], ['label' => $productBreadcrumbLabel]];
+$breadcrumbSchema = [['label' => $productBreadcrumbLabel]];
 
 // Объединяем основное и дополнительные изображения, сохраняя порядок из БД.
 $productImages = [];

@@ -41,7 +41,17 @@ $breadcrumbSchemaItems = [[
     'name' => 'Главная',
     'item' => $breadcrumbBaseUrl . '/',
 ]];
-foreach ($breadcrumbItems as $position => $item) {
+$breadcrumbSchemaSource = [];
+foreach ((array)($breadcrumbSchema ?? $breadcrumbItems) as $item) {
+    if (!is_array($item) || trim((string)($item['label'] ?? '')) === '') {
+        continue;
+    }
+    $breadcrumbSchemaSource[] = [
+        'label' => trim((string)$item['label']),
+        'url' => isset($item['url']) && (string)$item['url'] !== '' ? (string)$item['url'] : null,
+    ];
+}
+foreach ($breadcrumbSchemaSource as $position => $item) {
     $breadcrumbSchemaItems[] = [
         '@type' => 'ListItem',
         'position' => $position + 2,

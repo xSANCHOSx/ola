@@ -20,6 +20,20 @@ $defaultTitle = htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') .
 $defaultDescription = generate_product_seo_description($currentProduct);
 $pageTitle = !empty($currentProduct['seo_title']) ? htmlspecialchars((string)$currentProduct['seo_title'], ENT_QUOTES, 'UTF-8') : generate_product_seo_title($currentProduct);
 $pageDescription = !empty($currentProduct['seo_description']) ? htmlspecialchars((string)$currentProduct['seo_description'], ENT_QUOTES, 'UTF-8') : $defaultDescription;
+
+// Собираем галерею из основного изображения и дополнительных файлов товара,
+// если они есть в публичной папке images. Старые данные БД при этом остаются совместимыми.
+$galleryImages = [$currentProduct['image']];
+$imageId = pathinfo(basename((string)$currentProduct['image']), PATHINFO_FILENAME);
+$imageId = preg_replace('/_min$/', '', $imageId);
+$imageCandidates = glob($_SERVER['DOCUMENT_ROOT'] . '/images/' . $imageId . '*.png') ?: [];
+foreach ($imageCandidates as $candidate) {
+	$publicPath = '/images/' . basename($candidate);
+	if (!in_array($publicPath, $galleryImages, true)) {
+		$galleryImages[] = $publicPath;
+	}
+}
+$galleryImages = array_slice($galleryImages, 0, 4);
 ?>
 
 <!DOCTYPE html>
@@ -64,79 +78,50 @@ require __DIR__ . '/head.php'; ?>
 <body class="single">
 	<?php include 'header.php'; ?>
 
-	<!-- ./ Container End Home -->
-	<!-- Feature Section Starts -->
-	<section id="max-featured-section">
-		<div class="max-section-title product">
-			<h1><?= htmlspecialchars($currentProduct['cat_number'], ENT_QUOTES, 'UTF-8') ?>
-				<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?></h1>
-		</div>
-		<div class="max-feature-section-list container-fluid even3">
-			<div class="row">
-				<!-- Фото: desktop -->
-				<div class="col-sm-12 col-md-5 offset-md-1 hidden-xs hidden-sm">
-					<div class="img animated fadeInDown">
-						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
-					</div>
-				</div>
-				<!-- Фото: mobile -->
-				<div class="col-sm-12 hidden-md hidden-lg">
-					<div class="image">
-						<?= webp_img($currentProduct['image'], $currentProduct['name'], 'img-responsive', ['width' => 600, 'height' => 600]) ?>
-					</div>
-				</div>
-				<!-- Информация о товаре -->
-				<div class="col-sm-12 col-md-5 tovar-name animated fadeInDown">
-					<span></span>
-					<div class="col-xs-12 buy">
-						<?php if (product_is_buyable($currentProduct)) { ?>
-							<?php include 'single_special.php'; ?>
-							<div class="price_inner">
-								<p>Цена: <span
-										class="price_old"><?= htmlspecialchars($currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?></span>
-									<strong><?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?></strong> РУБ
-								</p>
-								<div class="stars">
-									<div class="stars-rating"></div>
-									<div style="display: none;" id="block_rating" itemprop="aggregateRating" itemscope=""
-										itemtype="http://schema.org/AggregateRating">
-										<meta itemprop="bestRating" content="5">
-										<meta itemprop="ratingValue" content="5">
-										<span class="ratingCount" itemprop="ratingCount">30</span>
-									</div>
-									<div itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-										<meta itemprop="priceCurrency" content="RUB" />
-										<meta itemprop="price"
-											content="<?= htmlspecialchars($currentProduct['price'], ENT_QUOTES, 'UTF-8') ?>" />
-									</div>
-								</div>
-							</div>
-						<?php } elseif (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
-							<p><span class="regular_price"><strong>Предзаказ</strong></span></p>
-							<p><strong>Срок доставки: 7-14 дней</strong></p>
-						<?php } else { ?>
-							<p><span class="regular_price"><strong>Нет в наличии</strong></span></p>
-						<?php } ?>
-						<p><?php echo nl2br($currentProduct['short_desc']); ?></p>
-						<button class="b1c"
-							<?php if (!empty($currentProduct['in_stock']) || (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder')) { ?>
-							onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id']) ?>')" <?php } else { ?>
-							disabled <?php } ?>>
-							<?php echo product_button_label($currentProduct); ?>
-						</button>
-					</div>
-					<noindex>
-						<div style="text-align: justify;" class="product-description">
-							<?php
-							$description = !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'];
-							echo $description;
-							?>
+		<section class="product-page" aria-labelledby="product-title">
+			<div class="product-shell">
+				<div class="product-breadcrumb">Olaplex <span>/</span> Каталог <span>/</span> <?= htmlspecialchars($currentProduct['cat_number'], ENT_QUOTES, 'UTF-8') ?></div>
+				<div class="product-layout">
+					<div class="product-gallery">
+						<div class="product-thumbnails" role="list" aria-label="Фотографии товара">
+							<?php foreach ($galleryImages as $galleryIndex => $galleryImage): ?>
+								<button class="product-thumbnail<?= $galleryIndex === 0 ? ' is-active' : '' ?>" type="button" data-product-image="<?= htmlspecialchars($galleryImage, ENT_QUOTES, 'UTF-8') ?>" aria-label="Фото <?= $galleryIndex + 1 ?>">
+									<?= webp_img($galleryImage, $currentProduct['name'], '', ['width' => 88, 'height' => 88, 'loading' => $galleryIndex === 0 ? 'eager' : 'lazy']) ?>
+								</button>
+							<?php endforeach; ?>
 						</div>
-					</noindex>
+						<div class="product-main-image">
+							<?= webp_img($galleryImages[0], $currentProduct['name'], 'product-main-image__img', ['width' => 650, 'height' => 650, 'fetchpriority' => 'high']) ?>
+							<div class="product-image-note">Оригинальный товар Olaplex</div>
+						</div>
+					</div>
+
+					<div class="product-info tovar-name" data-id="<?= htmlspecialchars((string)$currentProduct['id']) ?>">
+						<div class="product-eyebrow">Olaplex Professional</div>
+						<h1 id="product-title"><?= htmlspecialchars($currentProduct['cat_number'], ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?></h1>
+						<div class="product-rating"><span class="rating-stars">★★★★★</span> <span>5.0 · 30 отзывов</span></div>
+						<div class="product-divider"></div>
+						<div class="product-short-description"><?= $currentProduct['short_desc'] ?></div>
+						<div class="product-buy-panel">
+							<?php if (product_is_buyable($currentProduct)) { ?>
+								<?php include 'single_special.php'; ?>
+								<div class="product-price-row">
+									<div><span class="product-price-old"><?= htmlspecialchars((string)$currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?> ₽</span><strong class="product-price"><?= htmlspecialchars((string)$currentProduct['price'], ENT_QUOTES, 'UTF-8') ?> ₽</strong></div>
+									<span class="product-stock"><i></i> В наличии</span>
+								</div>
+							<?php } elseif (!empty($currentProduct['status']) && $currentProduct['status'] === 'preorder') { ?>
+								<div class="product-price-row"><strong class="product-price">Предзаказ</strong><span class="product-stock">Доставка 7–14 дней</span></div>
+							<?php } else { ?>
+								<div class="product-price-row"><strong class="product-price">Нет в наличии</strong></div>
+							<?php } ?>
+							<button class="b1c product-buy-button" <?php if (product_is_buyable($currentProduct)) { ?>onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id']) ?>')" <?php } else { ?>disabled<?php } ?>><?= product_button_label($currentProduct) ?><span>→</span></button>
+							<div class="product-benefits"><span>✓ Оригинал</span><span>✓ Безопасная оплата</span><span>✓ Поддержка стилиста</span></div>
+						</div>
+						<div class="product-accordions"><details open><summary>О продукте <span>+</span></summary><p><?= !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'] ?></p></details><details><summary>Доставка и возврат <span>+</span></summary><p>Доставляем по Москве, Санкт-Петербургу и регионам России. Условия доставки уточнит оператор после оформления заказа.</p></details></div>
+					</div>
 				</div>
 			</div>
-		</div>
-	</section>
+		</section>
 	<!-- ./ Feature Section Ends -->
 	<?php include 'slider_in_card.php'; ?>
 	<?php include 'delivery.php'; ?>
@@ -162,10 +147,20 @@ require __DIR__ . '/head.php'; ?>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script defer src="/js/main.js?v=<?= date('Ymd', filemtime(__DIR__ . '/../js/main.js')) ?>"></script>
 
-	<script>
-		window.addEventListener('DOMContentLoaded', function() {
-			// tiny helper function to add breakpoints
-			function getGridSize() {
+		<script>
+			window.addEventListener('DOMContentLoaded', function() {
+				document.querySelectorAll('.product-thumbnail').forEach(function(thumbnail) {
+					thumbnail.addEventListener('click', function() {
+						var image = document.querySelector('.product-main-image__img');
+						if (!image) return;
+						image.src = this.dataset.productImage;
+						document.querySelectorAll('.product-thumbnail').forEach(function(item) { item.classList.remove('is-active'); });
+						this.classList.add('is-active');
+					});
+				});
+
+				// tiny helper function to add breakpoints
+				function getGridSize() {
 				return (window.innerWidth < 600) ? 2 :
 					(window.innerWidth < 900) ? 3 : 4
 			}

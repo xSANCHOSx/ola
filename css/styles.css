@@ -2592,3 +2592,30 @@ body.single #max-team .member-box {
     min-height: 0;
   }
 }
+
+/* Product detail polish: rounded thumbnails and no extra delivery wrapper. */
+.product-thumbnail {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+body.single #max-packages-section {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 14px 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+body.single #max-packages-section .delivery {
+  border-radius: 12px;
+}
+
+@media (max-width: 767px) {
+  body.single #max-packages-section {
+    padding: 8px 0;
+  }
+}

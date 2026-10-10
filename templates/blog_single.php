@@ -67,6 +67,7 @@ if ($pdo instanceof PDO) {
 // SEO
 $pageTitle = !empty($post['seo_title']) ? $post['seo_title'] : $post['title'];
 $pageDescription = !empty($post['seo_description']) ? $post['seo_description'] : (empty($post['excerpt']) ? 'Статья в блоге' : $post['excerpt']);
+$breadcrumbs = [['label' => 'Блог', 'url' => '/blog'], ['label' => (string)$post['title']]];
 
 // Получить соседние посты для навигации
 $prevPost = null;
@@ -128,20 +129,6 @@ function getSafeImagePath(string $path): ?string
 		margin: 0 auto;
 	}
 
-	.blog-breadcrumb {
-		margin-bottom: 20px;
-		font-size: 15px;
-		color: #999;
-	}
-
-	.blog-breadcrumb a {
-		color: #3e7ab6;
-		text-decoration: none;
-	}
-
-	.blog-breadcrumb a:hover {
-		text-decoration: underline;
-	}
 
 	.blog-title {
 		font-size: 2rem;
@@ -282,19 +269,13 @@ function getSafeImagePath(string $path): ?string
 
 <body>
 	<?php require __DIR__ . '/header.php'; ?>
+	<?php require __DIR__ . '/breadcrumbs.php'; ?>
 
 	<div class="container blog-single-wrap">
 		<div class="row">
 			<!-- col-12 — без сайдбара, на всю ширину -->
 			<div class="col-12">
 				<div class="blog-article">
-
-					<!-- Хлебная крошка -->
-					<nav class="blog-breadcrumb">
-						<a href="/">Главная</a> →
-						<a href="/blog">Блог</a> →
-						<span><?= htmlspecialchars((string)$post['title'], ENT_QUOTES, 'UTF-8') ?></span>
-					</nav>
 
 					<article>
 						<h1 class="blog-title">

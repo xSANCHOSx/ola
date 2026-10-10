@@ -74,6 +74,10 @@ if ($pdo instanceof PDO) {
 
 $pageTitle       = 'Блог Olaplex - Статьи про Уход за Волосами';
 $pageDescription = 'Читайте полезные статьи о восстановлении и уходе за волосами с помощью инновационных средств Olaplex';
+$breadcrumbs = [['label' => 'Блог']];
+if ($activeTag !== '' && $activeTagName !== '') {
+	$breadcrumbs = [['label' => 'Блог', 'url' => '/blog'], ['label' => 'Тег: #' . $activeTagName]];
+}
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -96,6 +100,7 @@ $pageDescription = 'Читайте полезные статьи о восста
 
 <body>
 	<?php require __DIR__ . '/header.php'; ?>
+	<?php require __DIR__ . '/breadcrumbs.php'; ?>
 
 	<div class="container blog-listing-wrap">
 		<div class="row">

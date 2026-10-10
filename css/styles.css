@@ -2635,3 +2635,47 @@ body.single #max-packages-section .delivery {
     margin: 0;
   }
 }
+
+/* Shared breadcrumbs for all public pages except the homepage. */
+.site-breadcrumb {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 14px 24px 0;
+  color: #9a8c8b;
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+
+.site-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-breadcrumb a {
+  color: #9a8c8b;
+  text-decoration: none;
+  transition: color .2s ease;
+}
+
+.site-breadcrumb a:hover,
+.site-breadcrumb a:focus-visible {
+  color: #ba385c;
+  text-decoration: underline;
+}
+
+.site-breadcrumb [aria-current="page"] {
+  color: #5d5553;
+}
+
+@media (max-width: 767px) {
+  .site-breadcrumb {
+    padding: 10px 14px 0;
+    font-size: 11px;
+  }
+}

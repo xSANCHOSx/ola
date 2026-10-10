@@ -38,6 +38,7 @@ require __DIR__ . '/templates/head.php';
 <body>
 
 	<?php include 'templates/header.php'; ?>
+	<?php include 'templates/breadcrumbs.php'; ?>
 
 	<section class="success-page container">
 

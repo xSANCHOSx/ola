@@ -11,6 +11,7 @@ require __DIR__ . '/templates/head.php';
 
 <body>
 	<?php include 'templates/header.php'; ?>
+	<?php include 'templates/breadcrumbs.php'; ?>
 
 	<!-- About us section -->
 	<section id="max-aboutus-section" class="mt-block">

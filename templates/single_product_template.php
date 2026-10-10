@@ -20,6 +20,7 @@ $defaultTitle = htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') .
 $defaultDescription = generate_product_seo_description($currentProduct);
 $pageTitle = !empty($currentProduct['seo_title']) ? htmlspecialchars((string)$currentProduct['seo_title'], ENT_QUOTES, 'UTF-8') : generate_product_seo_title($currentProduct);
 $pageDescription = !empty($currentProduct['seo_description']) ? htmlspecialchars((string)$currentProduct['seo_description'], ENT_QUOTES, 'UTF-8') : $defaultDescription;
+$breadcrumbs = [['label' => 'Каталог', 'url' => '/#max-featured-section'], ['label' => trim((string)$currentProduct['cat_number'] . ' ' . (string)$currentProduct['name'])]];
 
 // Объединяем основное и дополнительные изображения, сохраняя порядок из БД.
 $productImages = [];
@@ -64,9 +65,9 @@ require __DIR__ . '/head.php'; ?>
 
 <body class="single">
     <?php include 'header.php'; ?>
+    <?php include __DIR__ . '/breadcrumbs.php'; ?>
     <section class="product-page" aria-labelledby="product-title">
         <div class="product-shell">
-            <div class="product-breadcrumb">Olaplex <span>/</span> Каталог <span>/</span> <?= htmlspecialchars($currentProduct['cat_number'], ENT_QUOTES, 'UTF-8') ?></div>
             <div class="product-layout">
                 <div class="product-gallery" data-product-gallery tabindex="0">
                     <?php if ($productImages): ?>

@@ -1,4 +1,12 @@
 <?php require_once __DIR__ . '/../data/products.php'; ?>
+<?php
+$relatedProducts = array_values(array_filter($products, static function (array $product) use ($currentProduct): bool {
+	return (string)$product['id'] !== (string)$currentProduct['id'];
+}));
+if (!$relatedProducts) {
+	$relatedProducts = $products;
+}
+?>
 <!-- Start Slider section -->
 <section id="max-team-section">
 	<div class="max-section-title">
@@ -7,7 +15,7 @@
 	<div id="max-team" class="container" style="padding-bottom: 0px;">
 		<div class="flexslider">
 			<ul class="slides">
-				<?php foreach ($products as $index => $product): ?>
+					<?php foreach ($relatedProducts as $index => $product): ?>
 					<li>
 						<div class="col-xs-12">
 							<div class="member-box animate--one animated zoomIn">

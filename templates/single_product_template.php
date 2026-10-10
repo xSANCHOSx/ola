@@ -122,8 +122,8 @@ require __DIR__ . '/head.php'; ?>
 			</div>
 		</section>
 	<!-- ./ Feature Section Ends -->
-	<?php include 'slider_in_card.php'; ?>
-	<?php include 'delivery.php'; ?>
+		<?php include __DIR__ . '/slider_in_card.php'; ?>
+		<?php include __DIR__ . '/delivery.php'; ?>
 	<?php include 'footer.php'; ?>
 	<?php include 'order_form.php'; ?>
 

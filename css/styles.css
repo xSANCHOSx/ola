@@ -2246,3 +2246,65 @@ section.slider .flexslider picture {
   font-weight: 600;
   margin-bottom: 10px;
 }
+
+/* Final unified container treatment for the product detail page. */
+body.single .product-layout,
+body.single #max-team,
+body.single #max-packages-section {
+  width: 100%;
+  max-width: 1240px;
+  box-sizing: border-box;
+  border-radius: 18px;
+}
+
+body.single .product-layout,
+body.single #max-team,
+body.single #max-packages-section,
+body.single #aboutus-section {
+  overflow: hidden;
+}
+
+body.single .product-main-image,
+body.single .product-buy-panel,
+body.single #max-team .img_wrap {
+  border-radius: 12px;
+}
+
+body.single #max-team .member-box,
+body.single #max-packages-section .delivery {
+  border-radius: 12px;
+}
+
+body.single #max-team-section .max-section-title,
+body.single #max-purchase-section .max-section-title,
+body.single #max-aboutus-section > .max-section-title {
+  width: 100%;
+  max-width: 1240px;
+  box-sizing: border-box;
+}
+
+body.single #max-team .slides > li {
+  box-sizing: border-box;
+}
+
+body.single #max-team .flexslider {
+  border-radius: 10px;
+}
+
+body.single #max-packages-section .row {
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+@media (max-width: 767px) {
+  body.single #max-team,
+  body.single #max-packages-section,
+  body.single #aboutus-section {
+    border-radius: 14px;
+  }
+
+  body.single #max-team .member-box,
+  body.single #max-packages-section .delivery {
+    border-radius: 10px;
+  }
+}

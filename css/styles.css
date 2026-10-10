@@ -2308,3 +2308,41 @@ body.single #max-packages-section .row {
     border-radius: 10px;
   }
 }
+
+/* White site canvas: containers provide all visual separation. */
+body.single,
+body.single .product-page,
+body.single #max-team-section,
+body.single #max-purchase-section {
+  background: #fff;
+}
+
+body.single .product-layout,
+body.single #max-team,
+body.single #max-packages-section,
+body.single #aboutus-section {
+  background: #fff;
+  border-color: #ded6d3;
+  box-shadow: 0 14px 36px rgba(45, 41, 40, .09);
+}
+
+body.single .product-main-image,
+body.single #max-team .img_wrap,
+body.single #max-packages-section .delivery,
+body.single #aboutus-section #max-feature-para {
+  background: #fff;
+  border-color: #e5ddda;
+  box-shadow: 0 5px 16px rgba(45, 41, 40, .045);
+}
+
+body.single .product-buy-panel {
+  background: #fff;
+  border: 1px solid #e5ddda;
+  border-radius: 12px;
+  box-shadow: 0 7px 20px rgba(45, 41, 40, .06);
+}
+
+body.single #max-team .member-box {
+  border-color: #e5ddda;
+  box-shadow: 0 5px 16px rgba(45, 41, 40, .045);
+}

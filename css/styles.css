@@ -2555,3 +2555,40 @@ body.single #max-team .member-box {
   border-color: #e5ddda;
   box-shadow: 0 5px 16px rgba(45, 41, 40, .045);
 }
+
+/* Mobile product gallery: thumbnails are horizontal below the main image. */
+@media (max-width: 767px) {
+  body.single .product-gallery {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+    min-height: 0;
+  }
+
+  body.single .product-thumbnails {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 1px 4px;
+  }
+
+  body.single .product-thumbnail {
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+  }
+
+  body.single .product-main-image,
+  body.single .product-main-image__img,
+  body.single .product-main-image__img img {
+    width: 100%;
+    height: min(90vw, 430px);
+    min-height: 0;
+  }
+}

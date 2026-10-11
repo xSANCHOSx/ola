@@ -163,7 +163,7 @@ require __DIR__ . '/head.php'; ?>
                 relatedSlider.flexslider({ animation: 'slide', directionNav: true, controlNav: false, keyboard: true, touch: true, itemWidth: 240, itemMargin: 5, animationLoop: true, minItems: getGridSize(), maxItems: getGridSize(), startAt: 0, slideshow: false, animationSpeed: 450, start: function(slider) { slider.addClass('flex-ready'); } });
                 var relatedElement = relatedSlider[0], dragStartX = 0, dragMoved = false, suppressRelatedClick = false;
                 relatedElement.addEventListener('pointerdown', function(event) {
-                    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+                    if (event.pointerType !== 'mouse' || event.button !== 0 || event.target.closest('.flex-direction-nav')) return;
                     dragStartX = event.clientX;
                     dragMoved = false;
                     relatedElement.classList.add('is-dragging');

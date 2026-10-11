@@ -2388,6 +2388,15 @@ section.slider .flexslider picture {
   background: rgba(255, 255, 255, .72);
   font-size: 42px;
   line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: color .2s ease, background-color .2s ease, opacity .2s ease;
+}
+
+.product-main-image:hover .product-gallery-main-nav,
+.product-main-image:focus-within .product-gallery-main-nav {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .product-gallery-main-prev {
@@ -2647,6 +2656,7 @@ body.single #max-team {
 
 /* Related products carousel controls and desktop mouse dragging. */
 body.single #max-team .flexslider {
+  position: relative;
   cursor: grab;
   touch-action: pan-y;
   user-select: none;
@@ -2657,6 +2667,8 @@ body.single #max-team .flexslider.is-dragging {
 }
 
 body.single #max-team .flex-direction-nav a {
+  position: absolute;
+  top: 50%;
   z-index: 5;
   width: 34px;
   height: 46px;
@@ -2672,6 +2684,15 @@ body.single #max-team .flex-direction-nav a {
   box-shadow: 0 3px 10px rgba(45, 41, 40, .1);
 }
 
+body.single #max-team .flex-direction-nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body.single #max-team .flex-direction-nav .flex-prev { left: 6px; }
+body.single #max-team .flex-direction-nav .flex-next { right: 6px; }
+
 body.single #max-team .flex-direction-nav a::before {
   font-size: 30px;
   line-height: 42px;
@@ -2684,6 +2705,11 @@ body.single #max-team .flex-direction-nav .flex-next::before { content: "›"; }
 body.single #max-team .flex-direction-nav a:hover { opacity: 1; }
 
 @media (max-width: 767px) {
+  .product-main-image .product-gallery-main-nav {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   body.single #max-team .flex-direction-nav a {
     width: 30px;
     height: 40px;

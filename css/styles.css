@@ -2636,6 +2636,15 @@ body.single #max-packages-section .delivery {
   }
 }
 
+/* Product page: remove the outer frame around gallery and product information. */
+body.single .product-layout {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* Shared breadcrumbs for all public pages except the homepage. */
 .site-breadcrumb {
   width: 100%;

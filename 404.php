@@ -21,6 +21,7 @@ require __DIR__ . '/templates/head.php';
 
 <body>
 	<?php include 'templates/header.php'; ?>
+	<?php include 'templates/breadcrumbs.php'; ?>
 
 	<section class="page-404-wrapper">
 		<div class="page-404-container">

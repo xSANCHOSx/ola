@@ -2636,9 +2636,9 @@ body.single #max-packages-section .delivery {
   }
 }
 
-/* Product page: remove the outer frame around gallery and product information. */
-body.single .product-layout {
-  padding: 0;
+/* Product page: keep the main product frame; remove only the outer frame of related products. */
+body.single #max-team {
+  padding: 0 !important;
   background: transparent;
   border: 0;
   border-radius: 0;

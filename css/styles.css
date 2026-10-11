@@ -2645,6 +2645,58 @@ body.single #max-team {
   box-shadow: none;
 }
 
+/* Related products carousel controls and desktop mouse dragging. */
+body.single #max-team .flexslider {
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+body.single #max-team .flexslider.is-dragging {
+  cursor: grabbing;
+}
+
+body.single #max-team .flex-direction-nav a {
+  z-index: 5;
+  width: 34px;
+  height: 46px;
+  margin-top: -23px;
+  color: #ba385c;
+  font-size: 0;
+  line-height: 46px;
+  text-align: center;
+  opacity: .9;
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid #e5ddda;
+  border-radius: 4px;
+  box-shadow: 0 3px 10px rgba(45, 41, 40, .1);
+}
+
+body.single #max-team .flex-direction-nav a::before {
+  font-size: 30px;
+  line-height: 42px;
+  font-family: Arial, sans-serif;
+  font-weight: 400;
+}
+
+body.single #max-team .flex-direction-nav .flex-prev::before { content: "‹"; }
+body.single #max-team .flex-direction-nav .flex-next::before { content: "›"; }
+body.single #max-team .flex-direction-nav a:hover { opacity: 1; }
+
+@media (max-width: 767px) {
+  body.single #max-team .flex-direction-nav a {
+    width: 30px;
+    height: 40px;
+    margin-top: -20px;
+    line-height: 40px;
+  }
+
+  body.single #max-team .flex-direction-nav a::before {
+    font-size: 26px;
+    line-height: 36px;
+  }
+}
+
 /* Shared breadcrumbs for all public pages except the homepage. */
 .site-breadcrumb {
   width: 100%;

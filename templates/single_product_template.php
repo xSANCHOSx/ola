@@ -157,8 +157,38 @@ require __DIR__ . '/head.php'; ?>
                 if (thumbs.length < 2) gallery.querySelectorAll('[data-gallery-main-nav]').forEach(function(button) { button.hidden = true; });
             });
             function getGridSize() { return (window.innerWidth < 600) ? 2 : (window.innerWidth < 900) ? 3 : 4; }
-            $('.flexslider').flexslider({ animation: 'slide', directionNav: false, itemWidth: 240, itemMargin: 5, animationLoop: true, minItems: getGridSize(), maxItems: getGridSize(), startAt: 0, slideshow: true, slideshowSpeed: 7000, animationSpeed: 600, initDelay: 0, start: function(slider) { slider.addClass('flex-ready'); } });
-            $(window).resize(function() { var gridSize = getGridSize(), flex = $('.flexslider').data('flexslider'); if (flex) { flex.vars.minItems = gridSize; flex.vars.maxItems = gridSize; } });
+            $('.flexslider').not('#max-team .flexslider').flexslider({ animation: 'slide', directionNav: false, itemWidth: 240, itemMargin: 5, animationLoop: true, minItems: getGridSize(), maxItems: getGridSize(), startAt: 0, slideshow: true, slideshowSpeed: 7000, animationSpeed: 600, initDelay: 0, start: function(slider) { slider.addClass('flex-ready'); } });
+            var relatedSlider = $('#max-team .flexslider');
+            if (relatedSlider.length) {
+                relatedSlider.flexslider({ animation: 'slide', directionNav: true, controlNav: false, keyboard: true, touch: true, itemWidth: 240, itemMargin: 5, animationLoop: true, minItems: getGridSize(), maxItems: getGridSize(), startAt: 0, slideshow: false, animationSpeed: 450, start: function(slider) { slider.addClass('flex-ready'); } });
+                var relatedElement = relatedSlider[0], dragStartX = 0, dragMoved = false, suppressRelatedClick = false;
+                relatedElement.addEventListener('pointerdown', function(event) {
+                    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+                    dragStartX = event.clientX;
+                    dragMoved = false;
+                    relatedElement.classList.add('is-dragging');
+                    relatedElement.setPointerCapture(event.pointerId);
+                });
+                relatedElement.addEventListener('pointermove', function(event) {
+                    if (!relatedElement.classList.contains('is-dragging')) return;
+                    if (Math.abs(event.clientX - dragStartX) > 8) dragMoved = true;
+                });
+                relatedElement.addEventListener('pointerup', function(event) {
+                    if (!relatedElement.classList.contains('is-dragging')) return;
+                    relatedElement.classList.remove('is-dragging');
+                    if (dragMoved) {
+                        event.preventDefault();
+                        suppressRelatedClick = true;
+                        relatedSlider.flexslider(event.clientX < dragStartX ? 'next' : 'prev');
+                    }
+                    if (relatedElement.hasPointerCapture(event.pointerId)) relatedElement.releasePointerCapture(event.pointerId);
+                });
+                relatedElement.addEventListener('pointercancel', function() { relatedElement.classList.remove('is-dragging'); });
+                relatedElement.addEventListener('click', function(event) {
+                    if (suppressRelatedClick) { event.preventDefault(); event.stopPropagation(); suppressRelatedClick = false; }
+                }, true);
+            }
+            $(window).resize(function() { var gridSize = getGridSize(); $('.flexslider').each(function() { var flex = $(this).data('flexslider'); if (flex) { flex.vars.minItems = gridSize; flex.vars.maxItems = gridSize; } }); });
             $('#order .close_popup').click(function() { $('#formToSend input:checkbox').removeAttr('checked'); $('#formToSend input[type=submit]').attr('disabled', 'disabled'); $('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled'); });
             $('#formToSend input:checkbox').change(function() { if ($(this).is(':checked')) { $('#formToSend input[type=submit]').removeAttr('disabled'); $('#formToSend input[type=hidden].valTrFal').val('valTrFal_true'); } else { $('#formToSend input[type=submit]').attr('disabled', 'disabled'); $('#formToSend input[type=hidden].valTrFal').val('valTrFal_disabled'); } });
             $('#send').click(function() { if ($('#formToSend input[type=text]').val() != '') { $('#formToSend input[type=hidden].valTrFal').remove(); $('#formToSend .font-geometria-light').remove(); $('#overflw .basket_num_buttons').remove(); } });

@@ -18,9 +18,9 @@ if (!$relatedProducts) {
 					<?php foreach ($relatedProducts as $index => $product): ?>
 					<li>
 						<div class="col-xs-12">
-							<div class="member-box animate--one animated zoomIn">
-								<div class="member-profile">
-									<a href="<?= $product['link'] ?>">
+								<div class="member-box animate--one animated zoomIn">
+									<div class="member-profile">
+										<a class="related-product-link" href="<?= htmlspecialchars((string)$product['link'], ENT_QUOTES, 'UTF-8') ?>">
 										<h2 style="min-height: 72px;">
 											<?php if (!empty($product['cat_number'])): ?>
 												<strong><?= $product['cat_number'] ?></strong><br />

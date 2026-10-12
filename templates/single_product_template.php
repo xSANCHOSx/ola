@@ -90,7 +90,6 @@ require __DIR__ . '/head.php'; ?>
                             <?php if ($mainWebpImage): ?><picture><source data-gallery-main-webp srcset="/<?= htmlspecialchars($mainWebpImage, ENT_QUOTES, 'UTF-8') ?>" type="image/webp"><img data-gallery-main class="product-main-image__img" src="/<?= htmlspecialchars($productImages[0], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" width="650" height="650" fetchpriority="high"></picture><?php else: ?><img data-gallery-main class="product-main-image__img" src="/<?= htmlspecialchars($productImages[0], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>" width="650" height="650" fetchpriority="high"><?php endif; ?>
                             <button type="button" class="product-gallery-main-nav product-gallery-main-prev" data-gallery-main-nav="-1" aria-label="Предыдущее фото">‹</button>
                             <button type="button" class="product-gallery-main-nav product-gallery-main-next" data-gallery-main-nav="1" aria-label="Следующее фото">›</button>
-                            <div class="product-image-note">Оригинальный товар Olaplex</div>
                         </div>
                     <?php else: ?>
                         <div class="product-main-image product-gallery-empty">Фото товара пока не добавлено</div>
@@ -112,7 +111,7 @@ require __DIR__ . '/head.php'; ?>
                             <div class="product-price-row"><strong class="product-price">Нет в наличии</strong></div>
                         <?php endif; ?>
                         <button class="b1c product-buy-button" <?php if (product_is_buyable($currentProduct)): ?>onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>')"<?php else: ?>disabled<?php endif; ?>><?= product_button_label($currentProduct) ?><span>→</span></button>
-                        <div class="product-benefits"><span>✓ Оригинал</span><span>✓ Безопасная оплата</span><span>✓ Поддержка стилиста</span></div>
+                        <div class="product-benefits"><span>✓ Оригинал</span><span>✓ Безопасная оплата</span></div>
                     </div>
                     <div class="product-description"><h2>О продукте</h2><div><?= !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'] ?></div></div>
                 </div>

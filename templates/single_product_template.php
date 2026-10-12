@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/../data/products.php';
+require_once __DIR__ . '/../lib/reviews.php';
 save_utm_cookies();
 
 $currentUrl = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -37,12 +38,45 @@ $siteDomain = trim((string)($appConfig['site_domain'] ?? ($_SERVER['HTTP_HOST'] 
 $siteDomain = preg_replace('#^https?://#', '', $siteDomain);
 $siteBaseUrl = 'https://' . rtrim((string)$siteDomain, '/');
 $absoluteProductImages = array_map(static fn(string $image): string => $siteBaseUrl . '/' . ltrim($image, '/'), $productImages);
+$reviewPdo = dev_db_connection();
+$productDbId = (int)($currentProduct['db_id'] ?? 0);
+$reviewStats = product_review_stats($reviewPdo, $productDbId);
+$approvedReviews = product_approved_reviews($reviewPdo, $productDbId);
+$reviewForm = [
+    'author_name' => '', 'author_email' => '', 'rating' => '5', 'review_text' => ''
+];
+$reviewErrors = [];
+$reviewSent = ($_GET['review'] ?? '') === 'sent';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['review_action'] ?? '') === 'submit') {
+    $reviewForm = array_merge($reviewForm, [
+        'author_name' => trim((string)($_POST['author_name'] ?? '')),
+        'author_email' => trim((string)($_POST['author_email'] ?? '')),
+        'rating' => (string)($_POST['rating'] ?? '5'),
+        'review_text' => trim((string)($_POST['review_text'] ?? '')),
+    ]);
+    if (!validate_csrf_token()) {
+        $reviewErrors = ['general' => 'Сессия формы устарела. Обновите страницу и попробуйте снова.'];
+    } elseif (!empty($_POST['website'] ?? '')) {
+        $reviewErrors = ['general' => 'Не удалось отправить отзыв.'];
+    } elseif ((int)($_POST['review_started_at'] ?? 0) <= 0 || time() - (int)$_POST['review_started_at'] < 3) {
+        $reviewErrors = ['general' => 'Форма заполнена слишком быстро. Попробуйте ещё раз.'];
+    } elseif (!check_rate_limit('product_review:' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'), 3, 3600)) {
+        $reviewErrors = ['general' => 'Слишком много попыток. Попробуйте позже.'];
+    } else {
+        $reviewResult = submit_product_review($reviewPdo, $productDbId, $reviewForm);
+        if ($reviewResult['success']) {
+            header('Location: ' . (string)($currentProduct['link'] ?? '/') . '?review=sent#product-reviews');
+            exit;
+        }
+        $reviewErrors = $reviewResult['errors'] ?? ['general' => 'Не удалось отправить отзыв.'];
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="ru">
 <?php
-$extraCss = ($extraCss ?? '') . '<link rel="stylesheet" href="/css/flexslider.css">';
+$extraCss = ($extraCss ?? '') . '<link rel="stylesheet" href="/css/flexslider.css"><link rel="stylesheet" href="/css/reviews.css?v=' . filemtime(__DIR__ . '/../css/reviews.css') . '">';
 $productSchema = [
     '@context' => 'https://schema.org',
     '@type' => 'Product',
@@ -58,10 +92,30 @@ $productSchema = [
         'price' => (string)$currentProduct['price'],
         'availability' => $currentProduct['in_stock'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
     ],
-    'aggregateRating' => [
-        '@type' => 'AggregateRating', 'ratingValue' => '5', 'bestRating' => '5', 'ratingCount' => '30'
-    ]
 ];
+if ($reviewStats['count'] > 0) {
+    $productSchema['aggregateRating'] = [
+        '@type' => 'AggregateRating',
+        'ratingValue' => (string)$reviewStats['average'],
+        'bestRating' => '5',
+        'worstRating' => '1',
+        'ratingCount' => $reviewStats['count'],
+    ];
+    $productSchema['review'] = array_map(static function (array $review): array {
+        return [
+            '@type' => 'Review',
+            'author' => ['@type' => 'Person', 'name' => $review['author_name']],
+            'datePublished' => date('Y-m-d', strtotime((string)$review['created_at'])),
+            'reviewBody' => $review['review_text'],
+            'reviewRating' => [
+                '@type' => 'Rating',
+                'ratingValue' => (string)$review['rating'],
+                'bestRating' => '5',
+                'worstRating' => '1',
+            ],
+        ];
+    }, $approvedReviews);
+}
 $extraCss .= '<script type="application/ld+json">' . json_encode($productSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>';
 require __DIR__ . '/head.php'; ?>
 
@@ -98,7 +152,8 @@ require __DIR__ . '/head.php'; ?>
 
                 <div class="product-info tovar-name" data-id="<?= htmlspecialchars((string)$currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>">
                     <h1 id="product-title"><?= htmlspecialchars($currentProduct['cat_number'], ENT_QUOTES, 'UTF-8') ?> <?= htmlspecialchars($currentProduct['name'], ENT_QUOTES, 'UTF-8') ?></h1>
-                    <div class="product-rating"><span class="rating-stars">★★★★★</span> <span>5.0 · 30 отзывов</span></div>
+                    <?php $ratingStars = $reviewStats['count'] > 0 ? (int)round($reviewStats['average']) : 0; ?>
+                    <div class="product-rating"><span class="rating-stars" aria-label="Рейтинг <?= $reviewStats['average'] ?>/5"><?= str_repeat('★', $ratingStars) . str_repeat('☆', 5 - $ratingStars) ?></span> <span><?= $reviewStats['count'] > 0 ? htmlspecialchars((string)$reviewStats['average']) . ' · ' . (int)$reviewStats['count'] . ' ' . review_count_label($reviewStats['count']) : 'Пока нет отзывов' ?></span></div>
                     <div class="product-divider"></div>
                     <div class="product-short-description"><?= $currentProduct['short_desc'] ?></div>
                     <div class="product-buy-panel">
@@ -116,6 +171,50 @@ require __DIR__ . '/head.php'; ?>
                     <div class="product-description"><h2>О продукте</h2><div><?= !empty($currentProduct['full_desc']) ? $currentProduct['full_desc'] : $currentProduct['desc'] ?></div></div>
                 </div>
             </div>
+        </div>
+    </section>
+    <section id="product-reviews" class="product-reviews" aria-labelledby="product-reviews-title">
+        <div class="product-reviews__inner">
+            <div class="product-reviews__heading">
+                <h2 id="product-reviews-title">Отзывы о товаре</h2>
+                <?php if ($reviewStats['count'] > 0): ?><span><?= (int)$reviewStats['count'] ?> <?= review_count_label((int)$reviewStats['count']) ?></span><?php endif; ?>
+            </div>
+            <?php if ($reviewSent): ?><div class="review-alert review-alert--success">Спасибо! Отзыв отправлен и появится на сайте после проверки администратором.</div><?php endif; ?>
+            <?php if ($reviewErrors): ?><div class="review-alert review-alert--error"><?= htmlspecialchars((string)($reviewErrors['general'] ?? 'Проверьте заполнение формы.'), ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+            <?php if ($approvedReviews): ?>
+                <div class="product-reviews__list">
+                    <?php foreach ($approvedReviews as $review): ?>
+                        <article class="product-review">
+                            <div class="product-review__top"><strong><?= htmlspecialchars((string)$review['author_name'], ENT_QUOTES, 'UTF-8') ?></strong><span class="product-review__stars"><?= str_repeat('★', (int)$review['rating']) . str_repeat('☆', 5 - (int)$review['rating']) ?></span><time datetime="<?= htmlspecialchars(date('Y-m-d', strtotime((string)$review['created_at'])), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(date('d.m.Y', strtotime((string)$review['created_at'])), ENT_QUOTES, 'UTF-8') ?></time></div>
+                            <p><?= nl2br(htmlspecialchars((string)$review['review_text'], ENT_QUOTES, 'UTF-8')) ?></p>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <p class="product-reviews__empty">У этого товара пока нет опубликованных отзывов. Оставьте отзыв первым.</p>
+            <?php endif; ?>
+            <form class="product-review-form" method="post" action="#product-reviews">
+                <input type="hidden" name="review_action" value="submit">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
+                <input type="hidden" name="review_started_at" value="<?= time() ?>">
+                <div class="review-form__honeypot" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+                <h3>Оставить отзыв</h3>
+                <div class="review-form__grid">
+                    <label>Ваше имя<input type="text" name="author_name" required maxlength="120" value="<?= htmlspecialchars((string)$reviewForm['author_name'], ENT_QUOTES, 'UTF-8') ?>"></label>
+                    <label>Email <span>(необязательно)</span><input type="email" name="author_email" maxlength="255" value="<?= htmlspecialchars((string)$reviewForm['author_email'], ENT_QUOTES, 'UTF-8') ?>"></label>
+                </div>
+                <label>Оценка
+                    <select name="rating" required>
+                        <?php for ($rating = 5; $rating >= 1; $rating--): ?><option value="<?= $rating ?>"<?= (string)$rating === (string)$reviewForm['rating'] ? ' selected' : '' ?>><?= $rating ?> из 5</option><?php endfor; ?>
+                    </select>
+                </label>
+                <label>Ваш отзыв<textarea name="review_text" required minlength="10" maxlength="3000" rows="5"><?= htmlspecialchars((string)$reviewForm['review_text'], ENT_QUOTES, 'UTF-8') ?></textarea></label>
+                <?php if (!empty($reviewErrors['author_name'])): ?><small class="review-field-error"><?= htmlspecialchars($reviewErrors['author_name'], ENT_QUOTES, 'UTF-8') ?></small><?php endif; ?>
+                <?php if (!empty($reviewErrors['author_email'])): ?><small class="review-field-error"><?= htmlspecialchars($reviewErrors['author_email'], ENT_QUOTES, 'UTF-8') ?></small><?php endif; ?>
+                <?php if (!empty($reviewErrors['review_text'])): ?><small class="review-field-error"><?= htmlspecialchars($reviewErrors['review_text'], ENT_QUOTES, 'UTF-8') ?></small><?php endif; ?>
+                <button class="b1c review-form__submit" type="submit">Отправить отзыв</button>
+                <p class="review-form__note">Отзыв будет опубликован после проверки администратором.</p>
+            </form>
         </div>
     </section>
     <?php include __DIR__ . '/slider_in_card.php'; ?>

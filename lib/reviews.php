@@ -3,6 +3,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../config/db.php';
 
+function review_text_length(string $value): int
+{
+    if (function_exists('mb_strlen')) return mb_strlen($value);
+    $characters = preg_match_all('/./us', $value, $matches);
+    return $characters === false ? strlen($value) : $characters;
+}
+
 function review_count_label(int $count): string
 {
     $mod100 = $count % 100;
@@ -66,14 +73,14 @@ function submit_product_review(PDO $pdo, int $productId, array $data): array
     $errors = [];
 
     if ($productId <= 0) $errors['general'] = 'Товар не найден.';
-    if ($name === '' || mb_strlen($name) < 2 || mb_strlen($name) > 120) {
+    if ($name === '' || review_text_length($name) < 2 || review_text_length($name) > 120) {
         $errors['author_name'] = 'Укажите имя от 2 до 120 символов.';
     }
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors['author_email'] = 'Укажите корректный email.';
     }
     if ($rating < 1 || $rating > 5) $errors['rating'] = 'Выберите оценку от 1 до 5.';
-    if ($text === '' || mb_strlen($text) < 10 || mb_strlen($text) > 3000) {
+    if ($text === '' || review_text_length($text) < 10 || review_text_length($text) > 3000) {
         $errors['review_text'] = 'Текст отзыва должен быть от 10 до 3000 символов.';
     }
     if ($errors) return ['success' => false, 'errors' => $errors];

@@ -1209,7 +1209,7 @@ $gallery = [];
 			/* ====== Порядок дополнительных фото ====== */
 			(function() {
 				var orderInput = document.getElementById('galleryOrder');
-				var galleryList = document.querySelector('.gallery-existing');
+				var galleryList = document.querySelector('.gallery-existing:not(#galleryUploadPreview)');
 				if (!orderInput || !galleryList) return;
 				function syncGalleryOrder() {
 					var ids = Array.prototype.map.call(galleryList.querySelectorAll('[data-gallery-id]'), function(item) {

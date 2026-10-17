@@ -1,4 +1,3 @@
-
 name: Clean Deploy via Temp Folder
 
 on:
@@ -36,15 +35,7 @@ jobs:
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      
-     
-                "$DEPLOY_USER@$DEPLOY_HOST" \
-                "mkdir -p '$TEMP_DIR' && echo TEMP_READY"; then
-                exit 0
-              fi
-            else
-              echo "TCP connection failed"
-            - name: Prepare remote temp directory
+      - name: Prepare remote temp directory
         timeout-minutes: 3
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}

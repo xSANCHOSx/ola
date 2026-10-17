@@ -1,50 +1,94 @@
+
 name: Clean Deploy via Temp Folder
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: timeweb-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.HOST2 }}
-          username: ${{ secrets.USERNAME2 }}
-          key: ${{ secrets.SSH_PASS }}
-          port: 22
-          debug: true          # ← добавь это
-          command_timeout: 30s # ← добавь явный таймаут
-          script: |
-            # Путь к файлам
-            SITE_ROOT="/home/c/cs16144/www452"
-            TEMP_DIR="$SITE_ROOT/temp"
-            BASE_DIR="$SITE_ROOT/public_html"
-            REPO="https://github_pat_TOKEN@github.com/xSANCHOSx/ola.git"
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            # Создаём структуру файлов
-            mkdir -p $TEMP_DIR
-            mkdir -p $BASE_DIR
-            cd $TEMP_DIR
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
-            # Инициализация или обновление репозитория
-            if [ ! -d ".git" ]; then
-              git clone $REPO .
-            else
-              git fetch origin main
-              git reset --hard origin/main
-            fi
+      - name: Upload to temporary folder
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -e
 
-            # Удаляем мусор перед копированием
-            find . -name ".DS_Store" -delete
-            find . -name "Thumbs.db" -delete
+          PORT="${DEPLOY_PORT:-22}"
+          TEMP_DIR="/home/c/cs16144/www452/temp"
 
-            # Синхронизация из temp/ в public_html/
-            rsync -avz --delete \
+          ssh -i ~/.ssh/deploy_key \
+            -p "$PORT" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "mkdir -p '$TEMP_DIR'"
+
+          rsync -avz --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.gitignore' \
+            --exclude='.gitattributes' \
+            --exclude='.DS_Store' \
+            --exclude='Thumbs.db' \
+            --exclude='log/' \
+            --exclude='images/' \
+            --exclude='data/images/' \
+            --exclude='data/uploads/' \
+            -e "ssh -i ~/.ssh/deploy_key -p $PORT -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15" \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$TEMP_DIR/"
+
+      - name: Deploy to public_html
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          set -e
+
+          PORT="${DEPLOY_PORT:-22}"
+          TEMP_DIR="/home/c/cs16144/www452/temp"
+
+          test "$DEPLOY_PATH" = "/home/c/cs16144/www452/public_html"
+
+          ssh -i ~/.ssh/deploy_key \
+            -p "$PORT" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "rsync -av --delete \
               --exclude='.git/' \
               --exclude='.github/' \
               --exclude='.gitignore' \
@@ -53,4 +97,7 @@ jobs:
               --exclude='images/' \
               --exclude='data/images/' \
               --exclude='data/uploads/' \
-              ./ "$BASE_DIR/"
+              '$TEMP_DIR/' '$DEPLOY_PATH/'"
+
+      - name: Deployment completed
+        run: echo "Deployment completed successfully!"

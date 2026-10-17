@@ -37,8 +37,9 @@ jobs:
           chmod 600 ~/.ssh/known_hosts
 
       
+     
       - name: Prepare remote temp directory
-        timeout-minutes: 2
+        timeout-minutes: 3
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -50,27 +51,32 @@ jobs:
           TEMP_DIR="/home/c/cs16144/www452/temp"
 
           for attempt in 1 2 3; do
-            echo "SSH attempt $attempt of 3"
+            echo "Attempt $attempt: checking TCP port $PORT"
 
-            if ssh -i ~/.ssh/deploy_key \
-              -p "$PORT" \
-              -o BatchMode=yes \
-              -o StrictHostKeyChecking=yes \
-              -o ConnectTimeout=20 \
-              -o ConnectionAttempts=1 \
-              "$DEPLOY_USER@$DEPLOY_HOST" \
-              "mkdir -p '$TEMP_DIR'"; then
-              echo "Remote temp directory is ready."
-              exit 0
+            if timeout 10 bash -c \
+              'cat < /dev/null > /dev/tcp/$1/$2' \
+              _ "$DEPLOY_HOST" "$PORT"; then
+
+              echo "TCP connection available"
+
+              if ssh -i ~/.ssh/deploy_key \
+                -p "$PORT" \
+                -o BatchMode=yes \
+                -o StrictHostKeyChecking=yes \
+                -o ConnectTimeout=10 \
+                -o ConnectionAttempts=1 \
+                "$DEPLOY_USER@$DEPLOY_HOST" \
+                "mkdir -p '$TEMP_DIR' && echo TEMP_READY"; then
+                exit 0
+              fi
+            else
+              echo "TCP connection failed"
             fi
 
-            if [ "$attempt" -lt 3 ]; then
-              echo "Connection failed; retrying in 5 seconds..."
-              sleep 5
-            fi
+            sleep 5
           done
 
-          echo "Could not connect to Timeweb after 3 attempts."
+          echo "Timeweb SSH is unreachable from this runner."
           exit 1
 
 

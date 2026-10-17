@@ -20,12 +20,7 @@
 .product-review__top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: #2d2928; }
 .product-review__top time { margin-left: auto; color: #9a8c8b; font-size: 12px; }
 .product-review__stars { color: #ba385c; letter-spacing: 2px; }
-.product-review__text { margin: 10px 0 0; color: #5d5553; font-size: 15px; line-height: 1.7; white-space: normal; overflow-wrap: anywhere; }
-.product-review__text p, .product-review__text ul, .product-review__text ol, .product-review__text blockquote { margin: 0 0 8px; }
-.product-review__text > :last-child { margin-bottom: 0; }
-.product-review__text ul, .product-review__text ol { padding-left: 22px; }
-.product-review__text blockquote { padding-left: 12px; border-left: 3px solid #e5ddda; color: #786e6c; }
-.product-review__text a { color: #ba385c; text-decoration: underline; }
+.product-review p { margin: 10px 0 0; color: #5d5553; font-size: 15px; line-height: 1.7; white-space: normal; }
 .product-reviews__empty { margin: 0 0 24px; color: #786e6c; font-size: 15px; }
 .product-review-form { max-width: 720px; padding: 22px; background: #fff; border: 1px solid #e5ddda; border-radius: 10px; }
 .product-review-form h3 { margin: 0 0 18px; color: #2d2928; font-size: 18px; font-weight: 400; }
@@ -47,21 +42,3 @@
   .product-review-form { padding: 17px; }
   .product-review__top time { width: 100%; margin-left: 0; }
 }
-
-/* Product accordion (О продукте + Отзывы) */
-.product-accordion { margin-top: 23px; border-top: 1px solid #eee5e3; }
-.product-accordion__item { border-bottom: 1px solid #eee5e3; }
-.product-accordion__summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 0; cursor: pointer; list-style: none; user-select: none; }
-.product-accordion__summary::-webkit-details-marker { display: none; }
-.product-accordion__summary::after { content: ""; flex: 0 0 8px; width: 8px; height: 8px; margin: 0 4px 3px 0; border-right: 2px solid #9a8c8b; border-bottom: 2px solid #9a8c8b; transform: rotate(45deg); transition: transform .2s; }
-.product-accordion__item[open] > .product-accordion__summary::after { margin-bottom: -3px; transform: rotate(-135deg); }
-.product-accordion__summary h2 { margin: 0; color: #2d2928; font-size: 14px; font-weight: 600; }
-.product-accordion__summary:hover h2 { color: #ba385c; }
-.product-accordion__count { margin-left: 6px; color: #9a8c8b; font-size: 12px; font-weight: 400; }
-.product-accordion__body { padding: 0 0 18px; }
-.product-accordion .product-description { border-top: 0; margin-top: 0; padding-top: 0; }
-.product-accordion .product-reviews { padding: 0; background: none; }
-.product-accordion .product-review-form { max-width: none; padding: 17px; }
-.product-accordion .review-alert { max-width: none; }
-.product-rating__link { color: inherit; text-decoration: underline; text-decoration-color: rgba(154, 140, 139, .5); text-underline-offset: 2px; }
-.product-rating__link:hover { color: #ba385c; }

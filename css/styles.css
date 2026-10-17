@@ -1767,7 +1767,7 @@ section.slider .flexslider:not(.flex-ready) {
 #max-team .member-profile h2 strong { color: #ba385c; font-size: 13px; letter-spacing: .05em; }
 #max-team .member-profile a { position: relative; z-index: 1; display: block; height: 100%; text-decoration: none; }
 #max-team .related-product-link::after { content: ''; position: absolute; z-index: 0; inset: -16px -14px -20px; }
-#max-team .img_wrap { width: 100%; max-width: 100%; height: 238px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fff 0%, #fbf7f6 100%); }
+#max-team .img_wrap { height: 238px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fff 0%, #fbf7f6 100%); }
 #max-team .img_wrap img,
 #max-team .img_wrap picture { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
 #max-team .img_wrap img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }

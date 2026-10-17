@@ -10,10 +10,14 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: timeweb-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
@@ -25,53 +29,87 @@ jobs:
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           set -eu
-
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Diagnose Timeweb SSH
-        timeout-minutes: 2
+      - name: Prepare remote temp directory
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
           set -eu
-
-          echo "Checking SSH configuration..."
-          test -n "$DEPLOY_HOST" || { echo "DEPLOY_HOST is empty"; exit 1; }
-          test -n "$DEPLOY_USER" || { echo "DEPLOY_USER is empty"; exit 1; }
-
           PORT="${DEPLOY_PORT:-22}"
+          TEMP_DIR="/home/c/cs16144/www452/temp"
 
-          echo "User configured: yes"
-          echo "Host configured: yes"
-          echo "Port configured: yes"
-
-          echo "Resolving SSH host..."
-          getent ahosts "$DEPLOY_HOST" || true
-
-          echo "Testing TCP port..."
-          if timeout 10 bash -c 'cat < /dev/null > /dev/tcp/$1/$2' _ "$DEPLOY_HOST" "$PORT"; then
-            echo "TCP_OK"
-          else
-            echo "TCP_FAILED"
-          fi
-
-          echo "Testing SSH authentication..."
-
-          ssh -vv \
-            -i ~/.ssh/deploy_key \
+          ssh -i ~/.ssh/deploy_key \
             -p "$PORT" \
             -o BatchMode=yes \
             -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=10 \
-            -o ConnectionAttempts=1 \
+            -o ConnectTimeout=15 \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            'echo SSH_OK; pwd; command -v rsync; test -w /home/c/cs16144/www452/public_html && echo SITE_WRITABLE'
+            "mkdir -p '$TEMP_DIR'"
+
+      - name: Upload repository to temp
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -eu
+          PORT="${DEPLOY_PORT:-22}"
+          TEMP_DIR="/home/c/cs16144/www452/temp"
+
+          rsync -avz --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.gitignore' \
+            --exclude='.gitattributes' \
+            --exclude='.DS_Store' \
+            --exclude='Thumbs.db' \
+            --exclude='log/' \
+            --exclude='images/' \
+            --exclude='data/images/' \
+            --exclude='data/uploads/' \
+            -e "ssh -i ~/.ssh/deploy_key -p $PORT -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15" \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$TEMP_DIR/"
+
+      - name: Sync temp to public_html
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          set -eu
+          PORT="${DEPLOY_PORT:-22}"
+          TEMP_DIR="/home/c/cs16144/www452/temp"
+
+          if [ "$DEPLOY_PATH" != "/home/c/cs16144/www452/public_html" ]; then
+            echo "Unexpected DEPLOY_PATH; stopping deployment."
+            exit 1
+          fi
+
+          ssh -i ~/.ssh/deploy_key \
+            -p "$PORT" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "rsync -av --delete \
+              --exclude='.git/' \
+              --exclude='.github/' \
+              --exclude='.gitignore' \
+              --exclude='.gitattributes' \
+              --exclude='log/' \
+              --exclude='images/' \
+              --exclude='data/images/' \
+              --exclude='data/uploads/' \
+              '$TEMP_DIR/' '$DEPLOY_PATH/'"
+
+      - name: Deployment completed
+        run: echo "Deployment completed successfully!"

@@ -35,7 +35,9 @@ jobs:
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
+     
       - name: Upload to temporary folder
+        timeout-minutes: 3
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -46,13 +48,19 @@ jobs:
           PORT="${DEPLOY_PORT:-22}"
           TEMP_DIR="/home/c/cs16144/www452/temp"
 
-          ssh -i ~/.ssh/deploy_key \
+          echo "Testing SSH connectivity..."
+
+          ssh -vv \
+            -i ~/.ssh/deploy_key \
             -p "$PORT" \
             -o BatchMode=yes \
             -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=15 \
+            -o ConnectTimeout=10 \
+            -o ConnectionAttempts=1 \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "mkdir -p '$TEMP_DIR'"
+            "echo SSH_OK; mkdir -p '$TEMP_DIR'"
+
+          echo "Uploading files..."
 
           rsync -avz --delete \
             --exclude='.git/' \
@@ -65,7 +73,7 @@ jobs:
             --exclude='images/' \
             --exclude='data/images/' \
             --exclude='data/uploads/' \
-            -e "ssh -i ~/.ssh/deploy_key -p $PORT -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15" \
+            -e "ssh -i ~/.ssh/deploy_key -p $PORT -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10" \
             ./ "$DEPLOY_USER@$DEPLOY_HOST:$TEMP_DIR/"
 
       - name: Deploy to public_html

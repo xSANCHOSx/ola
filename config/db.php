@@ -199,6 +199,32 @@ function validate_phone(string $phone): ?string
 }
 
 /**
+ * Форматирует телефон для показа: +7 (909) 696-27-20.
+ * Принимает номер в любом виде (8909…, +7 909…, 9096962720). Если номер не
+ * похож на российский (не 10/11 цифр) — возвращается как есть.
+ */
+function format_phone(?string $phone): string
+{
+    $phone = trim((string)$phone);
+    if ($phone === '') {
+        return '';
+    }
+    $digits = preg_replace('/\D+/', '', $phone) ?? '';
+    if (strlen($digits) === 11 && ($digits[0] === '7' || $digits[0] === '8')) {
+        $digits = substr($digits, 1);
+    } elseif (strlen($digits) !== 10) {
+        return $phone;
+    }
+    return sprintf(
+        '+7 (%s) %s-%s-%s',
+        substr($digits, 0, 3),
+        substr($digits, 3, 3),
+        substr($digits, 6, 2),
+        substr($digits, 8, 2)
+    );
+}
+
+/**
  * Log security event
  */
 function log_security_event(string $event, array $context = []): void

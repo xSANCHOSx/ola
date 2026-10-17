@@ -30,6 +30,11 @@ function build_customers_where(string $type, string $value): array
         'email' => 'c.email',
     ];
 
+    if ($type === 'phone') {
+        // телефоны хранятся цифрами — убираем скобки, пробелы, дефисы и «+», которые ввёл админ
+        $value = preg_replace('/\D+/', '', $value) ?? '';
+    }
+
     if (isset($map[$type]) && $value !== '') {
         $where .= " AND {$map[$type]} LIKE :$type";
         $params[$type] = '%' . $value . '%';

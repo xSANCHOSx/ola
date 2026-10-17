@@ -36,6 +36,11 @@ function build_orders_where(string $type, string $value, string $dateFrom, strin
         'customer_email' => 'o.customer_email_snapshot',
     ];
 
+    if ($type === 'customer_phone') {
+        // телефоны хранятся цифрами — убираем скобки, пробелы, дефисы и «+», которые ввёл админ
+        $value = preg_replace('/\D+/', '', $value) ?? '';
+    }
+
     if (isset($map[$type]) && $value !== '') {
         $where .= " AND {$map[$type]} LIKE :$type";
         $params[$type] = '%' . $value . '%';

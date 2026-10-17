@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// admin/coupon_stats.php — Дашбоард статистики купонов
+// admin/coupon_stats.php — Дашбоард статистики купонов (раздел «Купоны»)
 // Показывает: топ-10 купонов, общая сумма скидок, тренды по дням
 
 require __DIR__ . '/_bootstrap.php';
@@ -123,7 +123,13 @@ $dailyStats = $stmt->fetchAll() ?: [];
     <div class="container">
         <?php require __DIR__ . '/_nav.php'; ?>
 
-        <h3>Статистика купонов</h3>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h3 class="mb-0">Статистика купонов</h3>
+            <div>
+                <a href="/admin/coupons_archive.php" class="btn btn-secondary me-2">📦 Архив</a>
+                <a href="/admin/coupons.php" class="btn btn-secondary">← Назад к купонам</a>
+            </div>
+        </div>
 
         <!-- Метрики -->
         <div class="row g-3 mb-4">

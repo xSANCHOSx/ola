@@ -407,6 +407,7 @@ $active_count = count(array_filter($coupons, fn($c) => $c['is_active']));
 		<div class="d-flex align-items-center justify-content-between mb-3">
 			<h3 class="mb-0">Управление купонами</h3>
 			<div>
+				<a href="/admin/coupon_stats.php" class="btn btn-info me-2">📊 Статистика купонов</a>
 				<a href="/admin/coupons_archive.php" class="btn btn-secondary me-2">📦 Архив</a>
 				<button class="btn btn-success" onclick="openCreateModal()">+ Новый купон</button>
 			</div>

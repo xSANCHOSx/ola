@@ -109,7 +109,7 @@ if ($pdo instanceof PDO) {
         <?php foreach ($customers as $c): ?>
             <tr>
                 <td><?= admin_h((string)$c['full_name']) ?></td>
-                <td><?= admin_h((string)$c['phone']) ?></td>
+                <td class="text-nowrap"><?= admin_h(format_phone((string)$c['phone'])) ?></td>
                 <td><?= admin_h((string)$c['email']) ?></td>
                 <td><?= admin_h((string)$c['orders_count']) ?></td>
                 <td><?= admin_h((string)$c['last_order_number']) ?></td>
@@ -269,7 +269,7 @@ if ($pdo instanceof PDO) {
             var tr = document.createElement('tr');
             tr.innerHTML =
                 '<td>' + esc(c.full_name)          + '</td>' +
-                '<td>' + esc(c.phone)               + '</td>' +
+                '<td class="text-nowrap">' + esc(formatPhone(c.phone)) + '</td>' +
                 '<td>' + esc(c.email)               + '</td>' +
                 '<td>' + esc(String(c.orders_count)) + '</td>' +
                 '<td>' + esc(c.last_order_number)   + '</td>' +
@@ -277,6 +277,13 @@ if ($pdo instanceof PDO) {
                 '<td><a href="/admin/customers.php?id=' + parseInt(c.id) + '">История</a></td>';
             tbody.appendChild(tr);
         });
+    }
+
+    function formatPhone(phone) {
+        var d = String(phone || '').replace(/\D/g, '');
+        if (d.length === 11 && (d[0] === '7' || d[0] === '8')) d = d.slice(1);
+        else if (d.length !== 10) return String(phone || '');
+        return '+7 (' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6, 8) + '-' + d.slice(8, 10);
     }
 
     function esc(text) {

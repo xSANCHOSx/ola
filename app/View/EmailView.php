@@ -112,7 +112,7 @@ class EmailView
         $rows = [
             'Имя'        => $payload['name'],
             'Email'      => $payload['email'],
-            'Телефон'    => $payload['phone'],
+            'Телефон'    => format_phone((string)$payload['phone']),
             'Мессенджер' => $payload['contact_method'],
             'Аккаунт'    => $payload['contact_username'],
             'Комментарии' => $payload['comments'],

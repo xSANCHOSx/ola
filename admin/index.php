@@ -234,7 +234,7 @@ if ($pdo instanceof PDO) {
 						<?= admin_h((string)$o['customer_name_snapshot']) ?><br>
 						<small class="text-muted"><?= admin_h((string)$o['customer_email_snapshot']) ?></small>
 					</td>
-					<td><?= admin_h((string)$o['customer_phone_snapshot']) ?></td>
+					<td class="text-nowrap"><?= admin_h(format_phone((string)$o['customer_phone_snapshot'])) ?></td>
 					<td>
 						<div class="items-list">
 							<?php
@@ -442,7 +442,7 @@ if ($pdo instanceof PDO) {
                     ${escapeHtml(order.customer_name_snapshot)}<br>
                     <small class="text-muted">${escapeHtml(order.customer_email_snapshot)}</small>
                 </td>
-                <td>${escapeHtml(order.customer_phone_snapshot)}</td>
+                <td class="text-nowrap">${escapeHtml(formatPhone(order.customer_phone_snapshot))}</td>
                 <td>
                     <small class="text-muted">Всего: ${order.items_count}</small>
                 </td>
@@ -461,6 +461,13 @@ if ($pdo instanceof PDO) {
 	}
 
 	// Функция экранирования HTML
+	function formatPhone(phone) {
+		var d = String(phone || '').replace(/\D/g, '');
+		if (d.length === 11 && (d[0] === '7' || d[0] === '8')) d = d.slice(1);
+		else if (d.length !== 10) return String(phone || '');
+		return '+7 (' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6, 8) + '-' + d.slice(8, 10);
+	}
+
 	function escapeHtml(text) {
 		const div = document.createElement('div');
 		div.textContent = text;

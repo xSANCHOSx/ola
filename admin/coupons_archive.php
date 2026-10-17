@@ -35,7 +35,10 @@ $archived_coupons = $stmt->fetchAll();
 
         <div class="d-flex align-items-center justify-content-between mb-3">
             <h3 class="mb-0">Архив удаленных купонов</h3>
-            <a href="/admin/coupons.php" class="btn btn-secondary">← Назад к купонам</a>
+            <div>
+                <a href="/admin/coupon_stats.php" class="btn btn-info me-2">📊 Статистика купонов</a>
+                <a href="/admin/coupons.php" class="btn btn-secondary">← Назад к купонам</a>
+            </div>
         </div>
 
         <div class="alert alert-info">

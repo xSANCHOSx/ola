@@ -38,7 +38,13 @@ jobs:
 
       
      
-      - name: Prepare remote temp directory
+                "$DEPLOY_USER@$DEPLOY_HOST" \
+                "mkdir -p '$TEMP_DIR' && echo TEMP_READY"; then
+                exit 0
+              fi
+            else
+              echo "TCP connection failed"
+            - name: Prepare remote temp directory
         timeout-minutes: 3
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -50,35 +56,25 @@ jobs:
           PORT="${DEPLOY_PORT:-22}"
           TEMP_DIR="/home/c/cs16144/www452/temp"
 
+          SSH_OPTS="-i $HOME/.ssh/deploy_key -p $PORT -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 -o ConnectionAttempts=1 -o ServerAliveInterval=5 -o ServerAliveCountMax=2"
+
           for attempt in 1 2 3; do
-            echo "Attempt $attempt: checking TCP port $PORT"
+            echo "Attempt $attempt: connecting via SSH on port $PORT"
 
-            if timeout 10 bash -c \
-              'cat < /dev/null > /dev/tcp/$1/$2' \
-              _ "$DEPLOY_HOST" "$PORT"; then
-
-              echo "TCP connection available"
-
-              if ssh -i ~/.ssh/deploy_key \
-                -p "$PORT" \
-                -o BatchMode=yes \
-                -o StrictHostKeyChecking=yes \
-                -o ConnectTimeout=10 \
-                -o ConnectionAttempts=1 \
-                "$DEPLOY_USER@$DEPLOY_HOST" \
-                "mkdir -p '$TEMP_DIR' && echo TEMP_READY"; then
-                exit 0
-              fi
+            if ssh $SSH_OPTS "$DEPLOY_USER@$DEPLOY_HOST" \
+              "mkdir -p '$TEMP_DIR' && echo TEMP_READY"; then
+              exit 0
             else
-              echo "TCP connection failed"
+              echo "Attempt $attempt failed (ssh exit code $?)"
             fi
 
-            sleep 5
+            sleep 10
           done
 
-          echo "Timeweb SSH is unreachable from this runner."
+          echo "All attempts failed. Verbose diagnostic run:"
+          ssh -v $SSH_OPTS "$DEPLOY_USER@$DEPLOY_HOST" \
+            "id; ls -ld '$(dirname "$TEMP_DIR")'; mkdir -p '$TEMP_DIR' && echo TEMP_READY" || true
           exit 1
-
 
       - name: Upload repository to temp
         env:

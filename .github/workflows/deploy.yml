@@ -36,23 +36,43 @@ jobs:
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
+      
       - name: Prepare remote temp directory
+        timeout-minutes: 2
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
           set -eu
+
           PORT="${DEPLOY_PORT:-22}"
           TEMP_DIR="/home/c/cs16144/www452/temp"
 
-          ssh -i ~/.ssh/deploy_key \
-            -p "$PORT" \
-            -o BatchMode=yes \
-            -o StrictHostKeyChecking=yes \
-            -o ConnectTimeout=15 \
-            "$DEPLOY_USER@$DEPLOY_HOST" \
-            "mkdir -p '$TEMP_DIR'"
+          for attempt in 1 2 3; do
+            echo "SSH attempt $attempt of 3"
+
+            if ssh -i ~/.ssh/deploy_key \
+              -p "$PORT" \
+              -o BatchMode=yes \
+              -o StrictHostKeyChecking=yes \
+              -o ConnectTimeout=20 \
+              -o ConnectionAttempts=1 \
+              "$DEPLOY_USER@$DEPLOY_HOST" \
+              "mkdir -p '$TEMP_DIR'"; then
+              echo "Remote temp directory is ready."
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "Connection failed; retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+
+          echo "Could not connect to Timeweb after 3 attempts."
+          exit 1
+
 
       - name: Upload repository to temp
         env:

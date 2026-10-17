@@ -640,6 +640,13 @@ div#max-team {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-evenly;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .menu_footer > li {
+    flex: 0 0 100%;
+  }
 }
 
 div#footer-copyrights {

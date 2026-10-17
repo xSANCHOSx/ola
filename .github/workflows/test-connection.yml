@@ -26,16 +26,32 @@ jobs:
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
+      
       - name: Test connection
+        timeout-minutes: 1
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
+          set -eu
+
+          echo "Checking SSH configuration..."
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          PORT="${DEPLOY_PORT:-22}"
+
+          echo "Connecting to configured host on port $PORT..."
+
           ssh \
+            -vv \
             -i ~/.ssh/deploy_key \
-            -p "${DEPLOY_PORT:-22}" \
+            -p "$PORT" \
             -o BatchMode=yes \
+            -o ConnectTimeout=10 \
+            -o ConnectionAttempts=1 \
+            -o ServerAliveInterval=5 \
+            -o ServerAliveCountMax=2 \
             -o StrictHostKeyChecking=yes \
             "$DEPLOY_USER@$DEPLOY_HOST" \
             'echo SSH_OK; pwd; command -v rsync; command -v php; test -w /home/c/cs16144/www452/public_html && echo SITE_WRITABLE'

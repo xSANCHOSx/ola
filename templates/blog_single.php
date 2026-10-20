@@ -172,6 +172,121 @@ function getSafeImagePath(string $path): ?string
 		border-radius: 5px;
 	}
 
+	/* ── Содержимое статьи из визуального редактора (CKEditor 5) ──
+	   В админке эти стили подключает сам редактор, на сайте их нужно задавать вручную. */
+	.blog-content::after {
+		content: "";
+		display: block;
+		clear: both;
+	}
+
+	.blog-content figure {
+		margin: 0.9em 0;
+	}
+
+	/* Картинки */
+	.blog-content figure.image {
+		display: table;
+		clear: both;
+		margin: 0.9em auto;
+		text-align: center;
+	}
+
+	.blog-content figure.image > img {
+		display: block;
+		margin: 0 auto;
+		max-width: 100%;
+		min-width: 50px;
+	}
+
+	.blog-content figure.image_resized {
+		box-sizing: border-box;
+		display: block;
+		max-width: 100%;
+	}
+
+	.blog-content figure.image_resized > img {
+		width: 100%;
+	}
+
+	.blog-content figure.image figcaption {
+		display: table-caption;
+		caption-side: bottom;
+		padding: 0.5em 0.6em;
+		background: #f7f7f7;
+		color: #555;
+		font-size: 0.8em;
+		line-height: 1.4;
+		word-break: break-word;
+	}
+
+	/* Обтекание текстом: «сбоку» (справа) и выравнивание вправо/влево */
+	.blog-content figure.image-style-side,
+	.blog-content figure.image-style-align-right {
+		float: right;
+		clear: none;
+		max-width: 50%;
+		margin: 0.4em 0 1em 1.5em;
+	}
+
+	.blog-content figure.image-style-align-left {
+		float: left;
+		clear: none;
+		max-width: 50%;
+		margin: 0.4em 1.5em 1em 0;
+	}
+
+	.blog-content figure.image-style-block-align-right {
+		margin-left: auto;
+		margin-right: 0;
+	}
+
+	.blog-content figure.image-style-block-align-left {
+		margin-left: 0;
+		margin-right: auto;
+	}
+
+	/* На телефоне обтекание отключаем: узкая колонка текста читается плохо */
+	@media (max-width: 576px) {
+
+		.blog-content figure.image-style-side,
+		.blog-content figure.image-style-align-right,
+		.blog-content figure.image-style-align-left {
+			float: none;
+			max-width: 100%;
+			margin: 0.9em auto;
+		}
+	}
+
+	/* Таблицы */
+	.blog-content figure.table {
+		display: block;
+		margin: 1em 0;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.blog-content table {
+		width: 100%;
+		border-collapse: collapse;
+		border-spacing: 0;
+		margin-bottom: 0;
+	}
+
+	.blog-content th,
+	.blog-content td {
+		min-width: 2em;
+		padding: 0.5em 0.75em;
+		border: 1px solid #d5d5d5;
+		vertical-align: top;
+		text-align: left;
+	}
+
+	.blog-content th {
+		background: #f5f5f5;
+		font-weight: 700;
+	}
+
 	.blog-content h2 {
 		margin-top: 2em;
 	}

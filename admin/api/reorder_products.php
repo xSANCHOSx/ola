@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 require __DIR__ . '/../_bootstrap.php';
+require_once __DIR__ . '/../../lib/feed_generator.php';
 admin_require_auth();
 
 header('Content-Type: application/json');
@@ -58,9 +59,18 @@ try {
             'sort_order' => (int)$item['sort_order'],
             'id'         => (int)$item['id'],
         ]);
-    }
-    $pdo->commit();
-    echo json_encode(['success' => true]);
+	}
+	$pdo->commit();
+	$feedWarning = null;
+	try {
+		generate_product_feeds($pdo, dirname(__DIR__, 2));
+	} catch (Throwable $e) {
+		$feedWarning = 'Порядок сохранён, но feed не обновлён.';
+		if (function_exists('dev_log_runtime')) {
+			dev_log_runtime('Automatic feed regeneration after product reorder failed: ' . $e->getMessage());
+		}
+	}
+	echo json_encode(['success' => true, 'warning' => $feedWarning], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     $pdo->rollBack();
     error_log('Reorder products error: ' . $e->getMessage());

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 require __DIR__ . '/../_bootstrap.php';
 require_once __DIR__ . '/../../lib/feed_generator.php';
-admin_require_auth();
+admin_require_permission('products', 'edit');
 
 header('Content-Type: application/json');
 

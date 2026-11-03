@@ -8,7 +8,7 @@ declare(strict_types=1);
 // Статистика купонов вынесена в раздел «Купоны» (admin/coupon_stats.php).
 
 require __DIR__ . '/_bootstrap.php';
-admin_require_auth();
+admin_require_permission('stats', 'view');
 
 $pdo = dev_db_connection();
 $statErrors = [];

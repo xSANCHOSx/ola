@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
-admin_require_auth();
+admin_require_permission('blog', 'view');
 
 $pdo = dev_db_connection();
 $user = admin_current_user();
@@ -191,6 +191,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 	$id = (int)($_POST['id'] ?? 0);
 	$action = trim((string)($_POST['action'] ?? 'save'));
+	if ($action === 'delete') {
+		admin_require_permission('blog', 'delete');
+	} elseif ($action === 'save') {
+		admin_require_permission('blog', $id > 0 ? 'edit' : 'create');
+	}
 
 	// ── Delete post ─────────────────────────────────────────────────────────
 	if ($action === 'delete' && $id > 0) {

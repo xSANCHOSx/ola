@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 
 require __DIR__ . '/_bootstrap.php';
-admin_require_auth();
+admin_require_permission('coupons', 'view');
 
 // ═══ Функции CRUD ═══════════════════════════════════════════════════════════
 
@@ -359,6 +359,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_GET['ajax'])) {
     if (!hash_equals(csrf_token(), $csrf)) {
         http_response_code(403);
         echo json_encode(['success' => false, 'error' => 'CSRF validation failed']);
+        exit;
+    }
+
+    $requiredPermission = match ($action) {
+        'create' => 'create',
+        'delete' => 'delete',
+        'update', 'toggle_status' => 'edit',
+        default => null,
+    };
+    if ($requiredPermission !== null && !admin_can('coupons', $requiredPermission)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Недостаточно прав для этого действия']);
         exit;
     }
 

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
 require_once __DIR__ . '/../lib/feed_generator.php';
-admin_require_auth();
+admin_require_permission('products', 'view');
 $pdo = dev_db_connection();
 
 function save_product_image_upload(array $file, array &$errors = [], array &$createdFiles = []): ?string
@@ -88,7 +88,8 @@ function delete_product_image_file(string $image): void
 	}
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_gallery_image') {
+	if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_gallery_image') {
+		admin_require_permission('products', 'delete');
 	header('Content-Type: application/json; charset=utf-8');
 	if (!validate_csrf_token()) {
 		http_response_code(403);
@@ -140,12 +141,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
 	exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
-	if (!validate_csrf_token()) {
+	if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
+		if (!validate_csrf_token()) {
 		http_response_code(403);
 		exit('CSRF check failed');
-	}
-	$id = (int)($_POST['id'] ?? 0);
+		}
+		$id = (int)($_POST['id'] ?? 0);
+		admin_require_permission('products', $id > 0 ? 'edit' : 'create');
 	$data = [
 		'external_id' => trim((string)($_POST['external_id'] ?? '')),
 		'cat_number' => trim((string)($_POST['cat_number'] ?? '')),

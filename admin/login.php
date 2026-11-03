@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Ошибка подключения к БД. Обратитесь к администратору.';
         }
         if ($pdo instanceof PDO) {
-            $stmt = $pdo->prepare('SELECT id, username, password_hash, role, is_active FROM admin_users WHERE username = :username LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id, username, password_hash, role, is_active, permissions_json FROM admin_users WHERE username = :username LIMIT 1');
             $stmt->execute(['username' => $username]);
             $user = $stmt->fetch();
 

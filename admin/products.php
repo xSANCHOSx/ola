@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
+require_once __DIR__ . '/../lib/feed_generator.php';
 admin_require_auth();
 $pdo = dev_db_connection();
 
@@ -116,10 +117,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
 		$pdo->beginTransaction();
 		$delete = $pdo->prepare('DELETE FROM product_images WHERE id = :id AND product_id = :product_id');
 		$delete->execute(['id' => $imageId, 'product_id' => $productId]);
-		$pdo->commit();
-		delete_product_image_file((string)$image);
+			$pdo->commit();
+			delete_product_image_file((string)$image);
+			$feedWarning = null;
+			try {
+				generate_product_feeds($pdo, dirname(__DIR__));
+			} catch (Throwable $e) {
+				$feedWarning = 'Фото удалено, но feed не обновлён.';
+				if (function_exists('dev_log_runtime')) {
+					dev_log_runtime('Automatic feed regeneration after gallery image deletion failed: ' . $e->getMessage());
+				}
+			}
 
-		echo json_encode(['success' => true], JSON_UNESCAPED_UNICODE);
+			echo json_encode(['success' => true, 'warning' => $feedWarning], JSON_UNESCAPED_UNICODE);
 	} catch (Throwable $e) {
 		if ($pdo->inTransaction()) {
 			$pdo->rollBack();
@@ -237,7 +247,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
 	foreach ($deletedImages as $deletedImage) {
 		delete_product_image_file($deletedImage);
 	}
-	if ($uploadErrors) {
+	$feedError = null;
+	try {
+		generate_product_feeds($pdo, dirname(__DIR__));
+	} catch (Throwable $e) {
+		$feedError = $e->getMessage();
+		if (function_exists('dev_log_runtime')) {
+			dev_log_runtime('Automatic feed regeneration after product save failed: ' . $e->getMessage());
+		}
+	}
+	if ($feedError !== null) {
+		product_flash('Товар сохранён, но feed не удалось обновить. Ошибка записана в журнал.', 'warning');
+	} elseif ($uploadErrors) {
 		product_flash('Товар сохранён. ' . implode(' ', $uploadErrors), 'warning');
 	} elseif (!isset($_SESSION['product_flash'])) {
 		product_flash('Товар успешно сохранён.');

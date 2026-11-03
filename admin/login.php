@@ -28,13 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Ошибка подключения к БД. Обратитесь к администратору.';
         }
         if ($pdo instanceof PDO) {
-            $stmt = $pdo->prepare('SELECT id, username, password_hash FROM admin_users WHERE username = :username LIMIT 1');
+            $stmt = $pdo->prepare('SELECT id, username, password_hash, role, is_active FROM admin_users WHERE username = :username LIMIT 1');
             $stmt->execute(['username' => $username]);
             $user = $stmt->fetch();
 
             $dummyHash   = '$2y$10$dummyHashToPreventTimingAttackXXXXXXXXXXXXXX';
             $hashToCheck = $user ? $user['password_hash'] : $dummyHash;
-            if ($user && password_verify($password, $hashToCheck)) {
+            if ($user && (int)$user['is_active'] === 1 && password_verify($password, $hashToCheck)) {
                 session_regenerate_id(true);
                 admin_session_set($user);
                 $pdo->prepare('UPDATE admin_users SET last_login = NOW() WHERE id = :id')->execute(['id' => $user['id']]);

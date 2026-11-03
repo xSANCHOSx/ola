@@ -18,6 +18,25 @@ function admin_require_auth(): void
         header('Location: /admin/login.php');
         exit;
     }
+    try {
+        $sessionUser = admin_current_user();
+        $pdo = dev_db_connection();
+        $stmt = $pdo->prepare('SELECT username, role, is_active FROM admin_users WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => (int)$sessionUser['id']]);
+        $dbUser = $stmt->fetch();
+        if (!$dbUser || (int)$dbUser['is_active'] !== 1) {
+            admin_session_clear();
+            header('Location: /admin/login.php');
+            exit;
+        }
+        $cfg = dev_app_config();
+        $key = $cfg['admin_session_key'] ?? 'dev_admin_auth';
+        $_SESSION[$key]['username'] = (string)$dbUser['username'];
+        $_SESSION[$key]['role'] = in_array($dbUser['role'], ['admin', 'manager'], true) ? $dbUser['role'] : 'admin';
+    } catch (Throwable $e) {
+        // Не блокируем админку при кратковременной недоступности БД.
+        dev_log_runtime('Admin session refresh failed: ' . $e->getMessage());
+    }
 }
 
 function admin_session_set(array $user): void
@@ -25,8 +44,9 @@ function admin_session_set(array $user): void
     $cfg = dev_app_config();
     $key = $cfg['admin_session_key'] ?? 'dev_admin_auth';
     $_SESSION[$key] = [
-        'id' => $user['id'],
-        'username' => $user['username'],
+        'id' => (int)$user['id'],
+        'username' => (string)$user['username'],
+        'role' => in_array(($user['role'] ?? 'admin'), ['admin', 'manager'], true) ? $user['role'] : 'admin',
     ];
 }
 
@@ -42,6 +62,22 @@ function admin_current_user(): ?array
     $cfg = dev_app_config();
     $key = $cfg['admin_session_key'] ?? 'dev_admin_auth';
     return $_SESSION[$key] ?? null;
+}
+
+function admin_is_admin(): bool
+{
+    $user = admin_current_user();
+    return !empty($user['id']) && (($user['role'] ?? 'admin') === 'admin');
+}
+
+function admin_require_admin(): void
+{
+    admin_require_auth();
+    if (!admin_is_admin()) {
+        http_response_code(403);
+        echo '<!doctype html><meta charset="utf-8"><title>Доступ запрещён</title><p style="font:16px sans-serif;margin:40px">Недостаточно прав для просмотра этой страницы.</p>';
+        exit;
+    }
 }
 
 function admin_h(string $value): string

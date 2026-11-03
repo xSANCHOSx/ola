@@ -5,7 +5,7 @@ declare(strict_types=1);
 // admin/coupons_archive.php — Просмотр архива удаленных купонов
 
 require __DIR__ . '/_bootstrap.php';
-admin_require_auth();
+admin_require_permission('coupons', 'view');
 
 $pdo = dev_db_connection();
 

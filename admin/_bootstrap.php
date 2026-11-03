@@ -12,11 +12,42 @@ function admin_is_auth(): bool
     return !empty($_SESSION[$key]['id']);
 }
 
+function admin_current_role(): string
+{
+    $user = admin_current_user();
+    return ($user !== null && ($user['role'] ?? 'admin') === 'manager') ? 'manager' : 'admin';
+}
+
+function admin_is_manager(): bool
+{
+    return admin_is_auth() && admin_current_role() === 'manager';
+}
+
+function admin_is_admin(): bool
+{
+    return admin_is_auth() && admin_current_role() === 'admin';
+}
+
 function admin_require_auth(): void
 {
     if (!admin_is_auth()) {
         header('Location: /admin/login.php');
         exit;
+    }
+
+    if (admin_is_manager()) {
+        $script = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? ''));
+        $managerRoutes = [
+            '/admin/products.php',
+            '/admin/blog.php',
+            '/admin/blog-upload.php',
+            '/admin/api/reorder_products.php',
+            '/admin/logout.php',
+        ];
+        if (!in_array($script, $managerRoutes, true)) {
+            http_response_code(403);
+            exit('Недостаточно прав для доступа к этому разделу.');
+        }
     }
 }
 
@@ -27,6 +58,7 @@ function admin_session_set(array $user): void
     $_SESSION[$key] = [
         'id' => $user['id'],
         'username' => $user['username'],
+        'role' => ($user['role'] ?? 'admin') === 'manager' ? 'manager' : 'admin',
     ];
 }
 

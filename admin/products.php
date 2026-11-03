@@ -90,6 +90,11 @@ function delete_product_image_file(string $image): void
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_gallery_image') {
 	header('Content-Type: application/json; charset=utf-8');
+	if (!admin_is_admin()) {
+		http_response_code(403);
+		echo json_encode(['success' => false, 'message' => 'Менеджер не может удалять изображения товара.'], JSON_UNESCAPED_UNICODE);
+		exit;
+	}
 	if (!validate_csrf_token()) {
 		http_response_code(403);
 		echo json_encode(['success' => false, 'message' => 'CSRF check failed'], JSON_UNESCAPED_UNICODE);
@@ -137,14 +142,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
 		http_response_code(500);
 		echo json_encode(['success' => false, 'message' => 'Не удалось удалить изображение.'], JSON_UNESCAPED_UNICODE);
 	}
-	exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
-	if (!validate_csrf_token()) {
-		http_response_code(403);
-		exit('CSRF check failed');
+		exit;
 	}
+
+	if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO) {
+		if (!validate_csrf_token()) {
+			http_response_code(403);
+			exit('CSRF check failed');
+		}
+		if (admin_is_manager() && !empty($_POST['delete_gallery'] ?? [])) {
+			http_response_code(403);
+			exit('Менеджер не может удалять изображения товара.');
+		}
 	$id = (int)($_POST['id'] ?? 0);
 	$data = [
 		'external_id' => trim((string)($_POST['external_id'] ?? '')),
@@ -1001,18 +1010,20 @@ $gallery = [];
 								<?php if ($gallery): ?>
 									<input type="hidden" name="gallery_order" id="galleryOrder" value="<?= admin_h(json_encode(array_column($gallery, 'id'))) ?>">
 									<div class="gallery-existing">
-										<?php foreach ($gallery as $galleryImage): ?>
-											<div class="gallery-existing-item" data-gallery-id="<?= (int)$galleryImage['id'] ?>">
-												<img src="/<?= admin_h((string)$galleryImage['image']) ?>" alt="Дополнительное фото">
-												<button type="button" class="btn-remove-image show gallery-remove-image"
+							<?php foreach ($gallery as $galleryImage): ?>
+								<div class="gallery-existing-item" data-gallery-id="<?= (int)$galleryImage['id'] ?>">
+									<img src="/<?= admin_h((string)$galleryImage['image']) ?>" alt="Дополнительное фото">
+									<?php if (admin_is_admin()): ?>
+									<button type="button" class="btn-remove-image show gallery-remove-image"
 													data-gallery-delete="<?= (int)$galleryImage['id'] ?>"
 													onclick="removeGalleryImage(event, <?= (int)$galleryImage['id'] ?>)"
 													aria-label="Удалить дополнительное фото">
 													<svg viewBox="0 0 24 24" fill="none">
 														<line x1="18" y1="6" x2="6" y2="18"></line>
 														<line x1="6" y1="6" x2="18" y2="18"></line>
-													</svg>
-												</button>
+										</svg>
+									</button>
+									<?php endif; ?>
 												<div class="gallery-order-buttons">
 													<button type="button" class="gallery-move" data-gallery-move="up" aria-label="Выше">↑</button>
 													<button type="button" class="gallery-move" data-gallery-move="down" aria-label="Ниже">↓</button>

@@ -1521,7 +1521,7 @@ if (isset($_GET['msg'])) {
 						]
 					},
 					simpleUpload: {
-						uploadUrl: '/admin/blog-upload.php'
+						uploadUrl: '/admin/blog-upload.php?context=blog'
 					},
 					table: {
 						contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']

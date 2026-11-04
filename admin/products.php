@@ -1210,7 +1210,7 @@ $gallery = [];
 						]
 					},
 					simpleUpload: {
-						uploadUrl: '/admin/blog-upload.php'
+						uploadUrl: '/admin/blog-upload.php?context=product'
 					},
 					table: {
 						contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']

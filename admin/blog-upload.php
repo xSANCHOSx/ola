@@ -2,8 +2,18 @@
 
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
-admin_require_permission('blog', 'edit');
-
+admin_require_auth();
+if (!admin_can('blog', 'edit') && !admin_can('products', 'edit')) {
+	header('Content-Type: application/json; charset=utf-8');
+	http_response_code(403);
+	echo json_encode([
+		'uploaded' => false,
+		'error' => [
+			'message' => 'Недостаточно прав для загрузки изображения'
+		]
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
 header('Content-Type: application/json; charset=utf-8');
 
 // CKEditor 5 ожидает поле 'uploaded' вместо успешного статуса

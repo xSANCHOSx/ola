@@ -1203,6 +1203,12 @@ $gallery = [];
 							}
 						]
 					},
+					image: {
+						toolbar: [
+							'imageTextAlternative', '|',
+							'imageStyle:full', 'imageStyle:side'
+						]
+					},
 					simpleUpload: {
 						uploadUrl: '/admin/blog-upload.php'
 					},

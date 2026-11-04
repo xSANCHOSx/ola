@@ -6,6 +6,17 @@ admin_require_auth();
 
 header('Content-Type: application/json; charset=utf-8');
 
+if (!validate_csrf_token()) {
+	http_response_code(403);
+	echo json_encode([
+		'uploaded' => false,
+		'error' => [
+			'message' => 'Security check failed. Reload the page and try again.'
+		]
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+
 // CKEditor 5 ожидает поле 'uploaded' вместо успешного статуса
 if (!isset($_FILES['upload']) || empty($_FILES['upload']['tmp_name'])) {
 	http_response_code(400);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
-admin_require_auth();
+admin_require_permission('blog', 'view');
 
 $pdo = dev_db_connection();
 $user = admin_current_user();
@@ -191,14 +191,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 	$id = (int)($_POST['id'] ?? 0);
 	$action = trim((string)($_POST['action'] ?? 'save'));
+	if ($action === 'delete') {
+		admin_require_permission('blog', 'delete');
+	} elseif ($action === 'save') {
+		admin_require_permission('blog', $id > 0 ? 'edit' : 'create');
+	}
 
 	// ── Delete post ─────────────────────────────────────────────────────────
 	if ($action === 'delete' && $id > 0) {
-		if (!admin_is_admin()) {
-			dev_log_security('BLOG_POST_DELETE_FORBIDDEN', ['id' => $id, 'user' => $user['username'] ?? 'unknown']);
-			http_response_code(403);
-			exit('Недостаточно прав для удаления записи блога.');
-		}
 		try {
 			$pdo->prepare('DELETE FROM blog_post_tags WHERE post_id = :id')->execute(['id' => $id]);
 			$pdo->prepare('DELETE FROM blog_posts WHERE id = :id')->execute(['id' => $id]);
@@ -1490,6 +1490,7 @@ if (isset($_GET['msg'])) {
 						shouldNotGroupWhenFull: true
 					},
 					extraPlugins: [CkeditorUploadAdapterPlugin],
+					ckUploadUrl: '/admin/blog-upload.php?context=blog',
 					heading: {
 						options: [{
 								model: 'paragraph',
@@ -1513,7 +1514,13 @@ if (isset($_GET['msg'])) {
 								view: 'h3',
 								title: 'Заголовок 3',
 								class: 'ck-heading_heading3'
-							},
+							}
+						]
+					},
+					image: {
+						toolbar: [
+							'imageTextAlternative', '|',
+							'imageStyle:full', 'imageStyle:side'
 						]
 					},
 					table: {
@@ -1625,7 +1632,6 @@ if (isset($_GET['msg'])) {
 							<td data-label="Просм."><?= admin_h((string)$p['views']) ?></td>
 							<td data-label="Действия" class="posts-table__actions">
 								<a href="/admin/blog.php?edit=<?= (int)$p['id'] ?>" class="btn btn-sm btn-info">✎ Редактировать</a>
-								<?php if (admin_is_admin()): ?>
 								<form method="post" style="display:inline;">
 									<input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
 									<input type="hidden" name="action" value="delete">
@@ -1633,7 +1639,6 @@ if (isset($_GET['msg'])) {
 									<button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить пост?')">✕
 										Удалить</button>
 								</form>
-								<?php endif; ?>
 							</td>
 						</tr>
 					<?php endforeach; ?>

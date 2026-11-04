@@ -1,0 +1,110 @@
+<?php
+declare(strict_types=1);
+require __DIR__ . '/_bootstrap.php';
+admin_require_admin();
+$pdo = dev_db_connection();
+$catalog = admin_permission_catalog();
+$message = '';
+$error = '';
+
+function normalize_admin_permissions(array $input, array $catalog): array
+{
+    $result = [];
+    foreach ($catalog as $section => $definition) {
+        foreach ($definition['actions'] as $action => $label) {
+            $result[$section][$action] = !empty($input[$section][$action]);
+        }
+    }
+    return $result;
+}
+function admin_role_label(string $role): string { return $role === 'admin' ? 'Администратор' : 'Менеджер'; }
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validate_csrf_token()) {
+        $error = 'Сессия формы устарела. Обновите страницу.';
+    } else {
+        $action = (string)($_POST['action'] ?? '');
+        try {
+            if ($action === 'create') {
+                $username = trim((string)($_POST['username'] ?? ''));
+                $password = (string)($_POST['password'] ?? '');
+                $role = (string)($_POST['role'] ?? 'manager');
+                if (!preg_match('/^[A-Za-z0-9_.-]{3,120}$/', $username)) throw new RuntimeException('Логин: от 3 до 120 символов, только латиница, цифры, точка, дефис и подчёркивание.');
+                if (!in_array($role, ['admin', 'manager'], true)) throw new RuntimeException('Недопустимая роль.');
+                if (strlen($password) < 10) throw new RuntimeException('Пароль должен содержать минимум 10 символов.');
+                $check = $pdo->prepare('SELECT COUNT(*) FROM admin_users WHERE username = :username');
+                $check->execute(['username' => $username]);
+                if ((int)$check->fetchColumn() > 0) throw new RuntimeException('Пользователь с таким логином уже существует.');
+                $permissions = $role === 'manager' ? normalize_admin_permissions((array)($_POST['permissions'] ?? []), $catalog) : null;
+                $stmt = $pdo->prepare('INSERT INTO admin_users (username, password_hash, role, is_active, permissions_json) VALUES (:username, :password_hash, :role, 1, :permissions_json)');
+                $stmt->execute(['username' => $username, 'password_hash' => password_hash($password, PASSWORD_DEFAULT), 'role' => $role, 'permissions_json' => $permissions ? json_encode($permissions, JSON_UNESCAPED_UNICODE) : null]);
+                dev_log_security('ADMIN_USER_CREATED', ['username' => $username, 'role' => $role, 'by' => admin_current_user()['id'] ?? null]);
+                $message = 'Пользователь создан.';
+            } elseif ($action === 'toggle') {
+                $userId = (int)($_POST['user_id'] ?? 0);
+                $current = admin_current_user();
+                if ($userId <= 0 || $userId === (int)($current['id'] ?? 0)) throw new RuntimeException('Нельзя отключить текущего пользователя.');
+                $stmt = $pdo->prepare('UPDATE admin_users SET is_active = CASE WHEN is_active = 1 THEN 0 ELSE 1 END WHERE id = :id');
+                $stmt->execute(['id' => $userId]);
+                $message = 'Статус пользователя изменён.';
+            } elseif ($action === 'role') {
+                $userId = (int)($_POST['user_id'] ?? 0);
+                $role = (string)($_POST['role'] ?? 'manager');
+                $current = admin_current_user();
+                if ($userId <= 0 || $userId === (int)($current['id'] ?? 0)) throw new RuntimeException('Нельзя менять роль текущего пользователя здесь.');
+                if (!in_array($role, ['admin', 'manager'], true)) throw new RuntimeException('Недопустимая роль.');
+                $permissions = $role === 'manager' ? normalize_admin_permissions((array)($_POST['permissions'] ?? []), $catalog) : null;
+                $stmt = $pdo->prepare('UPDATE admin_users SET role = :role, permissions_json = :permissions_json WHERE id = :id');
+                $stmt->execute(['role' => $role, 'permissions_json' => $permissions ? json_encode($permissions, JSON_UNESCAPED_UNICODE) : null, 'id' => $userId]);
+                $message = 'Роль и разрешения пользователя изменены.';
+            } elseif ($action === 'permissions') {
+                $userId = (int)($_POST['user_id'] ?? 0);
+                $stmt = $pdo->prepare("SELECT role FROM admin_users WHERE id = :id");
+                $stmt->execute(['id' => $userId]);
+                if ($stmt->fetchColumn() !== 'manager') throw new RuntimeException('Права настраиваются только для менеджера.');
+                $permissions = normalize_admin_permissions((array)($_POST['permissions'] ?? []), $catalog);
+                $stmt = $pdo->prepare('UPDATE admin_users SET permissions_json = :permissions_json WHERE id = :id');
+                $stmt->execute(['permissions_json' => json_encode($permissions, JSON_UNESCAPED_UNICODE), 'id' => $userId]);
+                $message = 'Права менеджера сохранены.';
+            } else {
+                throw new RuntimeException('Неизвестное действие.');
+            }
+        } catch (Throwable $e) {
+            $error = $e instanceof RuntimeException ? $e->getMessage() : 'Операция не выполнена.';
+            if (!$e instanceof RuntimeException) dev_log_runtime('Admin users action failed: ' . $e->getMessage());
+        }
+    }
+}
+$users = $pdo->query('SELECT id, username, role, is_active, permissions_json, created_at, last_login FROM admin_users ORDER BY username')->fetchAll() ?: [];
+$csrf = csrf_token();
+function render_permission_matrix(array $catalog, array $permissions, string $prefix = 'permissions'): void
+{
+    echo '<div class="permission-matrix">';
+    foreach ($catalog as $section => $definition) {
+        echo '<fieldset class="permission-section"><legend><label><input class="permission-section-toggle" type="checkbox" data-section="' . admin_h($prefix . '_' . $section) . '" aria-label="Включить раздел ' . admin_h($definition['label']) . '"> ' . admin_h($definition['label']) . '</label></legend><div class="permission-actions">';
+        foreach ($definition['actions'] as $action => $label) {
+            $checked = !empty($permissions[$section][$action]);
+            echo '<label><input class="permission-action" data-section="' . admin_h($prefix . '_' . $section) . '" type="checkbox" name="' . admin_h($prefix . '[' . $section . '][' . $action . ']') . '" value="1"' . ($checked ? ' checked' : '') . '> ' . admin_h($label) . '</label>';
+        }
+        echo '</div></fieldset>';
+    }
+    echo '</div>';
+}
+$emptyPermissions = [];
+?>
+<!doctype html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Пользователи админки</title><link rel="stylesheet" href="/css/bootstrap.min.css"><link rel="stylesheet" href="/css/admin.css">
+<style>
+.user-form,.user-list{background:#fff;border:1px solid #ddd;border-radius:6px;padding:18px;margin-bottom:20px}.user-form .form-group{margin-bottom:14px}.status-active{color:#287a3d}.status-off{color:#9a2b2b}.role-form{display:flex;gap:6px;align-items:center}.role-form select{width:auto}.table td{vertical-align:middle}.permission-editor{margin-top:15px;padding:15px;background:#f7f8fa;border:1px solid #ddd;border-radius:5px}.permission-matrix{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:12px}.permission-section{min-width:0;padding:12px;border:1px solid #ddd;border-radius:5px;background:#fff}.permission-section legend{width:auto;margin:0;padding:0 5px;border:0;font-size:14px;font-weight:600}.permission-actions{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:7px;font-size:13px}.permission-actions label{font-weight:400;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;cursor:pointer}.permission-actions input,.permission-section-toggle{margin-right:4px;accent-color:#1769aa}.permission-section-toggle{width:16px;height:16px;vertical-align:middle}.permission-section legend label{display:inline-flex;align-items:center;gap:5px;cursor:pointer}.permission-title{font-size:16px;font-weight:600;color:#243447;margin-bottom:4px}.permission-editor{box-shadow:0 1px 3px rgba(0,0,0,.05)}.permission-editor summary{cursor:pointer;color:#1769aa;font-weight:600;outline:none}.permission-editor summary:hover{color:#0b4f82}.manager-permissions{display:none}.manager-permissions.is-visible{display:block}.permission-help{margin:0 0 12px;color:#666;font-size:13px}@media(max-width:767px){.permission-matrix{grid-template-columns:1fr}}
+</style></head>
+<body><div class="container"><?php require __DIR__ . '/_nav.php'; ?><h3>Пользователи админки</h3>
+<?php if ($message): ?><div class="alert alert-success"><?= admin_h($message) ?></div><?php endif; ?><?php if ($error): ?><div class="alert alert-danger"><?= admin_h($error) ?></div><?php endif; ?>
+<div class="user-form"><h4>Создать пользователя</h4><p class="text-muted">У менеджера доступ к разделам и действиям выключен по умолчанию. Включите нужные разрешения ниже.</p><form method="post" id="createUserForm"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="create"><div class="form-group"><label>Логин</label><input class="form-control" name="username" required maxlength="120" autocomplete="username"></div><div class="form-group"><label>Временный пароль</label><input class="form-control" type="password" name="password" required minlength="10" autocomplete="new-password"><small class="text-muted">Минимум 10 символов.</small></div><div class="form-group"><label>Роль</label><select class="form-control role-select" name="role"><option value="manager">Менеджер</option><option value="admin">Администратор</option></select></div><div class="manager-permissions is-visible" data-role-panel><div class="permission-title">Матрица разрешений</div><p class="permission-help">Чекбокс в заголовке раздела включает или выключает весь раздел. Ниже можно настроить отдельные действия. Удаление по умолчанию отключено.</p><?php render_permission_matrix($catalog, $emptyPermissions); ?></div><button class="btn btn-primary" type="submit">Создать пользователя</button></form></div>
+<div class="user-list"><h4>Список пользователей</h4><div class="table-responsive"><table class="table table-bordered table-striped"><thead><tr><th>Логин</th><th>Роль</th><th>Статус</th><th>Создан</th><th>Последний вход</th><th>Действия</th></tr></thead><tbody><?php foreach ($users as $user): $userPermissions = admin_permissions_decode((string)$user['permissions_json']); ?><tr><td><strong><?= admin_h((string)$user['username']) ?></strong><?php if ($user['role'] === 'manager'): ?><details class="permission-editor"><summary>Редактировать права менеджера</summary><form method="post"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="permissions"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>"><div class="permission-title">Матрица разрешений</div><p class="permission-help">Чекбокс в заголовке раздела включает или выключает весь раздел. Отдельные действия можно настроить независимо.</p><?php render_permission_matrix($catalog, $userPermissions); ?><button class="btn btn-primary btn-sm" type="submit">Сохранить права</button></form></details><?php endif; ?></td><td><?php if ((int)$user['id'] === (int)(admin_current_user()['id'] ?? 0)): ?><?= admin_h(admin_role_label((string)$user['role'])) ?><?php else: ?><form class="role-form" method="post"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="role"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>"><select class="form-control input-sm" name="role"><option value="manager"<?= $user['role'] === 'manager' ? ' selected' : '' ?>>Менеджер</option><option value="admin"<?= $user['role'] === 'admin' ? ' selected' : '' ?>>Администратор</option></select><button class="btn btn-default btn-sm" type="submit">Сохранить</button></form><?php endif; ?></td><td class="<?= (int)$user['is_active'] === 1 ? 'status-active' : 'status-off' ?>"><?= (int)$user['is_active'] === 1 ? 'Активен' : 'Отключён' ?></td><td><?= admin_h((string)$user['created_at']) ?></td><td><?= admin_h((string)($user['last_login'] ?: '—')) ?></td><td><?php if ((int)$user['id'] !== (int)(admin_current_user()['id'] ?? 0)): ?><form method="post" onsubmit="return confirm('Изменить статус пользователя?');"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="toggle"><input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>"><button class="btn btn-<?= (int)$user['is_active'] === 1 ? 'warning' : 'success' ?> btn-sm" type="submit"><?= (int)$user['is_active'] === 1 ? 'Отключить' : 'Включить' ?></button></form><?php else: ?><span class="text-muted">Текущий пользователь</span><?php endif; ?></td></tr><?php endforeach; ?></tbody></table></div></div>
+</div><script>
+(function(){
+ function sync(panel){ if(!panel) return; panel.querySelectorAll('.permission-section-toggle').forEach(function(master){ var boxes=panel.querySelectorAll('.permission-action[data-section="'+master.dataset.section+'"]'); master.checked=boxes.length>0 && Array.from(boxes).every(function(box){return box.checked;}); master.indeterminate=Array.from(boxes).some(function(box){return box.checked;}) && !master.checked; }); }
+ document.querySelectorAll('.manager-permissions').forEach(function(panel){ panel.querySelectorAll('.permission-section-toggle').forEach(function(master){ master.addEventListener('change',function(){ panel.querySelectorAll('.permission-action[data-section="'+master.dataset.section+'"]') .forEach(function(box){box.checked=master.checked;}); }); }); panel.querySelectorAll('.permission-action').forEach(function(box){box.addEventListener('change',function(){sync(panel);});}); sync(panel); });
+ document.querySelectorAll('.role-select').forEach(function(select){ select.addEventListener('change',function(){ var panel=select.form.querySelector('[data-role-panel]'); if(panel) panel.classList.toggle('is-visible',select.value==='manager'); }); });
+})();
+</script></body></html>

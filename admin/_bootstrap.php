@@ -12,42 +12,31 @@ function admin_is_auth(): bool
     return !empty($_SESSION[$key]['id']);
 }
 
-function admin_current_role(): string
-{
-    $user = admin_current_user();
-    return ($user !== null && ($user['role'] ?? 'admin') === 'manager') ? 'manager' : 'admin';
-}
-
-function admin_is_manager(): bool
-{
-    return admin_is_auth() && admin_current_role() === 'manager';
-}
-
-function admin_is_admin(): bool
-{
-    return admin_is_auth() && admin_current_role() === 'admin';
-}
-
 function admin_require_auth(): void
 {
     if (!admin_is_auth()) {
         header('Location: /admin/login.php');
         exit;
     }
-
-    if (admin_is_manager()) {
-        $script = str_replace('\\', '/', (string)($_SERVER['SCRIPT_NAME'] ?? ''));
-        $managerRoutes = [
-            '/admin/products.php',
-            '/admin/blog.php',
-            '/admin/blog-upload.php',
-            '/admin/api/reorder_products.php',
-            '/admin/logout.php',
-        ];
-        if (!in_array($script, $managerRoutes, true)) {
-            http_response_code(403);
-            exit('Недостаточно прав для доступа к этому разделу.');
+    try {
+        $sessionUser = admin_current_user();
+        $pdo = dev_db_connection();
+        $stmt = $pdo->prepare('SELECT username, role, permissions_json, is_active FROM admin_users WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => (int)$sessionUser['id']]);
+        $dbUser = $stmt->fetch();
+        if (!$dbUser || (int)$dbUser['is_active'] !== 1) {
+            admin_session_clear();
+            header('Location: /admin/login.php');
+            exit;
         }
+        $cfg = dev_app_config();
+        $key = $cfg['admin_session_key'] ?? 'dev_admin_auth';
+        $_SESSION[$key]['username'] = (string)$dbUser['username'];
+        $_SESSION[$key]['role'] = in_array($dbUser['role'], ['admin', 'manager'], true) ? $dbUser['role'] : 'admin';
+        $_SESSION[$key]['permissions'] = (string)($dbUser['permissions_json'] ?? '');
+    } catch (Throwable $e) {
+        // Не блокируем админку при кратковременной недоступности БД.
+        dev_log_runtime('Admin session refresh failed: ' . $e->getMessage());
     }
 }
 
@@ -56,9 +45,10 @@ function admin_session_set(array $user): void
     $cfg = dev_app_config();
     $key = $cfg['admin_session_key'] ?? 'dev_admin_auth';
     $_SESSION[$key] = [
-        'id' => $user['id'],
-        'username' => $user['username'],
-        'role' => ($user['role'] ?? 'admin') === 'manager' ? 'manager' : 'admin',
+        'id' => (int)$user['id'],
+        'username' => (string)$user['username'],
+        'role' => in_array(($user['role'] ?? 'admin'), ['admin', 'manager'], true) ? $user['role'] : 'admin',
+        'permissions' => (string)($user['permissions_json'] ?? ''),
     ];
 }
 
@@ -74,6 +64,79 @@ function admin_current_user(): ?array
     $cfg = dev_app_config();
     $key = $cfg['admin_session_key'] ?? 'dev_admin_auth';
     return $_SESSION[$key] ?? null;
+}
+
+function admin_is_admin(): bool
+{
+    $user = admin_current_user();
+    return !empty($user['id']) && (($user['role'] ?? 'admin') === 'admin');
+}
+
+function admin_permission_catalog(): array
+{
+    return [
+        'orders' => ['label' => 'Заказы', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Редактирование', 'delete' => 'Удаление']],
+        'products' => ['label' => 'Товары', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Редактирование', 'delete' => 'Удаление']],
+        'customers' => ['label' => 'Клиенты', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Редактирование', 'delete' => 'Удаление']],
+        'reviews' => ['label' => 'Отзывы', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Модерация и редактирование', 'delete' => 'Удаление']],
+        'blog' => ['label' => 'Блог', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Редактирование', 'delete' => 'Удаление']],
+        'coupons' => ['label' => 'Купоны', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Редактирование', 'delete' => 'Удаление']],
+        'stats' => ['label' => 'Статистика', 'actions' => ['view' => 'Просмотр']],
+    ];
+}
+
+function admin_permissions_decode(?string $json): array
+{
+    $decoded = json_decode((string)$json, true);
+    return is_array($decoded) ? $decoded : [];
+}
+
+function admin_can(string $section, string $action = 'view'): bool
+{
+    $user = admin_current_user();
+    if (!$user || ($user['role'] ?? 'admin') === 'admin') return true;
+    $permissions = admin_permissions_decode($user['permissions'] ?? '');
+    return !empty($permissions[$section][$action]);
+}
+
+function admin_default_path(): string
+{
+    if (admin_is_admin()) return '/admin/';
+
+    $available = [
+        'orders' => '/admin/',
+        'products' => '/admin/products.php',
+        'customers' => '/admin/customers.php',
+        'reviews' => '/admin/reviews.php',
+        'blog' => '/admin/blog.php',
+        'coupons' => '/admin/coupons.php',
+        'stats' => '/admin/stats.php',
+    ];
+    foreach ($available as $section => $path) {
+        if (admin_can($section, 'view')) return $path;
+    }
+
+    return '/admin/no-access.php';
+}
+
+function admin_require_permission(string $section, string $action = 'view'): void
+{
+    admin_require_auth();
+    if (!admin_can($section, $action)) {
+        http_response_code(403);
+        echo '<!doctype html><meta charset="utf-8"><title>Доступ запрещён</title><p style="font:16px sans-serif;margin:40px">У вашей роли нет разрешения на это действие.</p>';
+        exit;
+    }
+}
+
+function admin_require_admin(): void
+{
+    admin_require_auth();
+    if (!admin_is_admin()) {
+        http_response_code(403);
+        echo '<!doctype html><meta charset="utf-8"><title>Доступ запрещён</title><p style="font:16px sans-serif;margin:40px">Недостаточно прав для просмотра этой страницы.</p>';
+        exit;
+    }
 }
 
 function admin_h(string $value): string

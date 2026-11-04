@@ -3,22 +3,46 @@
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
 admin_require_auth();
-
 header('Content-Type: application/json; charset=utf-8');
 
 if (!validate_csrf_token()) {
 	http_response_code(403);
 	echo json_encode([
 		'uploaded' => false,
+		'error' => ['message' => 'Security check failed. Reload the page and try again.'],
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+
+// Один endpoint используется двумя редакторами, но права не смешиваются:
+// блог передаёт context=blog, товары — context=product.
+$uploadContext = (string)($_GET['context'] ?? 'blog');
+$permissionSection = match ($uploadContext) {
+	'blog' => 'blog',
+	'product' => 'products',
+	default => null,
+};
+if ($permissionSection === null) {
+	http_response_code(400);
+	echo json_encode([
+		'uploaded' => false,
+		'error' => ['message' => 'Неизвестный контекст загрузки изображения'],
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+if (!admin_can($permissionSection, 'create') && !admin_can($permissionSection, 'edit')) {
+	http_response_code(403);
+	echo json_encode([
+		'uploaded' => false,
 		'error' => [
-			'message' => 'Security check failed. Reload the page and try again.'
+			'message' => 'Недостаточно прав для загрузки изображения'
 		]
 	], JSON_UNESCAPED_UNICODE);
 	exit;
 }
 
 // CKEditor 5 ожидает поле 'uploaded' вместо успешного статуса
-if (!isset($_FILES['upload']) || empty($_FILES['upload']['tmp_name'])) {
+if (!isset($_FILES['upload'])) {
 	http_response_code(400);
 	echo json_encode([
 		'uploaded' => false,
@@ -30,6 +54,29 @@ if (!isset($_FILES['upload']) || empty($_FILES['upload']['tmp_name'])) {
 }
 
 $file = $_FILES['upload'];
+$uploadError = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
+if ($uploadError !== UPLOAD_ERR_OK) {
+	$message = match ($uploadError) {
+		UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Изображение превышает лимит размера загрузки на сервере.',
+		UPLOAD_ERR_PARTIAL => 'Изображение загрузилось не полностью. Повторите попытку.',
+		UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE => 'Сервер не может сохранить загруженное изображение.',
+		default => 'Не удалось загрузить изображение. Повторите попытку.',
+	};
+	http_response_code(400);
+	echo json_encode([
+		'uploaded' => false,
+		'error' => ['message' => $message],
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+if (empty($file['tmp_name'])) {
+	http_response_code(400);
+	echo json_encode([
+		'uploaded' => false,
+		'error' => ['message' => 'Не удалось получить файл изображения.'],
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
 
 // Валидация размера
 if ((int)$file['size'] > 10 * 1024 * 1024) {
@@ -131,16 +178,15 @@ if (!move_uploaded_file($file['tmp_name'], $target)) {
 @chmod($target, 0644);
 convert_to_webp($target);
 
-// Если convert_to_webp создал .webp версию — возвращаем её URL
+// Если convert_to_webp создал .webp версию — возвращаем её URL.
+// SimpleUploadAdapter CKEditor 5 использует поле `default`.
 $webpTarget = preg_replace('/\.[^.]+$/', '.webp', $target);
 $returnFileName = (file_exists($webpTarget) && $webpTarget !== $target)
 	? preg_replace('/\.[^.]+$/', '.webp', $fileName)
 	: $fileName;
-
 dev_log_security('BLOG_UPLOAD_SUCCESS', ['filename' => $returnFileName]);
-
-// CKEditor 5 ожидает поле 'url' вместо 'location'
 echo json_encode([
 	'uploaded' => true,
-	'url' => '/data/uploads/blog/' . $returnFileName
+	'default' => '/data/uploads/blog/' . $returnFileName,
+	'url' => '/data/uploads/blog/' . $returnFileName,
 ]);

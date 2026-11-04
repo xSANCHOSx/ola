@@ -4,10 +4,12 @@
     function CkeditorUploadAdapter(loader) {
         this.loader = loader;
         this.xhr = null;
+        this.uploadUrl = '/admin/blog-upload.php?context=blog';
     }
 
     CkeditorUploadAdapter.prototype.upload = function () {
         var loader = this.loader;
+        var uploadUrl = this.uploadUrl;
         var xhr = this.xhr = new XMLHttpRequest();
         var formData = new FormData();
         var csrfInput = document.querySelector('input[name="csrf_token"]');
@@ -19,7 +21,7 @@
         return loader.file.then(function (file) {
             formData.append('upload', file, file.name);
             return new Promise(function (resolve, reject) {
-                xhr.open('POST', '/admin/blog-upload.php', true);
+                xhr.open('POST', uploadUrl, true);
                 xhr.responseType = 'json';
 
                 xhr.addEventListener('error', function () {
@@ -68,8 +70,11 @@
     };
 
     window.CkeditorUploadAdapterPlugin = function (editor) {
+        var uploadUrl = editor.config.get('ckUploadUrl') || '/admin/blog-upload.php?context=blog';
         editor.plugins.get('FileRepository').createUploadAdapter = function (loader) {
-            return new CkeditorUploadAdapter(loader);
+            var adapter = new CkeditorUploadAdapter(loader);
+            adapter.uploadUrl = uploadUrl;
+            return adapter;
         };
     };
 }(window));

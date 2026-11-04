@@ -6,7 +6,7 @@ declare(strict_types=1);
 // Показывает: топ-10 купонов, общая сумма скидок, тренды по дням
 
 require __DIR__ . '/_bootstrap.php';
-admin_require_auth();
+admin_require_permission('coupons', 'view');
 
 $pdo = dev_db_connection();
 

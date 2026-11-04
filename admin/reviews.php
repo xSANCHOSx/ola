@@ -2,12 +2,13 @@
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
 require_once __DIR__ . '/../lib/reviews.php';
-admin_require_auth();
+admin_require_permission('reviews', 'view');
 
 $pdo = dev_db_connection();
 
 // Редактирование отзыва из модального окна: запрос идёт через fetch, ответ в JSON.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_POST['action'] ?? '') === 'edit') {
+    admin_require_permission('reviews', 'edit');
     $respond = static function (array $payload, int $status = 200): void {
         http_response_code($status);
         header('Content-Type: application/json; charset=utf-8');
@@ -65,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             if ($reviewId <= 0) throw new RuntimeException('Отзыв не найден.');
             if (in_array($action, ['approve', 'reject'], true)) {
+                if (!admin_can('reviews', 'edit')) throw new RuntimeException('Недостаточно прав.');
                 $newStatus = $action === 'approve' ? 'approved' : 'rejected';
                 $stmt = $pdo->prepare(
                     'UPDATE product_reviews SET status = :status, moderated_at = NOW(), moderated_by = :admin_id WHERE id = :id'
@@ -73,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 dev_log_security('PRODUCT_REVIEW_MODERATED', ['review_id' => $reviewId, 'status' => $newStatus, 'admin_id' => $admin['id'] ?? null]);
                 $message = $newStatus === 'approved' ? 'Отзыв опубликован.' : 'Отзыв отклонён.';
             } elseif ($action === 'delete') {
+                if (!admin_can('reviews', 'delete')) throw new RuntimeException('Недостаточно прав.');
                 $stmt = $pdo->prepare('DELETE FROM product_reviews WHERE id = :id');
                 $stmt->execute(['id' => $reviewId]);
                 dev_log_security('PRODUCT_REVIEW_DELETED', ['review_id' => $reviewId, 'admin_id' => $admin['id'] ?? null]);

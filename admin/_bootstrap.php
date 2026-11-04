@@ -82,7 +82,6 @@ function admin_permission_catalog(): array
         'blog' => ['label' => 'Блог', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Редактирование', 'delete' => 'Удаление']],
         'coupons' => ['label' => 'Купоны', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Редактирование', 'delete' => 'Удаление']],
         'stats' => ['label' => 'Статистика', 'actions' => ['view' => 'Просмотр']],
-        'exports' => ['label' => 'Экспорт', 'actions' => ['view' => 'Просмотр']],
     ];
 }
 

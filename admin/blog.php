@@ -554,6 +554,7 @@ if (isset($_GET['msg'])) {
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
 	<link rel="stylesheet" href="/css/admin.css">
 	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+	<script src="/admin/ckeditor-upload-adapter.js"></script>
 	<style>
 		/* ── Alerts ── */
 		.alert {
@@ -1488,6 +1489,8 @@ if (isset($_GET['msg'])) {
 						],
 						shouldNotGroupWhenFull: true
 					},
+					extraPlugins: [CkeditorUploadAdapterPlugin],
+					ckUploadUrl: '/admin/blog-upload.php?context=blog',
 					heading: {
 						options: [{
 								model: 'paragraph',
@@ -1519,9 +1522,6 @@ if (isset($_GET['msg'])) {
 							'imageTextAlternative', '|',
 							'imageStyle:full', 'imageStyle:side'
 						]
-					},
-					simpleUpload: {
-						uploadUrl: '/admin/blog-upload.php?context=blog'
 					},
 					table: {
 						contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']

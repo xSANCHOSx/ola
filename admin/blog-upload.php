@@ -5,6 +5,15 @@ require __DIR__ . '/_bootstrap.php';
 admin_require_auth();
 header('Content-Type: application/json; charset=utf-8');
 
+if (!validate_csrf_token()) {
+	http_response_code(403);
+	echo json_encode([
+		'uploaded' => false,
+		'error' => ['message' => 'Security check failed. Reload the page and try again.'],
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+
 // Один endpoint используется двумя редакторами, но права не смешиваются:
 // блог передаёт context=blog, товары — context=product.
 $uploadContext = (string)($_GET['context'] ?? 'blog');

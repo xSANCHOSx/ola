@@ -319,6 +319,7 @@ $gallery = [];
 	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 	<!-- CKEditor 5 — визуальный редактор, используемый в блоге -->
 	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+	<script src="/admin/ckeditor-upload-adapter.js"></script>
 	<style>
 		.product-form-wrapper {
 			display: flex;
@@ -1177,6 +1178,8 @@ $gallery = [];
 						],
 						shouldNotGroupWhenFull: true
 					},
+					extraPlugins: [CkeditorUploadAdapterPlugin],
+					ckUploadUrl: '/admin/blog-upload.php?context=product',
 					heading: {
 						options: [{
 								model: 'paragraph',
@@ -1208,9 +1211,6 @@ $gallery = [];
 							'imageTextAlternative', '|',
 							'imageStyle:full', 'imageStyle:side'
 						]
-					},
-					simpleUpload: {
-						uploadUrl: '/admin/blog-upload.php?context=product'
 					},
 					table: {
 						contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']

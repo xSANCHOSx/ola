@@ -1207,9 +1207,17 @@ $gallery = [];
 						]
 					},
 					image: {
+						styles: [
+							'full',
+							'side',
+							'alignLeft',
+							'alignCenter',
+							'alignRight'
+						],
 						toolbar: [
 							'imageTextAlternative', '|',
-							'imageStyle:full', 'imageStyle:side'
+							'imageStyle:full', 'imageStyle:side', '|',
+							'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight'
 						]
 					},
 					table: {

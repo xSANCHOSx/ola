@@ -153,16 +153,15 @@ if (!move_uploaded_file($file['tmp_name'], $target)) {
 @chmod($target, 0644);
 convert_to_webp($target);
 
-// Если convert_to_webp создал .webp версию — возвращаем её URL
+// Если convert_to_webp создал .webp версию — возвращаем её URL.
+// SimpleUploadAdapter CKEditor 5 использует поле `default`.
 $webpTarget = preg_replace('/\.[^.]+$/', '.webp', $target);
 $returnFileName = (file_exists($webpTarget) && $webpTarget !== $target)
 	? preg_replace('/\.[^.]+$/', '.webp', $fileName)
 	: $fileName;
-
 dev_log_security('BLOG_UPLOAD_SUCCESS', ['filename' => $returnFileName]);
-
-// CKEditor 5 ожидает поле 'url' вместо 'location'
 echo json_encode([
 	'uploaded' => true,
-	'url' => '/data/uploads/blog/' . $returnFileName
+	'default' => '/data/uploads/blog/' . $returnFileName,
+	'url' => '/data/uploads/blog/' . $returnFileName,
 ]);

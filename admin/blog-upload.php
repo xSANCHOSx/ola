@@ -17,7 +17,7 @@ if (!admin_can('blog', 'edit') && !admin_can('products', 'edit')) {
 header('Content-Type: application/json; charset=utf-8');
 
 // CKEditor 5 ожидает поле 'uploaded' вместо успешного статуса
-if (!isset($_FILES['upload']) || empty($_FILES['upload']['tmp_name'])) {
+if (!isset($_FILES['upload'])) {
 	http_response_code(400);
 	echo json_encode([
 		'uploaded' => false,
@@ -29,6 +29,29 @@ if (!isset($_FILES['upload']) || empty($_FILES['upload']['tmp_name'])) {
 }
 
 $file = $_FILES['upload'];
+$uploadError = (int)($file['error'] ?? UPLOAD_ERR_NO_FILE);
+if ($uploadError !== UPLOAD_ERR_OK) {
+	$message = match ($uploadError) {
+		UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Изображение превышает лимит размера загрузки на сервере.',
+		UPLOAD_ERR_PARTIAL => 'Изображение загрузилось не полностью. Повторите попытку.',
+		UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE => 'Сервер не может сохранить загруженное изображение.',
+		default => 'Не удалось загрузить изображение. Повторите попытку.',
+	};
+	http_response_code(400);
+	echo json_encode([
+		'uploaded' => false,
+		'error' => ['message' => $message],
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+if (empty($file['tmp_name'])) {
+	http_response_code(400);
+	echo json_encode([
+		'uploaded' => false,
+		'error' => ['message' => 'Не удалось получить файл изображения.'],
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
 
 // Валидация размера
 if ((int)$file['size'] > 10 * 1024 * 1024) {

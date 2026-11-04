@@ -2,7 +2,11 @@
 
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
-admin_require_permission('orders', 'view');
+admin_require_auth();
+if (!admin_can('orders', 'view')) {
+    header('Location: ' . admin_default_path());
+    exit;
+}
 $pdo = dev_db_connection();
 $orders = [];
 if ($pdo instanceof PDO) {

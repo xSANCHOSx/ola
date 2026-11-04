@@ -1511,7 +1511,13 @@ if (isset($_GET['msg'])) {
 								view: 'h3',
 								title: 'Заголовок 3',
 								class: 'ck-heading_heading3'
-							},
+							}
+						]
+					},
+					image: {
+						toolbar: [
+							'imageTextAlternative', '|',
+							'imageStyle:full', 'imageStyle:side'
 						]
 					},
 					simpleUpload: {

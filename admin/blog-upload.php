@@ -3,8 +3,25 @@
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
 admin_require_auth();
-if (!admin_can('blog', 'edit') && !admin_can('products', 'edit')) {
-	header('Content-Type: application/json; charset=utf-8');
+header('Content-Type: application/json; charset=utf-8');
+
+// Один endpoint используется двумя редакторами, но права не смешиваются:
+// блог передаёт context=blog, товары — context=product.
+$uploadContext = (string)($_GET['context'] ?? 'blog');
+$permissionSection = match ($uploadContext) {
+	'blog' => 'blog',
+	'product' => 'products',
+	default => null,
+};
+if ($permissionSection === null) {
+	http_response_code(400);
+	echo json_encode([
+		'uploaded' => false,
+		'error' => ['message' => 'Неизвестный контекст загрузки изображения'],
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+if (!admin_can($permissionSection, 'create') && !admin_can($permissionSection, 'edit')) {
 	http_response_code(403);
 	echo json_encode([
 		'uploaded' => false,
@@ -14,7 +31,6 @@ if (!admin_can('blog', 'edit') && !admin_can('products', 'edit')) {
 	], JSON_UNESCAPED_UNICODE);
 	exit;
 }
-header('Content-Type: application/json; charset=utf-8');
 
 // CKEditor 5 ожидает поле 'uploaded' вместо успешного статуса
 if (!isset($_FILES['upload'])) {

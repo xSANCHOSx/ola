@@ -28,16 +28,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Ошибка подключения к БД. Обратитесь к администратору.';
         }
         if ($pdo instanceof PDO) {
-            $stmt = $pdo->prepare('SELECT id, username, password_hash, role, is_active, permissions_json FROM admin_users WHERE username = :username LIMIT 1');
-            $stmt->execute(['username' => $username]);
-            $user = $stmt->fetch();
+            $user = null;
+            try {
+                $stmt = $pdo->prepare('SELECT id, username, password_hash, role, is_active, permissions_json FROM admin_users WHERE username = :username LIMIT 1');
+                $stmt->execute(['username' => $username]);
+                $user = $stmt->fetch() ?: null;
+            } catch (Throwable $e) {
+                // Allow the existing administrator to log in during a staged deployment
+                // before the role and permission migrations have been applied.
+                dev_log_runtime('Admin login schema is not fully migrated: ' . $e->getMessage());
+                try {
+                    $stmt = $pdo->prepare('SELECT id, username, password_hash, role, is_active FROM admin_users WHERE username = :username LIMIT 1');
+                    $stmt->execute(['username' => $username]);
+                    $user = $stmt->fetch() ?: null;
+                    if ($user) $user['permissions_json'] = null;
+                } catch (Throwable $e) {
+                    try {
+                        $stmt = $pdo->prepare('SELECT id, username, password_hash FROM admin_users WHERE username = :username LIMIT 1');
+                        $stmt->execute(['username' => $username]);
+                        $user = $stmt->fetch() ?: null;
+                        if ($user) {
+                            // Legacy users retain administrator access until migrations run.
+                            $user['role'] = 'admin';
+                            $user['is_active'] = 1;
+                            $user['permissions_json'] = null;
+                        }
+                    } catch (Throwable $legacyError) {
+                        dev_log_runtime('Admin login query failed: ' . $legacyError->getMessage());
+                        $user = null;
+                    }
+                }
+            }
 
             $dummyHash   = '$2y$10$dummyHashToPreventTimingAttackXXXXXXXXXXXXXX';
             $hashToCheck = $user ? $user['password_hash'] : $dummyHash;
             if ($user && (int)$user['is_active'] === 1 && password_verify($password, $hashToCheck)) {
                 session_regenerate_id(true);
                 admin_session_set($user);
-                $pdo->prepare('UPDATE admin_users SET last_login = NOW() WHERE id = :id')->execute(['id' => $user['id']]);
+                $pdo->prepare('UPDATE admin_users SET last_login = CURRENT_TIMESTAMP WHERE id = :id')->execute(['id' => $user['id']]);
                 header('Location: /admin/');
                 exit;
             }

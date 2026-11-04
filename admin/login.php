@@ -4,7 +4,7 @@ declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
 
 if (admin_is_auth()) {
-    header('Location: /admin/');
+    header('Location: ' . admin_default_path());
     exit;
 }
 
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 session_regenerate_id(true);
                 admin_session_set($user);
                 $pdo->prepare('UPDATE admin_users SET last_login = CURRENT_TIMESTAMP WHERE id = :id')->execute(['id' => $user['id']]);
-                header('Location: /admin/');
+                header('Location: ' . admin_default_path());
                 exit;
             }
         }

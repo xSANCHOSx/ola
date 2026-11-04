@@ -99,6 +99,26 @@ function admin_can(string $section, string $action = 'view'): bool
     return !empty($permissions[$section][$action]);
 }
 
+function admin_default_path(): string
+{
+    if (admin_is_admin()) return '/admin/';
+
+    $available = [
+        'orders' => '/admin/',
+        'products' => '/admin/products.php',
+        'customers' => '/admin/customers.php',
+        'reviews' => '/admin/reviews.php',
+        'blog' => '/admin/blog.php',
+        'coupons' => '/admin/coupons.php',
+        'stats' => '/admin/stats.php',
+    ];
+    foreach ($available as $section => $path) {
+        if (admin_can($section, 'view')) return $path;
+    }
+
+    return '/admin/no-access.php';
+}
+
 function admin_require_permission(string $section, string $action = 'view'): void
 {
     admin_require_auth();

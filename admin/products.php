@@ -620,6 +620,23 @@ $gallery = [];
 			color: white;
 		}
 
+		.product-availability {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 28px;
+			height: 28px;
+			border-radius: 4px;
+			color: #fff;
+			font-size: 18px;
+			font-weight: 700;
+			line-height: 1;
+			vertical-align: middle;
+		}
+		.product-availability--active { background: #28a745; }
+		.product-availability--preorder { background: #f39c12; }
+		.product-availability--disabled { background: #dc3545; }
+
 		/* ── Кольорові рядки таблиці за статусом ── */
 		tr.table-row-active {
 			background-color: #d4edda !important;
@@ -904,9 +921,9 @@ $gallery = [];
 											<option value="">Выбрать</option>
 											<option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активный
 											</option>
-											<option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Предзаказ
-											</option>
-											<option value="disabled" <?= ($edit['status'] ?? '') === 'disabled' ? 'selected' : '' ?>>Выключен
+								<option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Под заказ
+								</option>
+								<option value="disabled" <?= ($edit['status'] ?? '') === 'disabled' ? 'selected' : '' ?>>Нет в наличии
 											</option>
 										</select>
 									</div>
@@ -1109,7 +1126,7 @@ $gallery = [];
 							<th>Объем</th>
 							<th>Цена</th>
 							<th>Slug</th>
-							<th>SEO</th>
+							<th>Наличие</th>
 							<th>Статус</th>
 							<th></th>
 						</tr>
@@ -1125,9 +1142,14 @@ $gallery = [];
 							};
 							$statusLabel = match ($st) {
 								'active'   => 'Активный',
-								'preorder' => 'Предзаказ',
-								'disabled' => 'Выключен',
+								'preorder' => 'Под заказ',
+								'disabled' => 'Нет в наличии',
 								default    => '—',
+							};
+							$availability = match ($st) {
+								'active'   => ['class' => 'active', 'icon' => '✓', 'label' => 'Активный'],
+								'preorder' => ['class' => 'preorder', 'icon' => '◷', 'label' => 'Под заказ'],
+								default    => ['class' => 'disabled', 'icon' => '×', 'label' => 'Нет в наличии'],
 							};
 						?>
 							<tr data-id="<?= (int)$p['id'] ?>" class="<?= $rowClass ?>">
@@ -1139,7 +1161,12 @@ $gallery = [];
 								<td><?= admin_h((string)$p['volume']) ?></td>
 								<td><?= admin_h((string)$p['price']) ?></td>
 								<td><?= admin_h((string)$p['link']) ?></td>
-								<td><?= admin_h((string)$p['seo_title']) ?></td>
+								<td>
+									<span class="product-availability product-availability--<?= admin_h($availability['class']) ?>"
+										title="<?= admin_h($availability['label']) ?>"
+										role="img"
+										aria-label="<?= admin_h($availability['label']) ?>"><?= admin_h($availability['icon']) ?></span>
+								</td>
 								<td><?= admin_h($statusLabel) ?></td>
 								<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
 							</tr>

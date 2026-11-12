@@ -91,7 +91,7 @@ function delete_product_image_file(string $image): void
 function products_return_query(): string
 {
 	$params = [];
-	foreach (['q', 'status_filter', 'page', 'per_page'] as $key) {
+	foreach (['q', 'status_filter', 'page'] as $key) {
 		if (isset($_GET[$key]) && $_GET[$key] !== '') {
 			$params[$key] = (string)$_GET[$key];
 		}
@@ -459,8 +459,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 $search = trim((string)($_GET['q'] ?? ''));
 $statusFilter = (string)($_GET['status_filter'] ?? '');
 if (!in_array($statusFilter, ['active', 'preorder', 'disabled'], true)) $statusFilter = '';
-$perPage = (int)($_GET['per_page'] ?? 25);
-if (!in_array($perPage, [25, 50, 100], true)) $perPage = 25;
+$perPage = 50;
 $page = max(1, (int)($_GET['page'] ?? 1));
 $products = [];
 $totalProducts = 0;
@@ -469,8 +468,12 @@ if ($pdo instanceof PDO) {
 	$where = [];
 	$params = [];
 	if ($search !== '') {
-		$where[] = '(name LIKE :search OR external_id LIKE :search OR cat_number LIKE :search OR link LIKE :search)';
-		$params['search'] = '%' . $search . '%';
+		$where[] = '(name LIKE :search_name OR external_id LIKE :search_external_id OR cat_number LIKE :search_cat_number OR link LIKE :search_link)';
+		$searchValue = '%' . $search . '%';
+		$params['search_name'] = $searchValue;
+		$params['search_external_id'] = $searchValue;
+		$params['search_cat_number'] = $searchValue;
+		$params['search_link'] = $searchValue;
 	}
 	if ($statusFilter !== '') {
 		$where[] = 'status = :status_filter';
@@ -1369,9 +1372,6 @@ $gallery = [];
 						<option value="preorder" <?= $statusFilter === 'preorder' ? 'selected' : '' ?>>Под заказ</option>
 						<option value="disabled" <?= $statusFilter === 'disabled' ? 'selected' : '' ?>>Нет в наличии</option>
 					</select>
-					<select name="per_page" class="form-control input-sm" aria-label="Товаров на странице">
-						<?php foreach ([25, 50, 100] as $pageSize): ?><option value="<?= $pageSize ?>" <?= $perPage === $pageSize ? 'selected' : '' ?>><?= $pageSize ?> / стр.</option><?php endforeach; ?>
-					</select>
 					<button class="btn btn-primary btn-sm" type="submit">Найти</button>
 					<a class="btn btn-light btn-sm" href="/admin/products.php">Сбросить</a>
 				</form>
@@ -1399,16 +1399,17 @@ $gallery = [];
 						<option value="price">Цена</option>
 						<option value="in_stock">Флаг «В наличии»</option>
 					</select>
-					<select name="bulk_value" id="bulkValue" class="form-control input-sm" required>
+						<select name="bulk_value" id="bulkValue" class="form-control input-sm" required>
 						<option value="">Выберите значение</option>
 						<option value="active" data-bulk-fields="status">Активный</option>
 						<option value="preorder" data-bulk-fields="status">Под заказ</option>
 						<option value="disabled" data-bulk-fields="status">Нет в наличии</option>
 						<option value="1" data-bulk-fields="in_stock">В наличии (1)</option>
 						<option value="0" data-bulk-fields="in_stock">Нет в наличии (0)</option>
-					</select>
-					<input type="number" name="bulk_value" id="bulkPrice" class="form-control input-sm" min="0" step="0.01" placeholder="Новая цена" disabled>
-					<button class="btn btn-warning btn-sm" type="submit">Применить к выбранным</button>
+						</select>
+						<input type="number" name="bulk_value" id="bulkPrice" class="form-control input-sm" min="0" step="0.01" placeholder="Новая цена" disabled>
+						<button class="btn btn-warning btn-sm" type="submit">Применить к выбранным</button>
+						<?php if (admin_can('products', 'create')): ?><button class="btn btn-default btn-sm" type="button" id="duplicateSelectedProduct">Быстрые действия: копировать выбранный</button><?php endif; ?>
 				</div>
 
 			<div class="table-responsive">
@@ -1444,11 +1445,9 @@ $gallery = [];
 								'disabled' => 'Нет в наличии',
 								default    => '—',
 							};
-							$availability = match ($st) {
-								'active'   => ['class' => 'active', 'icon' => '✓', 'label' => 'Активный'],
-								'preorder' => ['class' => 'preorder', 'icon' => '◷', 'label' => 'Под заказ'],
-								default    => ['class' => 'disabled', 'icon' => '×', 'label' => 'Нет в наличии'],
-							};
+							$availability = !empty($p['in_stock'])
+								? ['class' => 'active', 'icon' => '✓', 'label' => 'В наличии']
+								: ['class' => 'disabled', 'icon' => '×', 'label' => 'Нет в наличии'];
 						?>
 							<tr data-id="<?= (int)$p['id'] ?>" data-availability="<?= admin_h($availability['class']) ?>" class="<?= $rowClass ?>">
 								<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
@@ -1469,10 +1468,7 @@ $gallery = [];
 								<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" aria-label="Статус">
 									<?php foreach (['active' => 'Активный', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии'] as $statusValue => $statusText): ?><option value="<?= $statusValue ?>" <?= $st === $statusValue ? 'selected' : '' ?>><?= $statusText ?></option><?php endforeach; ?>
 								</select></td>
-								<td>
-									<a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a>
-									<?php if (admin_can('products', 'create')): ?><button type="button" class="btn btn-link btn-sm duplicate-product" data-product-id="<?= (int)$p['id'] ?>">Копия</button><?php endif; ?>
-								</td>
+								<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -1480,7 +1476,7 @@ $gallery = [];
 			</div><!-- /.table-responsive -->
 				<div class="products-pagination-summary">Показано <?= count($products) ?> из <?= $totalProducts ?> товаров</div>
 				<?php if ($totalPages > 1): ?><nav class="products-pagination" aria-label="Страницы товаров"><ul class="pagination">
-					<?php for ($paginationPage = 1; $paginationPage <= $totalPages; $paginationPage++): ?><li class="page-item <?= $paginationPage === $page ? 'active' : '' ?>"><a class="page-link" href="?<?= admin_h(http_build_query(array_filter(['q' => $search, 'status_filter' => $statusFilter, 'per_page' => $perPage, 'page' => $paginationPage], static fn($value) => $value !== ''))) ?>"><?= $paginationPage ?></a></li><?php endfor; ?>
+					<?php for ($paginationPage = 1; $paginationPage <= $totalPages; $paginationPage++): ?><li class="page-item <?= $paginationPage === $page ? 'active' : '' ?>"><a class="page-link" href="?<?= admin_h(http_build_query(array_filter(['q' => $search, 'status_filter' => $statusFilter, 'page' => $paginationPage], static fn($value) => $value !== ''))) ?>"><?= $paginationPage ?></a></li><?php endfor; ?>
 				</ul></nav><?php endif; ?>
 			</form>
 		</div>
@@ -1766,14 +1762,20 @@ $gallery = [];
 							.finally(function() { field.disabled = false; });
 					});
 				});
-				document.querySelectorAll('.duplicate-product').forEach(function(button) {
-					button.addEventListener('click', function() {
-						if (!bulkForm) return;
-						bulkForm.querySelector('[name="action"]').value = 'duplicate_product';
-						bulkForm.querySelector('[name="product_id"]').value = button.dataset.productId;
-						bulkForm.submit();
-					});
-				});
+					var duplicateSelected = document.getElementById('duplicateSelectedProduct');
+					if (duplicateSelected) {
+						duplicateSelected.addEventListener('click', function() {
+							if (!bulkForm) return;
+							var selected = bulkForm.querySelectorAll('.product-select:checked');
+							if (selected.length !== 1) {
+								window.alert('Для копирования выберите ровно один товар.');
+								return;
+							}
+							bulkForm.querySelector('[name="action"]').value = 'duplicate_product';
+							bulkForm.querySelector('[name="product_id"]').value = selected[0].value;
+							bulkForm.submit();
+						});
+					}
 				var nameInput = document.getElementById('name');
 				var slugInput = document.getElementById('link');
 				var previewLink = document.getElementById('productPreviewLink');

@@ -88,6 +88,182 @@ function delete_product_image_file(string $image): void
 	}
 }
 
+function products_return_query(): string
+{
+	$params = [];
+	foreach (['q', 'status_filter', 'page', 'per_page'] as $key) {
+		if (isset($_GET[$key]) && $_GET[$key] !== '') {
+			$params[$key] = (string)$_GET[$key];
+		}
+	}
+	return $params ? '?' . http_build_query($params) : '';
+}
+
+function product_slug_base(string $value): string
+{
+	$value = trim($value);
+	$translit = ['а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'e','ж'=>'zh','з'=>'z','и'=>'i','й'=>'j','к'=>'k','л'=>'l','м'=>'m','н'=>'n','о'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u','ф'=>'f','х'=>'h','ц'=>'c','ч'=>'ch','ш'=>'sh','щ'=>'sch','ъ'=>'','ы'=>'y','ь'=>'','э'=>'e','ю'=>'yu','я'=>'ya'];
+	$value = strtr(function_exists('mb_strtolower') ? mb_strtolower($value) : strtolower($value), $translit);
+	$value = preg_replace('/[^a-zA-Z0-9\-\s_]/u', '', $value) ?? '';
+	$value = preg_replace('/[\s_]+/', '-', $value) ?? '';
+	return trim(strtolower($value), '-');
+}
+
+function unique_product_link(PDO $pdo, string $candidate, ?int $excludeId = null): string
+{
+	$base = product_slug_base($candidate) ?: 'product';
+	$link = $base;
+	$suffix = 2;
+	while (true) {
+		$sql = 'SELECT id FROM products WHERE link = :link';
+		$params = ['link' => $link];
+		if ($excludeId !== null) {
+			$sql .= ' AND id <> :exclude_id';
+			$params['exclude_id'] = $excludeId;
+		}
+		$stmt = $pdo->prepare($sql . ' LIMIT 1');
+		$stmt->execute($params);
+		if (!$stmt->fetchColumn()) return $link;
+		$link = $base . '-' . $suffix++;
+	}
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['action'] ?? '') === 'quick_update') {
+	admin_require_permission('products', 'edit');
+	header('Content-Type: application/json; charset=utf-8');
+	if (!validate_csrf_token()) {
+		http_response_code(403);
+		echo json_encode(['success' => false, 'message' => 'CSRF check failed'], JSON_UNESCAPED_UNICODE);
+		exit;
+	}
+	$id = (int)($_POST['product_id'] ?? 0);
+	$field = (string)($_POST['field'] ?? '');
+	$value = trim((string)($_POST['value'] ?? ''));
+	$allowed = ['price', 'old_price', 'status', 'in_stock'];
+	if ($id <= 0 || !in_array($field, $allowed, true)) {
+		http_response_code(400);
+		echo json_encode(['success' => false, 'message' => 'Некорректные параметры'], JSON_UNESCAPED_UNICODE);
+		exit;
+	}
+	if ($field === 'status' && !in_array($value, ['active', 'preorder', 'disabled'], true)) {
+		http_response_code(422);
+		echo json_encode(['success' => false, 'message' => 'Некорректный статус'], JSON_UNESCAPED_UNICODE);
+		exit;
+	}
+	if (in_array($field, ['price', 'old_price'], true) && (!is_numeric($value) || (float)$value < 0)) {
+		http_response_code(422);
+		echo json_encode(['success' => false, 'message' => 'Некорректная цена'], JSON_UNESCAPED_UNICODE);
+		exit;
+	}
+	if ($field === 'in_stock') $value = $value === '1' ? '1' : '0';
+	$stmt = $pdo->prepare("UPDATE products SET `$field` = :value WHERE id = :id");
+	$stmt->execute(['value' => $field === 'in_stock' ? (int)$value : $value, 'id' => $id]);
+	try {
+		generate_product_feeds($pdo, dirname(__DIR__));
+	} catch (Throwable $e) {
+		dev_log_runtime('Quick product update feed regeneration failed: ' . $e->getMessage());
+	}
+	echo json_encode(['success' => true], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['action'] ?? '') === 'bulk_update') {
+	admin_require_permission('products', 'edit');
+	if (!validate_csrf_token()) {
+		product_flash('Сессия формы устарела. Обновите страницу.', 'danger');
+		header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+		exit;
+	}
+	$ids = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['product_ids'] ?? [])))));
+	$field = (string)($_POST['bulk_field'] ?? '');
+	$value = trim((string)($_POST['bulk_value'] ?? ''));
+		if (!$ids || !in_array($field, ['status', 'price', 'in_stock'], true)) {
+			product_flash('Выберите товары и поле для изменения.', 'warning');
+			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+			exit;
+		}
+		if ($field === 'status' && !in_array($value, ['active', 'preorder', 'disabled'], true)) {
+			product_flash('Выбран некорректный статус.', 'danger');
+			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+			exit;
+		}
+		if ($field === 'in_stock' && !in_array($value, ['0', '1', 'active', 'disabled'], true)) {
+			product_flash('Выберите корректное значение наличия.', 'danger');
+			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+			exit;
+		}
+		if ($field === 'price' && (!is_numeric($value) || (float)$value < 0)) {
+			product_flash('Укажите корректную цену.', 'danger');
+			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+			exit;
+		}
+		$placeholders = implode(',', array_fill(0, count($ids), '?'));
+		$normalizedValue = $field === 'in_stock'
+			? (int)in_array($value, ['1', 'active'], true)
+			: $value;
+		$params = array_merge([$normalizedValue], $ids);
+	$stmt = $pdo->prepare("UPDATE products SET `$field` = ? WHERE id IN ($placeholders)");
+	$stmt->execute($params);
+	try {
+		generate_product_feeds($pdo, dirname(__DIR__));
+	} catch (Throwable $e) {
+		dev_log_runtime('Bulk product update feed regeneration failed: ' . $e->getMessage());
+	}
+	product_flash('Изменено товаров: ' . count($ids));
+	header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+	exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['action'] ?? '') === 'duplicate_product') {
+	admin_require_permission('products', 'create');
+	if (!validate_csrf_token()) {
+		product_flash('Сессия формы устарела. Обновите страницу.', 'danger');
+		header('Location: /admin/products.php');
+		exit;
+	}
+	$id = (int)($_POST['product_id'] ?? 0);
+	$stmt = $pdo->prepare('SELECT * FROM products WHERE id = :id LIMIT 1');
+	$stmt->execute(['id' => $id]);
+	$source = $stmt->fetch();
+	if (!$source) {
+		product_flash('Товар для копирования не найден.', 'danger');
+		header('Location: /admin/products.php');
+		exit;
+	}
+	$externalId = (string)$source['external_id'] . '-copy';
+	$counter = 2;
+	while (true) {
+		$check = $pdo->prepare('SELECT id FROM products WHERE external_id = :external_id LIMIT 1');
+		$check->execute(['external_id' => $externalId]);
+		if (!$check->fetchColumn()) break;
+		$externalId = (string)$source['external_id'] . '-copy-' . $counter++;
+	}
+	$link = unique_product_link($pdo, (string)$source['link'] . '-copy');
+	$copy = $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:status,:seo_title,:seo_description,:volume,:sort_order)');
+	$copy->execute([
+		'external_id' => $externalId,
+		'cat_number' => $source['cat_number'],
+		'name' => (string)$source['name'] . ' (копия)',
+		'old_price' => $source['old_price'],
+		'price' => $source['price'],
+		'image' => $source['image'],
+		'link' => $link,
+		'short_desc' => $source['short_desc'],
+		'desc' => $source['desc'],
+		'full_desc' => $source['full_desc'],
+		'in_stock' => $source['in_stock'],
+		'status' => 'disabled',
+		'seo_title' => $source['seo_title'],
+		'seo_description' => $source['seo_description'],
+		'volume' => $source['volume'],
+		'sort_order' => ((int)$source['sort_order']) + 1,
+	]);
+	$newId = (int)$pdo->lastInsertId();
+	product_flash('Товар скопирован. Проверьте данные перед публикацией.');
+	header('Location: /admin/products.php?edit=' . $newId);
+	exit;
+}
+
 	if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_gallery_image') {
 		admin_require_permission('products', 'delete');
 	header('Content-Type: application/json; charset=utf-8');
@@ -163,12 +339,18 @@ function delete_product_image_file(string $image): void
 		'status' => trim((string)($_POST['status'] ?? '')),
 		'seo_title' => trim((string)($_POST['seo_title'] ?? '')),
 		'seo_description' => trim((string)($_POST['seo_description'] ?? '')),
-		'volume' => trim((string)($_POST['volume'] ?? '')),
-		'sort_order' => (int)($_POST['sort_order'] ?? 0),
+			'volume' => trim((string)($_POST['volume'] ?? '')),
+			'sort_order' => (int)($_POST['sort_order'] ?? 0),
 
-	];
+		];
+		if ($data['external_id'] === '' || $data['name'] === '' || $data['price'] < 0) {
+			product_flash('Заполните обязательные поля товара и укажите корректную цену.', 'danger');
+			header('Location: /admin/products.php' . ($id > 0 ? '?edit=' . $id : '?edit=0'));
+			exit;
+		}
+		$data['link'] = unique_product_link($pdo, $data['link'] !== '' ? $data['link'] : $data['name'], $id > 0 ? $id : null);
 
-	$uploadErrors = [];
+		$uploadErrors = [];
 	$createdFiles = [];
 	$oldImage = '';
 	$mainImage = save_product_image_upload($_FILES['image_upload'] ?? [], $uploadErrors, $createdFiles);
@@ -269,23 +451,47 @@ function delete_product_image_file(string $image): void
 	exit;
 }
 
-// ИСПРАВЛЕНО: ORDER BY sort_order ASC вместо id DESC,
-// чтобы админ видел товары в том же порядке что и посетитель сайта.
-// id ASC — тайбрейкер для товаров с одинаковым sort_order (новые = 0).
+// Серверная выборка списка: поиск и фильтры применяются до пагинации.
+$search = trim((string)($_GET['q'] ?? ''));
+$statusFilter = (string)($_GET['status_filter'] ?? '');
+if (!in_array($statusFilter, ['active', 'preorder', 'disabled'], true)) $statusFilter = '';
+$perPage = (int)($_GET['per_page'] ?? 25);
+if (!in_array($perPage, [25, 50, 100], true)) $perPage = 25;
+$page = max(1, (int)($_GET['page'] ?? 1));
 $products = [];
+$totalProducts = 0;
+$totalPages = 1;
 if ($pdo instanceof PDO) {
-	$products = $pdo->query('SELECT * FROM products ORDER BY sort_order ASC, id ASC LIMIT 500')->fetchAll();
+	$where = [];
+	$params = [];
+	if ($search !== '') {
+		$where[] = '(name LIKE :search OR external_id LIKE :search OR cat_number LIKE :search OR link LIKE :search)';
+		$params['search'] = '%' . $search . '%';
+	}
+	if ($statusFilter !== '') {
+		$where[] = 'status = :status_filter';
+		$params['status_filter'] = $statusFilter;
+	}
+	$whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+	$countStmt = $pdo->prepare('SELECT COUNT(*) FROM products' . $whereSql);
+	$countStmt->execute($params);
+	$totalProducts = (int)$countStmt->fetchColumn();
+	$totalPages = max(1, (int)ceil($totalProducts / $perPage));
+	$page = min($page, $totalPages);
+	$offset = ($page - 1) * $perPage;
+	$listStmt = $pdo->prepare('SELECT * FROM products' . $whereSql . ' ORDER BY sort_order ASC, id ASC LIMIT ' . $perPage . ' OFFSET ' . $offset);
+	$listStmt->execute($params);
+	$products = $listStmt->fetchAll();
 }
 $edit = null;
 $gallery = [];
 	if (isset($_GET['edit'])) {
 	$editId = (int)$_GET['edit'];
 	$edit = []; // пустой массив = новый товар; null = список без формы
-	foreach ($products as $p) {
-		if ((int)$p['id'] === $editId) {
-			$edit = $p;
-			break;
-		}
+	if ($editId > 0 && $pdo instanceof PDO) {
+		$editStmt = $pdo->prepare('SELECT * FROM products WHERE id = :id LIMIT 1');
+		$editStmt->execute(['id' => $editId]);
+		$edit = $editStmt->fetch() ?: [];
 	}
 	if (!empty($edit['id']) && $pdo instanceof PDO) {
 		if (!product_images_table_exists($pdo)) {
@@ -620,6 +826,23 @@ $gallery = [];
 			color: white;
 		}
 
+		.product-availability {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 28px;
+			height: 28px;
+			border-radius: 4px;
+			color: #fff;
+			font-size: 18px;
+			font-weight: 700;
+			line-height: 1;
+			vertical-align: middle;
+		}
+		.product-availability--active { background: #28a745; }
+		.product-availability--preorder { background: #f39c12; }
+		.product-availability--disabled { background: #dc3545; }
+
 		/* ── Кольорові рядки таблиці за статусом ── */
 		tr.table-row-active {
 			background-color: #d4edda !important;
@@ -792,6 +1015,49 @@ $gallery = [];
 			color: #333;
 		}
 
+		.products-availability-filter {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-left: auto;
+		}
+
+		.products-availability-filter label {
+			margin: 0;
+			font-weight: 600;
+			color: #555;
+		}
+
+		.products-availability-filter select {
+			min-width: 170px;
+		}
+
+		.products-availability-filter input {
+			min-width: 210px;
+		}
+
+		.products-bulk-actions {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			flex-wrap: wrap;
+			margin-bottom: 12px;
+		}
+
+		.products-bulk-actions select {
+			width: auto;
+			min-width: 170px;
+		}
+
+		.products-pagination-summary {
+			margin-top: 12px;
+			color: #777;
+		}
+
+		.products-pagination {
+			margin-top: 8px;
+		}
+
 		/* ================================== */
 
 		@media (max-width: 1200px) {
@@ -904,9 +1170,9 @@ $gallery = [];
 											<option value="">Выбрать</option>
 											<option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активный
 											</option>
-											<option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Предзаказ
-											</option>
-											<option value="disabled" <?= ($edit['status'] ?? '') === 'disabled' ? 'selected' : '' ?>>Выключен
+								<option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Под заказ
+								</option>
+								<option value="disabled" <?= ($edit['status'] ?? '') === 'disabled' ? 'selected' : '' ?>>Нет в наличии
 											</option>
 										</select>
 									</div>
@@ -963,9 +1229,10 @@ $gallery = [];
 							<!-- URL и Объем -->
 							<div class="form-row-inline two-cols">
 								<div class="form-group-wrapper">
-									<label for="link">URL (Slug) *</label>
-									<input type="text" class="form-control" id="link" name="link"
-										value="<?= admin_h((string)($edit['link'] ?? '')) ?>" required>
+										<label for="link">URL (Slug) *</label>
+										<input type="text" class="form-control" id="link" name="link"
+											value="<?= admin_h((string)($edit['link'] ?? '')) ?>" required>
+										<small><a id="productPreviewLink" href="/<?= admin_h((string)($edit['link'] ?? '')) ?>" target="_blank" rel="noopener">Открыть предпросмотр товара</a></small>
 								</div>
 								<div class="form-group-wrapper">
 									<label for="volume">Объем</label>
@@ -1061,13 +1328,15 @@ $gallery = [];
 						<div class="form-row-inline two-cols">
 							<div class="form-group-wrapper">
 								<label for="seo_title">SEO Title</label>
-								<input type="text" class="form-control" id="seo_title" name="seo_title"
-									value="<?= admin_h((string)($edit['seo_title'] ?? '')) ?>">
+									<input type="text" class="form-control" id="seo_title" name="seo_title"
+										value="<?= admin_h((string)($edit['seo_title'] ?? '')) ?>">
+									<small class="text-muted"><span id="seoTitleCount">0</span>/60 символов</small>
 							</div>
 							<div class="form-group-wrapper">
 								<label for="seo_description">SEO Description</label>
-								<textarea class="form-control" id="seo_description" rows="2"
-									name="seo_description"><?= admin_h((string)($edit['seo_description'] ?? '')) ?></textarea>
+									<textarea class="form-control" id="seo_description" rows="2"
+										name="seo_description"><?= admin_h((string)($edit['seo_description'] ?? '')) ?></textarea>
+									<small class="text-muted"><span id="seoDescriptionCount">0</span>/160 символов</small>
 							</div>
 						</div>
 					</div>
@@ -1087,6 +1356,23 @@ $gallery = [];
 			<!-- Заголовок + кнопка сохранения порядка -->
 			<div class="products-list-header">
 				<h4>📦 Список товаров</h4>
+				<form method="get" class="products-availability-filter">
+					<label for="productSearch">Поиск:</label>
+					<input id="productSearch" name="q" class="form-control input-sm" value="<?= admin_h($search) ?>" placeholder="Название, ID, код, slug">
+					<select name="status_filter" class="form-control input-sm" aria-label="Фильтр наличия">
+						<option value="">Все товары</option>
+						<option value="active" <?= $statusFilter === 'active' ? 'selected' : '' ?>>Активный</option>
+						<option value="preorder" <?= $statusFilter === 'preorder' ? 'selected' : '' ?>>Под заказ</option>
+						<option value="disabled" <?= $statusFilter === 'disabled' ? 'selected' : '' ?>>Нет в наличии</option>
+					</select>
+					<select name="per_page" class="form-control input-sm" aria-label="Товаров на странице">
+						<?php foreach ([25, 50, 100] as $pageSize): ?><option value="<?= $pageSize ?>" <?= $perPage === $pageSize ? 'selected' : '' ?>><?= $pageSize ?> / стр.</option><?php endforeach; ?>
+					</select>
+					<button class="btn btn-primary btn-sm" type="submit">Найти</button>
+					<a class="btn btn-light btn-sm" href="/admin/products.php">Сбросить</a>
+				</form>
+				<a class="btn btn-outline-secondary btn-sm" href="/admin/products-export.php<?= admin_h(products_return_query()) ?>">CSV экспорт</a>
+				<a class="btn btn-outline-secondary btn-sm" href="/admin/products-import.php">CSV импорт</a>
 				<button id="saveOrderBtn" class="btn btn-warning btn-sm">
 					💾 Сохранить порядок
 				</button>
@@ -1096,12 +1382,37 @@ $gallery = [];
 			<p style="color:#888;font-size:0.88rem;margin-bottom:10px;">
 				⠿ Перетащите строку за иконку чтобы изменить порядок. После перестановки нажмите «Сохранить порядок».
 			</p>
+			<form method="post" id="bulkProductForm">
+				<input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+				<input type="hidden" name="action" value="bulk_update">
+				<input type="hidden" name="product_id" id="duplicateProductId" value="">
+				<input type="hidden" name="return_query" value="<?= admin_h(products_return_query()) ?>">
+				<div class="products-bulk-actions">
+					<strong>Массовое изменение:</strong>
+					<select name="bulk_field" id="bulkField" class="form-control input-sm" required>
+						<option value="">Выберите поле</option>
+						<option value="status">Статус наличия</option>
+						<option value="price">Цена</option>
+						<option value="in_stock">Флаг «В наличии»</option>
+					</select>
+					<select name="bulk_value" id="bulkValue" class="form-control input-sm" required>
+						<option value="">Выберите значение</option>
+						<option value="active" data-bulk-fields="status">Активный</option>
+						<option value="preorder" data-bulk-fields="status">Под заказ</option>
+						<option value="disabled" data-bulk-fields="status">Нет в наличии</option>
+						<option value="1" data-bulk-fields="in_stock">В наличии (1)</option>
+						<option value="0" data-bulk-fields="in_stock">Нет в наличии (0)</option>
+					</select>
+					<input type="number" name="bulk_value" id="bulkPrice" class="form-control input-sm" min="0" step="0.01" placeholder="Новая цена" disabled>
+					<button class="btn btn-warning btn-sm" type="submit">Применить к выбранным</button>
+				</div>
 
 			<div class="table-responsive">
 				<table class="table table-bordered table-striped">
 					<thead>
 						<tr>
 							<th style="width:36px" title="Перетащите для сортировки">⠿</th>
+							<th style="width:32px"><input type="checkbox" id="selectAllProducts" aria-label="Выбрать все товары"></th>
 							<th style="width:40px; display:none;">#</th>
 							<th>ID AMO</th>
 							<th>Код каталога</th>
@@ -1109,7 +1420,7 @@ $gallery = [];
 							<th>Объем</th>
 							<th>Цена</th>
 							<th>Slug</th>
-							<th>SEO</th>
+							<th>Наличие</th>
 							<th>Статус</th>
 							<th></th>
 						</tr>
@@ -1125,28 +1436,49 @@ $gallery = [];
 							};
 							$statusLabel = match ($st) {
 								'active'   => 'Активный',
-								'preorder' => 'Предзаказ',
-								'disabled' => 'Выключен',
+								'preorder' => 'Под заказ',
+								'disabled' => 'Нет в наличии',
 								default    => '—',
 							};
+							$availability = match ($st) {
+								'active'   => ['class' => 'active', 'icon' => '✓', 'label' => 'Активный'],
+								'preorder' => ['class' => 'preorder', 'icon' => '◷', 'label' => 'Под заказ'],
+								default    => ['class' => 'disabled', 'icon' => '×', 'label' => 'Нет в наличии'],
+							};
 						?>
-							<tr data-id="<?= (int)$p['id'] ?>" class="<?= $rowClass ?>">
+							<tr data-id="<?= (int)$p['id'] ?>" data-availability="<?= admin_h($availability['class']) ?>" class="<?= $rowClass ?>">
 								<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
+								<td><input type="checkbox" name="product_ids[]" value="<?= (int)$p['id'] ?>" class="product-select" aria-label="Выбрать товар"></td>
 								<td class="row-position" style=" display:none;"><?= $i + 1 ?></td>
 								<td><?= admin_h((string)$p['external_id']) ?></td>
 								<td><?= admin_h((string)$p['cat_number']) ?></td>
 								<td><?= admin_h((string)$p['name']) ?></td>
 								<td><?= admin_h((string)$p['volume']) ?></td>
-								<td><?= admin_h((string)$p['price']) ?></td>
+								<td><input class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="price" type="number" step="0.01" min="0" value="<?= admin_h((string)$p['price']) ?>" aria-label="Цена"></td>
 								<td><?= admin_h((string)$p['link']) ?></td>
-								<td><?= admin_h((string)$p['seo_title']) ?></td>
-								<td><?= admin_h($statusLabel) ?></td>
-								<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
+								<td>
+									<span class="product-availability product-availability--<?= admin_h($availability['class']) ?>"
+										title="<?= admin_h($availability['label']) ?>"
+										role="img"
+										aria-label="<?= admin_h($availability['label']) ?>"><?= admin_h($availability['icon']) ?></span>
+								</td>
+								<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" aria-label="Статус">
+									<?php foreach (['active' => 'Активный', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии'] as $statusValue => $statusText): ?><option value="<?= $statusValue ?>" <?= $st === $statusValue ? 'selected' : '' ?>><?= $statusText ?></option><?php endforeach; ?>
+								</select></td>
+								<td>
+									<a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a>
+									<?php if (admin_can('products', 'create')): ?><button type="button" class="btn btn-link btn-sm duplicate-product" data-product-id="<?= (int)$p['id'] ?>">Копия</button><?php endif; ?>
+								</td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
 				</table>
 			</div><!-- /.table-responsive -->
+				<div class="products-pagination-summary">Показано <?= count($products) ?> из <?= $totalProducts ?> товаров</div>
+				<?php if ($totalPages > 1): ?><nav class="products-pagination" aria-label="Страницы товаров"><ul class="pagination">
+					<?php for ($paginationPage = 1; $paginationPage <= $totalPages; $paginationPage++): ?><li class="page-item <?= $paginationPage === $page ? 'active' : '' ?>"><a class="page-link" href="?<?= admin_h(http_build_query(array_filter(['q' => $search, 'status_filter' => $statusFilter, 'per_page' => $perPage, 'page' => $paginationPage], static fn($value) => $value !== ''))) ?>"><?= $paginationPage ?></a></li><?php endfor; ?>
+				</ul></nav><?php endif; ?>
+			</form>
 		</div>
 
 		<!-- Кнопка добавления нового товара -->
@@ -1375,7 +1707,7 @@ $gallery = [];
 		})();
 
 		// Переключение статуса наличия
-		function toggleInStock() {
+			function toggleInStock() {
 			var toggle = document.getElementById('inStockToggle');
 			var input = document.getElementById('in_stock');
 			if (toggle.classList.contains('active')) {
@@ -1387,13 +1719,74 @@ $gallery = [];
 				toggle.textContent = '✓ В наличии';
 				input.value = '1';
 			}
-		}
+			}
 
-		/* ====== Drag-and-drop сортировка товаров ====== */
-		(function() {
-			var tbody = document.getElementById('sortable-products');
-			var saveBtn = document.getElementById('saveOrderBtn');
-			var status = document.getElementById('saveStatus');
+			(function() {
+				var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+				var bulkForm = document.getElementById('bulkProductForm');
+				var selectAll = document.getElementById('selectAllProducts');
+					if (selectAll && bulkForm) {
+						selectAll.addEventListener('change', function() {
+							bulkForm.querySelectorAll('.product-select').forEach(function(input) { input.checked = selectAll.checked; });
+						});
+					}
+					var bulkField = document.getElementById('bulkField');
+					var bulkValue = document.getElementById('bulkValue');
+					var bulkPrice = document.getElementById('bulkPrice');
+					function syncBulkValues() {
+						if (!bulkField || !bulkValue || !bulkPrice) return;
+						var field = bulkField.value;
+						bulkValue.value = '';
+						var isPrice = field === 'price';
+						bulkValue.hidden = isPrice;
+						bulkValue.disabled = isPrice;
+						bulkPrice.hidden = !isPrice;
+						bulkPrice.disabled = !isPrice;
+						bulkValue.querySelectorAll('option[data-bulk-fields]').forEach(function(option) {
+							option.hidden = isPrice || option.dataset.bulkFields.indexOf(field) === -1;
+						});
+					}
+					if (bulkField) {
+						bulkField.addEventListener('change', syncBulkValues);
+						syncBulkValues();
+					}
+					document.querySelectorAll('.product-inline-field').forEach(function(field) {
+					field.addEventListener('change', function() {
+						var oldValue = field.getAttribute('data-original') || field.value;
+						field.disabled = true;
+						var body = new URLSearchParams({action: 'quick_update', csrf_token: csrf, product_id: field.dataset.productId, field: field.dataset.quickField, value: field.value});
+						fetch('/admin/products.php', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}, body: body.toString()})
+							.then(function(response) { return response.json().then(function(data) { if (!response.ok || !data.success) throw new Error(data.message || 'Ошибка сохранения'); }); })
+							.then(function() { field.setAttribute('data-original', field.value); field.classList.add('is-valid'); setTimeout(function() { field.classList.remove('is-valid'); }, 1000); })
+							.catch(function(error) { field.value = oldValue; window.alert(error.message); })
+							.finally(function() { field.disabled = false; });
+					});
+				});
+				document.querySelectorAll('.duplicate-product').forEach(function(button) {
+					button.addEventListener('click', function() {
+						if (!bulkForm) return;
+						bulkForm.querySelector('[name="action"]').value = 'duplicate_product';
+						bulkForm.querySelector('[name="product_id"]').value = button.dataset.productId;
+						bulkForm.submit();
+					});
+				});
+				var nameInput = document.getElementById('name');
+				var slugInput = document.getElementById('link');
+				var previewLink = document.getElementById('productPreviewLink');
+				var slugTouched = !!(slugInput && slugInput.value);
+				function slugify(value) { return value.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, '-').replace(/^-+|-+$/g, ''); }
+				if (slugInput) slugInput.addEventListener('input', function() { slugTouched = true; if (previewLink) previewLink.href = '/' + slugInput.value.replace(/^\/+/, ''); });
+				if (nameInput && slugInput) nameInput.addEventListener('input', function() { if (!slugTouched) { slugInput.value = slugify(nameInput.value); if (previewLink) previewLink.href = '/' + slugInput.value; } });
+				[['seo_title', 'seoTitleCount'], ['seo_description', 'seoDescriptionCount']].forEach(function(pair) { var input = document.getElementById(pair[0]); var counter = document.getElementById(pair[1]); if (input && counter) { var update = function() { counter.textContent = input.value.length; }; input.addEventListener('input', update); update(); } });
+			})();
+
+			/* ====== Drag-and-drop сортировка товаров ====== */
+			(function() {
+				var tbody = document.getElementById('sortable-products');
+				var saveBtn = document.getElementById('saveOrderBtn');
+				var status = document.getElementById('saveStatus');
+				var availabilityFilter = document.getElementById('availabilityFilter');
+				var availabilityFilterCount = document.getElementById('availabilityFilterCount');
 
 			// Если таблица отсутствует (страница редактирования) — ничего не делаем
 			if (!tbody || !saveBtn) return;
@@ -1405,7 +1798,7 @@ $gallery = [];
 			var hasChanges = false;
 
 			// Инициализация SortableJS
-			Sortable.create(tbody, {
+				var sortable = Sortable.create(tbody, {
 				handle: '.drag-handle', // тащить только за иконку
 				animation: 150, // плавная анимация перемещения
 				ghostClass: 'sortable-ghost',
@@ -1423,10 +1816,31 @@ $gallery = [];
 					saveBtn.classList.add('has-changes');
 					status.textContent = '';
 					status.className = '';
-				}
-			});
+					}
+				});
 
-			// Сохранение нового порядка через AJAX
+				function applyAvailabilityFilter() {
+					var selected = availabilityFilter ? availabilityFilter.value : 'all';
+					var visibleCount = 0;
+
+					tbody.querySelectorAll('tr[data-availability]').forEach(function(tr) {
+						var isVisible = selected === 'all' || tr.getAttribute('data-availability') === selected;
+						tr.style.display = isVisible ? '' : 'none';
+						if (isVisible) visibleCount += 1;
+					});
+
+					if (availabilityFilterCount) {
+						availabilityFilterCount.textContent = 'Показано: ' + visibleCount;
+					}
+					sortable.option('disabled', selected !== 'all');
+				}
+
+				if (availabilityFilter) {
+					availabilityFilter.addEventListener('change', applyAvailabilityFilter);
+					applyAvailabilityFilter();
+				}
+
+				// Сохранение нового порядка через AJAX
 			saveBtn.addEventListener('click', function() {
 				var rows = tbody.querySelectorAll('tr[data-id]');
 				var order = [];

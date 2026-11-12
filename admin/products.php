@@ -809,6 +809,23 @@ $gallery = [];
 			color: #333;
 		}
 
+		.products-availability-filter {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-left: auto;
+		}
+
+		.products-availability-filter label {
+			margin: 0;
+			font-weight: 600;
+			color: #555;
+		}
+
+		.products-availability-filter select {
+			min-width: 170px;
+		}
+
 		/* ================================== */
 
 		@media (max-width: 1200px) {
@@ -1104,6 +1121,16 @@ $gallery = [];
 			<!-- Заголовок + кнопка сохранения порядка -->
 			<div class="products-list-header">
 				<h4>📦 Список товаров</h4>
+				<div class="products-availability-filter">
+					<label for="availabilityFilter">Наличие:</label>
+					<select id="availabilityFilter" class="form-control input-sm">
+						<option value="all">Все товары</option>
+						<option value="active">Активный</option>
+						<option value="preorder">Под заказ</option>
+						<option value="disabled">Нет в наличии</option>
+					</select>
+					<span id="availabilityFilterCount" class="text-muted"></span>
+				</div>
 				<button id="saveOrderBtn" class="btn btn-warning btn-sm">
 					💾 Сохранить порядок
 				</button>
@@ -1152,7 +1179,7 @@ $gallery = [];
 								default    => ['class' => 'disabled', 'icon' => '×', 'label' => 'Нет в наличии'],
 							};
 						?>
-							<tr data-id="<?= (int)$p['id'] ?>" class="<?= $rowClass ?>">
+							<tr data-id="<?= (int)$p['id'] ?>" data-availability="<?= admin_h($availability['class']) ?>" class="<?= $rowClass ?>">
 								<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
 								<td class="row-position" style=" display:none;"><?= $i + 1 ?></td>
 								<td><?= admin_h((string)$p['external_id']) ?></td>
@@ -1417,10 +1444,12 @@ $gallery = [];
 		}
 
 		/* ====== Drag-and-drop сортировка товаров ====== */
-		(function() {
-			var tbody = document.getElementById('sortable-products');
-			var saveBtn = document.getElementById('saveOrderBtn');
-			var status = document.getElementById('saveStatus');
+			(function() {
+				var tbody = document.getElementById('sortable-products');
+				var saveBtn = document.getElementById('saveOrderBtn');
+				var status = document.getElementById('saveStatus');
+				var availabilityFilter = document.getElementById('availabilityFilter');
+				var availabilityFilterCount = document.getElementById('availabilityFilterCount');
 
 			// Если таблица отсутствует (страница редактирования) — ничего не делаем
 			if (!tbody || !saveBtn) return;
@@ -1432,7 +1461,7 @@ $gallery = [];
 			var hasChanges = false;
 
 			// Инициализация SortableJS
-			Sortable.create(tbody, {
+				var sortable = Sortable.create(tbody, {
 				handle: '.drag-handle', // тащить только за иконку
 				animation: 150, // плавная анимация перемещения
 				ghostClass: 'sortable-ghost',
@@ -1450,10 +1479,31 @@ $gallery = [];
 					saveBtn.classList.add('has-changes');
 					status.textContent = '';
 					status.className = '';
-				}
-			});
+					}
+				});
 
-			// Сохранение нового порядка через AJAX
+				function applyAvailabilityFilter() {
+					var selected = availabilityFilter ? availabilityFilter.value : 'all';
+					var visibleCount = 0;
+
+					tbody.querySelectorAll('tr[data-availability]').forEach(function(tr) {
+						var isVisible = selected === 'all' || tr.getAttribute('data-availability') === selected;
+						tr.style.display = isVisible ? '' : 'none';
+						if (isVisible) visibleCount += 1;
+					});
+
+					if (availabilityFilterCount) {
+						availabilityFilterCount.textContent = 'Показано: ' + visibleCount;
+					}
+					sortable.option('disabled', selected !== 'all');
+				}
+
+				if (availabilityFilter) {
+					availabilityFilter.addEventListener('change', applyAvailabilityFilter);
+					applyAvailabilityFilter();
+				}
+
+				// Сохранение нового порядка через AJAX
 			saveBtn.addEventListener('click', function() {
 				var rows = tbody.querySelectorAll('tr[data-id]');
 				var order = [];

@@ -13,8 +13,12 @@ $status = (string)($_GET['status_filter'] ?? '');
 $where = [];
 $params = [];
 if ($search !== '') {
-    $where[] = '(name LIKE :search OR external_id LIKE :search OR cat_number LIKE :search OR link LIKE :search)';
-    $params['search'] = '%' . $search . '%';
+    $where[] = '(name LIKE :search_name OR external_id LIKE :search_external_id OR cat_number LIKE :search_cat_number OR link LIKE :search_link)';
+    $searchValue = '%' . $search . '%';
+    $params['search_name'] = $searchValue;
+    $params['search_external_id'] = $searchValue;
+    $params['search_cat_number'] = $searchValue;
+    $params['search_link'] = $searchValue;
 }
 if (in_array($status, ['active', 'preorder', 'disabled'], true)) {
     $where[] = 'status = :status';
@@ -30,8 +34,15 @@ header('Content-Disposition: attachment; filename="products-' . date('Y-m-d') . 
 $out = fopen('php://output', 'wb');
 fwrite($out, "\xEF\xBB\xBF");
 fputcsv($out, ['external_id', 'cat_number', 'name', 'old_price', 'price', 'link', 'in_stock', 'status', 'seo_title', 'seo_description', 'volume'], ';');
+function csv_safe_value(mixed $value): string
+{
+    $value = (string)$value;
+    return $value !== '' && preg_match('/^[=+\-@]/', $value) === 1
+        ? "'" . $value
+        : $value;
+}
 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    fputcsv($out, $row, ';');
+    fputcsv($out, array_map('csv_safe_value', $row), ';');
 }
 fclose($out);
 exit;

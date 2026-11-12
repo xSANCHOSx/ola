@@ -150,12 +150,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		echo json_encode(['success' => false, 'message' => 'Некорректный статус'], JSON_UNESCAPED_UNICODE);
 		exit;
 	}
+	if ($field === 'in_stock' && !in_array($value, ['0', '1'], true)) {
+		http_response_code(422);
+		echo json_encode(['success' => false, 'message' => 'Некорректное значение наличия'], JSON_UNESCAPED_UNICODE);
+		exit;
+	}
 	if (in_array($field, ['price', 'old_price'], true) && (!is_numeric($value) || (float)$value < 0)) {
 		http_response_code(422);
 		echo json_encode(['success' => false, 'message' => 'Некорректная цена'], JSON_UNESCAPED_UNICODE);
 		exit;
 	}
-	if ($field === 'in_stock') $value = $value === '1' ? '1' : '0';
 	$stmt = $pdo->prepare("UPDATE products SET `$field` = :value WHERE id = :id");
 	$stmt->execute(['value' => $field === 'in_stock' ? (int)$value : $value, 'id' => $id]);
 	try {

@@ -91,7 +91,7 @@ function delete_product_image_file(string $image): void
 function products_return_query(): string
 {
 	$params = [];
-	foreach (['q', 'status_filter', 'page', 'per_page'] as $key) {
+	foreach (['q', 'status_filter', 'page'] as $key) {
 		if (isset($_GET[$key]) && $_GET[$key] !== '') {
 			$params[$key] = (string)$_GET[$key];
 		}
@@ -459,8 +459,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 $search = trim((string)($_GET['q'] ?? ''));
 $statusFilter = (string)($_GET['status_filter'] ?? '');
 if (!in_array($statusFilter, ['active', 'preorder', 'disabled'], true)) $statusFilter = '';
-$perPage = (int)($_GET['per_page'] ?? 100);
-if (!in_array($perPage, [50, 100], true)) $perPage = 100;
+$perPage = 50;
 $page = max(1, (int)($_GET['page'] ?? 1));
 $products = [];
 $totalProducts = 0;
@@ -484,11 +483,6 @@ if ($pdo instanceof PDO) {
 	$countStmt = $pdo->prepare('SELECT COUNT(*) FROM products' . $whereSql);
 	$countStmt->execute($params);
 	$totalProducts = (int)$countStmt->fetchColumn();
-	// Каталог рассчитан максимум на 100 товаров: показываем его целиком на одной странице.
-	// Параметр per_page сохраняется для совместимости и для будущего роста каталога.
-	if ($totalProducts > 0 && $totalProducts <= 100) {
-		$perPage = $totalProducts;
-	}
 	$totalPages = max(1, (int)ceil($totalProducts / $perPage));
 	$page = min($page, $totalPages);
 	$offset = ($page - 1) * $perPage;
@@ -1378,9 +1372,6 @@ $gallery = [];
 						<option value="preorder" <?= $statusFilter === 'preorder' ? 'selected' : '' ?>>Под заказ</option>
 						<option value="disabled" <?= $statusFilter === 'disabled' ? 'selected' : '' ?>>Нет в наличии</option>
 					</select>
-					<select name="per_page" class="form-control input-sm" aria-label="Товаров на странице">
-						<?php foreach ([50, 100] as $pageSize): ?><option value="<?= $pageSize ?>" <?= ($perPage === $pageSize || ($pageSize === 100 && $totalProducts <= 100)) ? 'selected' : '' ?>><?= $pageSize ?> / стр.</option><?php endforeach; ?>
-					</select>
 					<button class="btn btn-primary btn-sm" type="submit">Найти</button>
 					<a class="btn btn-light btn-sm" href="/admin/products.php">Сбросить</a>
 				</form>
@@ -1454,11 +1445,9 @@ $gallery = [];
 								'disabled' => 'Нет в наличии',
 								default    => '—',
 							};
-							$availability = empty($p['in_stock'])
-								? ['class' => 'disabled', 'icon' => '×', 'label' => 'Нет в наличии']
-								: ($st === 'preorder'
-									? ['class' => 'preorder', 'icon' => '◷', 'label' => 'Под заказ']
-									: ['class' => 'active', 'icon' => '✓', 'label' => 'В наличии']);
+							$availability = !empty($p['in_stock'])
+								? ['class' => 'active', 'icon' => '✓', 'label' => 'В наличии']
+								: ['class' => 'disabled', 'icon' => '×', 'label' => 'Нет в наличии'];
 						?>
 							<tr data-id="<?= (int)$p['id'] ?>" data-availability="<?= admin_h($availability['class']) ?>" class="<?= $rowClass ?>">
 								<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
@@ -1487,7 +1476,7 @@ $gallery = [];
 			</div><!-- /.table-responsive -->
 				<div class="products-pagination-summary">Показано <?= count($products) ?> из <?= $totalProducts ?> товаров</div>
 				<?php if ($totalPages > 1): ?><nav class="products-pagination" aria-label="Страницы товаров"><ul class="pagination">
-					<?php for ($paginationPage = 1; $paginationPage <= $totalPages; $paginationPage++): ?><li class="page-item <?= $paginationPage === $page ? 'active' : '' ?>"><a class="page-link" href="?<?= admin_h(http_build_query(array_filter(['q' => $search, 'status_filter' => $statusFilter, 'per_page' => $perPage, 'page' => $paginationPage], static fn($value) => $value !== ''))) ?>"><?= $paginationPage ?></a></li><?php endfor; ?>
+					<?php for ($paginationPage = 1; $paginationPage <= $totalPages; $paginationPage++): ?><li class="page-item <?= $paginationPage === $page ? 'active' : '' ?>"><a class="page-link" href="?<?= admin_h(http_build_query(array_filter(['q' => $search, 'status_filter' => $statusFilter, 'page' => $paginationPage], static fn($value) => $value !== ''))) ?>"><?= $paginationPage ?></a></li><?php endfor; ?>
 				</ul></nav><?php endif; ?>
 			</form>
 		</div>

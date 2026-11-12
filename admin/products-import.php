@@ -33,6 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $updated = 0;
                 $line = 1;
                 try {
+                    $findStmt = $pdo->prepare('SELECT id FROM products WHERE external_id = :external_id LIMIT 1');
+                    $updateStmt = $pdo->prepare('UPDATE products SET cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, link=:link, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume WHERE id=:id');
+                    $insertStmt = $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, link, in_stock, status, seo_title, seo_description, volume) VALUES (:external_id,:cat_number,:name,:old_price,:price,:link,:in_stock,:status,:seo_title,:seo_description,:volume)');
                     $pdo->beginTransaction();
                     while (($values = fgetcsv($handle, 0, $delimiter)) !== false) {
                         $line++;
@@ -40,17 +43,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $row = [];
                         foreach ($headers as $index => $header) $row[$header] = trim((string)($values[$index] ?? ''));
                         if ($row['external_id'] === '' || $row['name'] === '' || $row['link'] === '' || !is_numeric($row['price']) || (float)$row['price'] < 0) {
-                            $errors[] = 'Строка ' . $line . ': обязательные поля заполнены неверно.';
-                            continue;
+                            throw new InvalidArgumentException('Строка ' . $line . ': обязательные поля заполнены неверно.');
                         }
-                        $existing = $pdo->prepare('SELECT id FROM products WHERE external_id = :external_id LIMIT 1');
-                        $existing->execute(['external_id' => $row['external_id']]);
-                        $id = (int)($existing->fetchColumn() ?: 0);
+                        $inStock = $row['in_stock'] ?? '1';
+                        if (!in_array($inStock, ['0', '1'], true)) {
+                            throw new InvalidArgumentException('Строка ' . $line . ': in_stock должен быть равен 0 или 1.');
+                        }
+                        $status = $row['status'] ?? 'disabled';
+                        if ($status === '') $status = 'disabled';
+                        if (!in_array($status, ['active', 'preorder', 'disabled'], true)) {
+                            throw new InvalidArgumentException('Строка ' . $line . ': указан некорректный status.');
+                        }
+                        if (($row['old_price'] ?? '') !== '' && (!is_numeric($row['old_price']) || (float)$row['old_price'] < 0)) {
+                            throw new InvalidArgumentException('Строка ' . $line . ': указана некорректная old_price.');
+                        }
+                        $findStmt->execute(['external_id' => $row['external_id']]);
+                        $id = (int)($findStmt->fetchColumn() ?: 0);
                         $data = [
                             'external_id' => $row['external_id'], 'cat_number' => $row['cat_number'] ?? '', 'name' => $row['name'],
                             'old_price' => is_numeric($row['old_price'] ?? '') ? (float)$row['old_price'] : 0, 'price' => (float)$row['price'],
-                            'link' => $row['link'], 'in_stock' => (($row['in_stock'] ?? '1') === '0' ? 0 : 1),
-                            'status' => in_array($row['status'] ?? '', ['active', 'preorder', 'disabled'], true) ? $row['status'] : 'disabled',
+                            'link' => $row['link'], 'in_stock' => (int)$inStock,
+                            'status' => $status,
                             'seo_title' => $row['seo_title'] ?? '', 'seo_description' => $row['seo_description'] ?? '', 'volume' => $row['volume'] ?? '',
                         ];
                         if ($id > 0) {
@@ -70,10 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'seo_description' => $data['seo_description'],
                                 'volume' => $data['volume'],
                             ];
-                            $pdo->prepare('UPDATE products SET cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, link=:link, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume WHERE id=:id')->execute($updateData);
+                            $updateStmt->execute($updateData);
                             $updated++;
                         } else {
-                            $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, link, in_stock, status, seo_title, seo_description, volume) VALUES (:external_id,:cat_number,:name,:old_price,:price,:link,:in_stock,:status,:seo_title,:seo_description,:volume)')->execute($data);
+                            $insertStmt->execute($data);
                             $inserted++;
                         }
                     }
@@ -82,7 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $summary = "Импорт завершён: добавлено {$inserted}, обновлено {$updated}.";
                 } catch (Throwable $e) {
                     if ($pdo->inTransaction()) $pdo->rollBack();
-                    $errors[] = 'Импорт остановлен: проверьте уникальность external_id и link.';
+                    $errors[] = $e instanceof InvalidArgumentException
+                        ? 'Импорт отменён: ' . $e->getMessage()
+                        : 'Импорт остановлен: проверьте уникальность external_id и link.';
                     dev_log_runtime('CSV import failed: ' . $e->getMessage());
                 }
             }

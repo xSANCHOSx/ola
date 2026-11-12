@@ -54,8 +54,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'seo_title' => $row['seo_title'] ?? '', 'seo_description' => $row['seo_description'] ?? '', 'volume' => $row['volume'] ?? '',
                         ];
                         if ($id > 0) {
-                            $data['id'] = $id;
-                            $pdo->prepare('UPDATE products SET cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, link=:link, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume WHERE id=:id')->execute($data);
+                            // external_id используется для поиска записи, но не является
+                            // параметром UPDATE. Передаём только именованные параметры,
+                            // присутствующие в SQL-запросе.
+                            $updateData = [
+                                'id' => $id,
+                                'cat_number' => $data['cat_number'],
+                                'name' => $data['name'],
+                                'old_price' => $data['old_price'],
+                                'price' => $data['price'],
+                                'link' => $data['link'],
+                                'in_stock' => $data['in_stock'],
+                                'status' => $data['status'],
+                                'seo_title' => $data['seo_title'],
+                                'seo_description' => $data['seo_description'],
+                                'volume' => $data['volume'],
+                            ];
+                            $pdo->prepare('UPDATE products SET cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, link=:link, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume WHERE id=:id')->execute($updateData);
                             $updated++;
                         } else {
                             $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, link, in_stock, status, seo_title, seo_description, volume) VALUES (:external_id,:cat_number,:name,:old_price,:price,:link,:in_stock,:status,:seo_title,:seo_description,:volume)')->execute($data);

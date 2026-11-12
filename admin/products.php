@@ -177,23 +177,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 	$ids = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['product_ids'] ?? [])))));
 	$field = (string)($_POST['bulk_field'] ?? '');
 	$value = trim((string)($_POST['bulk_value'] ?? ''));
-	if (!$ids || !in_array($field, ['status', 'price', 'in_stock'], true)) {
-		product_flash('Выберите товары и поле для изменения.', 'warning');
-		header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
-		exit;
-	}
-	if ($field === 'status' && !in_array($value, ['active', 'preorder', 'disabled'], true)) {
-		product_flash('Выбран некорректный статус.', 'danger');
-		header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
-		exit;
-	}
-	if ($field === 'price' && (!is_numeric($value) || (float)$value < 0)) {
-		product_flash('Укажите корректную цену.', 'danger');
-		header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
-		exit;
-	}
-	$placeholders = implode(',', array_fill(0, count($ids), '?'));
-	$params = array_merge([$field === 'in_stock' ? (int)($value === '1') : $value], $ids);
+		if (!$ids || !in_array($field, ['status', 'price', 'in_stock'], true)) {
+			product_flash('Выберите товары и поле для изменения.', 'warning');
+			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+			exit;
+		}
+		if ($field === 'status' && !in_array($value, ['active', 'preorder', 'disabled'], true)) {
+			product_flash('Выбран некорректный статус.', 'danger');
+			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+			exit;
+		}
+		if ($field === 'in_stock' && !in_array($value, ['0', '1', 'active', 'disabled'], true)) {
+			product_flash('Выберите корректное значение наличия.', 'danger');
+			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+			exit;
+		}
+		if ($field === 'price' && (!is_numeric($value) || (float)$value < 0)) {
+			product_flash('Укажите корректную цену.', 'danger');
+			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+			exit;
+		}
+		$placeholders = implode(',', array_fill(0, count($ids), '?'));
+		$normalizedValue = $field === 'in_stock'
+			? (int)in_array($value, ['1', 'active'], true)
+			: $value;
+		$params = array_merge([$normalizedValue], $ids);
 	$stmt = $pdo->prepare("UPDATE products SET `$field` = ? WHERE id IN ($placeholders)");
 	$stmt->execute($params);
 	try {
@@ -1381,18 +1389,21 @@ $gallery = [];
 				<input type="hidden" name="return_query" value="<?= admin_h(products_return_query()) ?>">
 				<div class="products-bulk-actions">
 					<strong>Массовое изменение:</strong>
-					<select name="bulk_field" class="form-control input-sm" required>
+					<select name="bulk_field" id="bulkField" class="form-control input-sm" required>
 						<option value="">Выберите поле</option>
 						<option value="status">Статус наличия</option>
 						<option value="price">Цена</option>
 						<option value="in_stock">Флаг «В наличии»</option>
 					</select>
-					<select name="bulk_value" class="form-control input-sm" required>
+					<select name="bulk_value" id="bulkValue" class="form-control input-sm" required>
 						<option value="">Выберите значение</option>
-						<option value="active">Активный / 1</option>
-						<option value="preorder">Под заказ</option>
-						<option value="disabled">Нет в наличии / 0</option>
+						<option value="active" data-bulk-fields="status">Активный</option>
+						<option value="preorder" data-bulk-fields="status">Под заказ</option>
+						<option value="disabled" data-bulk-fields="status">Нет в наличии</option>
+						<option value="1" data-bulk-fields="in_stock">В наличии (1)</option>
+						<option value="0" data-bulk-fields="in_stock">Нет в наличии (0)</option>
 					</select>
+					<input type="number" name="bulk_value" id="bulkPrice" class="form-control input-sm" min="0" step="0.01" placeholder="Новая цена" disabled>
 					<button class="btn btn-warning btn-sm" type="submit">Применить к выбранным</button>
 				</div>
 
@@ -1714,12 +1725,32 @@ $gallery = [];
 				var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
 				var bulkForm = document.getElementById('bulkProductForm');
 				var selectAll = document.getElementById('selectAllProducts');
-				if (selectAll && bulkForm) {
-					selectAll.addEventListener('change', function() {
-						bulkForm.querySelectorAll('.product-select').forEach(function(input) { input.checked = selectAll.checked; });
-					});
-				}
-				document.querySelectorAll('.product-inline-field').forEach(function(field) {
+					if (selectAll && bulkForm) {
+						selectAll.addEventListener('change', function() {
+							bulkForm.querySelectorAll('.product-select').forEach(function(input) { input.checked = selectAll.checked; });
+						});
+					}
+					var bulkField = document.getElementById('bulkField');
+					var bulkValue = document.getElementById('bulkValue');
+					var bulkPrice = document.getElementById('bulkPrice');
+					function syncBulkValues() {
+						if (!bulkField || !bulkValue || !bulkPrice) return;
+						var field = bulkField.value;
+						bulkValue.value = '';
+						var isPrice = field === 'price';
+						bulkValue.hidden = isPrice;
+						bulkValue.disabled = isPrice;
+						bulkPrice.hidden = !isPrice;
+						bulkPrice.disabled = !isPrice;
+						bulkValue.querySelectorAll('option[data-bulk-fields]').forEach(function(option) {
+							option.hidden = isPrice || option.dataset.bulkFields.indexOf(field) === -1;
+						});
+					}
+					if (bulkField) {
+						bulkField.addEventListener('change', syncBulkValues);
+						syncBulkValues();
+					}
+					document.querySelectorAll('.product-inline-field').forEach(function(field) {
 					field.addEventListener('change', function() {
 						var oldValue = field.getAttribute('data-original') || field.value;
 						field.disabled = true;

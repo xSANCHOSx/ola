@@ -3,6 +3,7 @@
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/../data/products.php';
 require_once __DIR__ . '/../lib/reviews.php';
+require_once __DIR__ . '/../lib/redirects.php';
 save_utm_cookies();
 
 $currentUrl = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -12,6 +13,14 @@ $productIndex = array_search($currentUrl, $links, true);
 if ($productIndex !== false) {
     $currentProduct = $products[$productIndex];
 } else {
+    $redirect = find_active_redirect(dev_db_connection(), (string)$currentUrl);
+    if ($redirect) {
+        $target = normalize_redirect_path((string)$redirect['target_path']);
+        $query = parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_QUERY);
+        if (is_string($query) && $query !== '') $target .= '?' . $query;
+        header('Location: ' . $target, true, (int)($redirect['status_code'] ?? 301));
+        exit();
+    }
     header("HTTP/1.1 404 Not Found");
     include $_SERVER['DOCUMENT_ROOT'] . '/404.php';
     exit();

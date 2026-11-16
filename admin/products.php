@@ -3,6 +3,7 @@
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
 require_once __DIR__ . '/../lib/feed_generator.php';
+require_once __DIR__ . '/../lib/redirects.php';
 admin_require_permission('products', 'view');
 $pdo = dev_db_connection();
 
@@ -101,18 +102,13 @@ function products_return_query(): string
 
 function product_slug_base(string $value): string
 {
-	$value = trim($value);
-	$translit = ['а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'e','ж'=>'zh','з'=>'z','и'=>'i','й'=>'j','к'=>'k','л'=>'l','м'=>'m','н'=>'n','о'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u','ф'=>'f','х'=>'h','ц'=>'c','ч'=>'ch','ш'=>'sh','щ'=>'sch','ъ'=>'','ы'=>'y','ь'=>'','э'=>'e','ю'=>'yu','я'=>'ya'];
-	$value = strtr(function_exists('mb_strtolower') ? mb_strtolower($value) : strtolower($value), $translit);
-	$value = preg_replace('/[^a-zA-Z0-9\-\s_]/u', '', $value) ?? '';
-	$value = preg_replace('/[\s_]+/', '-', $value) ?? '';
-	return trim(strtolower($value), '-');
+	return trim(normalize_product_link($value), '/');
 }
 
 function unique_product_link(PDO $pdo, string $candidate, ?int $excludeId = null): string
 {
 	$base = product_slug_base($candidate) ?: 'product';
-	$link = $base;
+	$link = '/' . $base;
 	$suffix = 2;
 	while (true) {
 		$sql = 'SELECT id FROM products WHERE link = :link';
@@ -124,7 +120,7 @@ function unique_product_link(PDO $pdo, string $candidate, ?int $excludeId = null
 		$stmt = $pdo->prepare($sql . ' LIMIT 1');
 		$stmt->execute($params);
 		if (!$stmt->fetchColumn()) return $link;
-		$link = $base . '-' . $suffix++;
+		$link = '/' . $base . '_' . $suffix++;
 	}
 }
 
@@ -345,6 +341,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		$uploadErrors = [];
 	$createdFiles = [];
 	$oldImage = '';
+	$oldLink = '';
 	$mainImage = save_product_image_upload($_FILES['image_upload'] ?? [], $uploadErrors, $createdFiles);
 	if ($mainImage !== null) {
 		$data['image'] = $mainImage;
@@ -360,9 +357,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 	try {
 		$pdo->beginTransaction();
 		if ($id > 0) {
-			$oldStmt = $pdo->prepare('SELECT image FROM products WHERE id = ? FOR UPDATE');
+			$oldStmt = $pdo->prepare('SELECT image, link FROM products WHERE id = ? FOR UPDATE');
 			$oldStmt->execute([$id]);
-			$oldImage = (string)($oldStmt->fetchColumn() ?: '');
+			$oldRecord = $oldStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+			$oldImage = (string)($oldRecord['image'] ?? '');
+			$oldLink = (string)($oldRecord['link'] ?? '');
 			$data['id'] = $id;
 			$sql = 'UPDATE products SET external_id=:external_id, cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, image=:image, link=:link, short_desc=:short_desc, `desc`=:desc, full_desc=:full_desc, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume, sort_order=:sort_order WHERE id=:id';
 		} else {
@@ -370,6 +369,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		}
 		$pdo->prepare($sql)->execute($data);
 		$productId = $id > 0 ? $id : (int)$pdo->lastInsertId();
+		if ($oldLink !== '' && normalize_redirect_path($oldLink) !== normalize_redirect_path($data['link'])) {
+			save_url_redirect($pdo, $oldLink, $data['link'], $productId, 'product_slug_change');
+		}
 		$galleryAvailable = product_images_table_exists($pdo);
 		if ($galleryAvailable && $productId > 0) {
 			$deleteIds = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['delete_gallery'] ?? [])))));
@@ -1743,9 +1745,9 @@ $gallery = [];
 				var slugInput = document.getElementById('link');
 				var previewLink = document.getElementById('productPreviewLink');
 				var slugTouched = !!(slugInput && slugInput.value);
-				function slugify(value) { return value.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, '-').replace(/^-+|-+$/g, ''); }
+				function slugify(value) { return '/' + value.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, '_').replace(/^_+|_+$/g, ''); }
 				if (slugInput) slugInput.addEventListener('input', function() { slugTouched = true; if (previewLink) previewLink.href = '/' + slugInput.value.replace(/^\/+/, ''); });
-				if (nameInput && slugInput) nameInput.addEventListener('input', function() { if (!slugTouched) { slugInput.value = slugify(nameInput.value); if (previewLink) previewLink.href = '/' + slugInput.value; } });
+				if (nameInput && slugInput) nameInput.addEventListener('input', function() { if (!slugTouched) { slugInput.value = slugify(nameInput.value); if (previewLink) previewLink.href = slugInput.value || '/'; } });
 				[['seo_title', 'seoTitleCount'], ['seo_description', 'seoDescriptionCount']].forEach(function(pair) { var input = document.getElementById(pair[0]); var counter = document.getElementById(pair[1]); if (input && counter) { var update = function() { counter.textContent = input.value.length; }; input.addEventListener('input', update); update(); } });
 			})();
 

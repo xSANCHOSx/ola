@@ -2,6 +2,40 @@
 
 declare(strict_types=1);
 
+function ensure_url_redirects_table(PDO $pdo): void
+{
+    static $checked = [];
+    $key = spl_object_id($pdo);
+    if (!empty($checked[$key])) return;
+    $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+    $sql = $driver === 'sqlite' ? "CREATE TABLE IF NOT EXISTS url_redirects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_path VARCHAR(500) NOT NULL UNIQUE,
+        target_path VARCHAR(500) NOT NULL,
+        product_id INTEGER DEFAULT NULL,
+        reason VARCHAR(80) NOT NULL DEFAULT 'manual',
+        status_code INTEGER NOT NULL DEFAULT 301,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )" : "CREATE TABLE IF NOT EXISTS url_redirects (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        source_path VARCHAR(500) NOT NULL,
+        target_path VARCHAR(500) NOT NULL,
+        product_id INT UNSIGNED DEFAULT NULL,
+        reason VARCHAR(80) NOT NULL DEFAULT 'manual',
+        status_code SMALLINT UNSIGNED NOT NULL DEFAULT 301,
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_url_redirects_source_path (source_path),
+        KEY idx_url_redirects_active (is_active),
+        KEY idx_url_redirects_product (product_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+    $pdo->exec($sql);
+    $checked[$key] = true;
+}
+
 function normalize_redirect_path(string $path): string
 {
     $path = trim($path);
@@ -30,6 +64,7 @@ function redirect_path_from_request(): string
 function find_active_redirect(PDO $pdo, string $sourcePath): ?array
 {
     try {
+        ensure_url_redirects_table($pdo);
         $stmt = $pdo->prepare("SELECT id, source_path, target_path, status_code FROM url_redirects WHERE source_path = :source_path AND is_active = 1 LIMIT 1");
         $stmt->execute(['source_path' => normalize_redirect_path($sourcePath)]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -47,6 +82,7 @@ function save_url_redirect(PDO $pdo, string $sourcePath, string $targetPath, ?in
     $targetPath = normalize_redirect_path($targetPath);
     if ($sourcePath === $targetPath) return;
     try {
+        ensure_url_redirects_table($pdo);
         $find = $pdo->prepare('SELECT id FROM url_redirects WHERE source_path = :source_path LIMIT 1');
         $find->execute(['source_path' => $sourcePath]);
         $id = (int)($find->fetchColumn() ?: 0);

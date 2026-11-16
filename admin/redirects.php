@@ -8,6 +8,13 @@ $pdo = dev_db_connection();
 $message = '';
 $error = '';
 
+try {
+    ensure_url_redirects_table($pdo);
+} catch (Throwable $e) {
+    $error = 'Не удалось автоматически создать таблицу редиректов. Проверьте права пользователя базы данных.';
+    dev_log_runtime('Automatic redirects migration failed: ' . $e->getMessage());
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validate_csrf_token()) {
         $error = 'Сессия формы устарела. Обновите страницу.';
@@ -32,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = 'Редирект сохранён.';
             } elseif ($action === 'normalize_products') {
                 $pdo->beginTransaction();
-                $products = $pdo->query('SELECT id, link FROM products WHERE link IS NOT NULL AND link <> \'\' ORDER BY id ASC FOR UPDATE')->fetchAll(PDO::FETCH_ASSOC);
+                $lockClause = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
+                $products = $pdo->query('SELECT id, link FROM products WHERE link IS NOT NULL AND link <> \'\' ORDER BY id ASC' . $lockClause)->fetchAll(PDO::FETCH_ASSOC);
                 $changed = 0;
                 foreach ($products as $product) {
                     $oldLink = (string)$product['link'];
@@ -59,9 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 throw new RuntimeException('Неизвестное действие.');
             }
-        } catch (Throwable $e) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
-            $error = $e instanceof RuntimeException ? $e->getMessage() : 'Операция не выполнена. Сначала примените migration_url_redirects.sql.';
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+            $error = $e instanceof RuntimeException ? $e->getMessage() : 'Операция не выполнена. Проверьте подключение к базе данных.';
             if (!$e instanceof RuntimeException) dev_log_runtime('Redirect admin action failed: ' . $e->getMessage());
         }
     }
@@ -71,7 +79,7 @@ $redirects = [];
 try {
     $redirects = $pdo->query('SELECT r.*, p.name AS product_name FROM url_redirects r LEFT JOIN products p ON p.id = r.product_id ORDER BY r.updated_at DESC, r.id DESC')->fetchAll(PDO::FETCH_ASSOC) ?: [];
 } catch (Throwable $e) {
-    $error = $error ?: 'Таблица редиректов ещё не создана. Примените database/migration_url_redirects.sql.';
+    $error = $error ?: 'Не удалось прочитать таблицу редиректов после автоматической миграции.';
 }
 $csrf = csrf_token();
 ?>
@@ -85,7 +93,7 @@ $csrf = csrf_token();
 <h3>Управление 301-редиректами</h3>
 <?php if ($message): ?><div class="alert alert-success"><?= admin_h($message) ?></div><?php endif; ?>
 <?php if ($error): ?><div class="alert alert-danger"><?= admin_h($error) ?></div><?php endif; ?>
-<div class="redirect-card"><h4>Нормализация товарных URL</h4><p class="redirect-help">Заменяет дефисы и пробелы в существующих ссылках товаров на нижние подчёркивания. Для каждого старого адреса автоматически создаётся постоянный 301-редирект.</p><form method="post" onsubmit="return confirm('Нормализовать URL всех товаров и создать редиректы?');"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="normalize_products"><button class="btn btn-primary" type="submit">Нормализовать URL товаров</button></form></div>
+<div class="redirect-card"><h4>Нормализация товарных URL</h4><p class="redirect-help">Таблица редиректов создаётся автоматически кодом при открытии этого раздела. Нажмите кнопку, чтобы заменить дефисы и пробелы в существующих ссылках товаров на нижние подчёркивания. Для каждого старого адреса автоматически создаётся постоянный 301-редирект.</p><form method="post" onsubmit="return confirm('Нормализовать URL всех товаров и создать редиректы?');"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="normalize_products"><button class="btn btn-primary" type="submit">Нормализовать URL товаров</button></form></div>
 <div class="redirect-card"><h4>Добавить ручной редирект</h4><form method="post" class="redirect-form"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="create"><div class="form-group"><label for="source_path">Старый URL</label><input class="form-control" id="source_path" name="source_path" placeholder="/old_product" required></div><div class="form-group"><label for="target_path">Новый URL</label><input class="form-control" id="target_path" name="target_path" placeholder="/new_product" required></div><button class="btn btn-secondary" type="submit">Добавить 301</button></form></div>
 <div class="redirect-card"><h4>Список редиректов (<?= count($redirects) ?>)</h4><div class="table-responsive"><table class="table table-bordered table-striped"><thead><tr><th>Статус</th><th>Старый URL</th><th>Новый URL</th><th>Товар</th><th>Проверка</th><th>Действия</th></tr></thead><tbody>
 <?php foreach ($redirects as $redirect): $targetExists = false; try { $targetCheck = $pdo->prepare('SELECT id FROM products WHERE link = :link LIMIT 1'); $targetCheck->execute(['link' => normalize_redirect_path((string)$redirect['target_path'])]); $targetExists = (bool)$targetCheck->fetchColumn(); } catch (Throwable $e) {} ?>

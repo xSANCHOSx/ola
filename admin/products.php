@@ -177,8 +177,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 	$ids = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['product_ids'] ?? [])))));
 	$field = (string)($_POST['bulk_field'] ?? '');
 	$value = trim((string)($_POST['bulk_value'] ?? ''));
-		if (!$ids || !in_array($field, ['status', 'price', 'in_stock'], true)) {
+		if (!$ids || !in_array($field, ['status', 'price', 'in_stock', 'regenerate_slug'], true)) {
 			product_flash('Выберите товары и поле для изменения.', 'warning');
+			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+			exit;
+		}
+		if ($field === 'regenerate_slug') {
+			if ($value !== 'regenerate') {
+				product_flash('Выберите действие для URL товара.', 'danger');
+				header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
+				exit;
+			}
+			try {
+				$pdo->beginTransaction();
+				$lockClause = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
+				$placeholders = implode(',', array_fill(0, count($ids), '?'));
+				$productStmt = $pdo->prepare("SELECT id, name, link FROM products WHERE id IN ($placeholders) ORDER BY id ASC$lockClause");
+				$productStmt->execute($ids);
+				$update = $pdo->prepare('UPDATE products SET link = :link WHERE id = :id');
+				$changed = 0;
+				foreach ($productStmt->fetchAll(PDO::FETCH_ASSOC) as $product) {
+					$oldLink = (string)$product['link'];
+					$newLink = unique_product_link($pdo, (string)$product['name'], (int)$product['id']);
+					if (normalize_redirect_path($oldLink) === normalize_redirect_path($newLink)) continue;
+					$update->execute(['link' => $newLink, 'id' => (int)$product['id']]);
+					save_url_redirect($pdo, $oldLink, $newLink, (int)$product['id'], 'product_slug_regeneration');
+					$changed++;
+				}
+				$pdo->commit();
+				try {
+					generate_product_feeds($pdo, dirname(__DIR__));
+				} catch (Throwable $e) {
+					dev_log_runtime('Bulk product slug regeneration feed failed: ' . $e->getMessage());
+				}
+				product_flash('Перегенерировано URL товаров: ' . $changed . '. Старые адреса сохранены как 301-редиректы.');
+			} catch (Throwable $e) {
+				if ($pdo->inTransaction()) $pdo->rollBack();
+				product_flash($e instanceof RuntimeException ? $e->getMessage() : 'Не удалось перегенерировать URL товаров.', 'danger');
+			}
 			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
 			exit;
 		}
@@ -261,47 +297,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 	$newId = (int)$pdo->lastInsertId();
 	product_flash('Товар скопирован. Проверьте данные перед публикацией.');
 	header('Location: /admin/products.php?edit=' . $newId);
-	exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['action'] ?? '') === 'regenerate_product_slug') {
-	admin_require_permission('products', 'edit');
-	if (!validate_csrf_token()) {
-		product_flash('Сессия формы устарела. Обновите страницу.', 'danger');
-		header('Location: /admin/products.php');
-		exit;
-	}
-	$id = (int)($_POST['product_id'] ?? 0);
-	$returnQuery = (string)($_POST['return_query'] ?? '');
-	try {
-		$pdo->beginTransaction();
-		$lockClause = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
-		$productStmt = $pdo->prepare('SELECT id, name, link FROM products WHERE id = :id LIMIT 1' . $lockClause);
-		$productStmt->execute(['id' => $id]);
-		$product = $productStmt->fetch(PDO::FETCH_ASSOC);
-		if (!$product) throw new RuntimeException('Товар для генерации URL не найден.');
-		$oldLink = (string)$product['link'];
-		$newLink = unique_product_link($pdo, (string)$product['name'], $id);
-		if (normalize_redirect_path($oldLink) === normalize_redirect_path($newLink)) {
-			$pdo->commit();
-			product_flash('URL товара уже соответствует его названию.');
-		} else {
-			$update = $pdo->prepare('UPDATE products SET link = :link WHERE id = :id');
-			$update->execute(['link' => $newLink, 'id' => $id]);
-			save_url_redirect($pdo, $oldLink, $newLink, $id, 'product_slug_regeneration');
-			$pdo->commit();
-			try {
-				generate_product_feeds($pdo, dirname(__DIR__));
-			} catch (Throwable $e) {
-				dev_log_runtime('Product slug regeneration feed failed: ' . $e->getMessage());
-			}
-			product_flash('URL товара перегенерирован. Старый адрес сохранён как 301-редирект.');
-		}
-	} catch (Throwable $e) {
-		if ($pdo->inTransaction()) $pdo->rollBack();
-		product_flash($e instanceof RuntimeException ? $e->getMessage() : 'Не удалось перегенерировать URL товара.', 'danger');
-	}
-	header('Location: /admin/products.php' . $returnQuery);
 	exit;
 }
 
@@ -1441,6 +1436,7 @@ $gallery = [];
 						<option value="status">Статус наличия</option>
 						<option value="price">Цена</option>
 						<option value="in_stock">Флаг «В наличии»</option>
+						<option value="regenerate_slug">URL товара</option>
 					</select>
 						<select name="bulk_value" id="bulkValue" class="form-control input-sm" required>
 						<option value="">Выберите значение</option>
@@ -1449,11 +1445,11 @@ $gallery = [];
 						<option value="disabled" data-bulk-fields="status">Нет в наличии</option>
 						<option value="1" data-bulk-fields="in_stock">В наличии (1)</option>
 						<option value="0" data-bulk-fields="in_stock">Нет в наличии (0)</option>
+						<option value="regenerate" data-bulk-fields="regenerate_slug">Перегенерировать из названия</option>
 						</select>
 						<input type="number" name="bulk_value" id="bulkPrice" class="form-control input-sm" min="0" step="0.01" placeholder="Новая цена" disabled>
 						<button class="btn btn-warning btn-sm" type="submit">Применить к выбранным</button>
 						<?php if (admin_can('products', 'create')): ?><button class="btn btn-default btn-sm" type="button" id="duplicateSelectedProduct">Быстрые действия: копировать выбранный</button><?php endif; ?>
-						<?php if (admin_can('products', 'edit')): ?><button class="btn btn-info btn-sm" type="button" id="regenerateSelectedProductSlug">Быстрые действия: перегенерировать URL</button><?php endif; ?>
 				</div>
 
 			<div class="table-responsive">
@@ -1820,21 +1816,10 @@ $gallery = [];
 							bulkForm.submit();
 						});
 					}
-					var regenerateSelectedSlug = document.getElementById('regenerateSelectedProductSlug');
-					if (regenerateSelectedSlug) {
-						regenerateSelectedSlug.addEventListener('click', function() {
-							if (!bulkForm) return;
-							var selected = bulkForm.querySelectorAll('.product-select:checked');
-							if (selected.length !== 1) {
-								window.alert('Для перегенерации URL выберите ровно один товар.');
-								return;
-							}
-							if (!window.confirm('Перегенерировать URL выбранного товара? Старый адрес будет сохранён как 301-редирект.')) return;
-							bulkForm.querySelector('[name="action"]').value = 'regenerate_product_slug';
-							bulkForm.querySelector('[name="product_id"]').value = selected[0].value;
-							bulkForm.submit();
-						});
-					}
+					if (bulkForm) bulkForm.addEventListener('submit', function(event) {
+						if (!bulkField || bulkField.value !== 'regenerate_slug') return;
+						if (!window.confirm('Перегенерировать URL выбранных товаров? Старые адреса будут сохранены как 301-редиректы.')) event.preventDefault();
+					});
 				var nameInput = document.getElementById('name');
 				var slugInput = document.getElementById('link');
 				var previewLink = document.getElementById('productPreviewLink');

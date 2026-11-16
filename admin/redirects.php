@@ -70,6 +70,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $pdo->commit();
                 $message = 'Сгенерировано URL товаров: ' . $changed . '. Старые адреса сохранены как 301-редиректы.';
+            } elseif ($action === 'rollback_product_urls') {
+                $pdo->beginTransaction();
+                $lockClause = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
+                $rollbackRows = $pdo->query("SELECT r.id, r.source_path, r.target_path, r.product_id, p.link AS current_link
+                    FROM url_redirects r
+                    INNER JOIN products p ON p.id = r.product_id
+                    WHERE r.is_active = 1
+                      AND r.reason IN ('product_slug_normalization', 'product_slug_regeneration')
+                    ORDER BY r.product_id ASC, r.id DESC$lockClause")->fetchAll(PDO::FETCH_ASSOC);
+                $seenProducts = [];
+                $rolledBack = 0;
+                $skipped = 0;
+                foreach ($rollbackRows as $row) {
+                    $productId = (int)$row['product_id'];
+                    if (isset($seenProducts[$productId])) continue;
+                    $seenProducts[$productId] = true;
+                    $currentLink = normalize_redirect_path((string)$row['current_link']);
+                    $generatedLink = normalize_redirect_path((string)$row['target_path']);
+                    $oldLink = normalize_redirect_path((string)$row['source_path']);
+                    if ($currentLink !== $generatedLink || $oldLink === '/' || $oldLink === $currentLink) continue;
+                    $occupied = $pdo->prepare('SELECT id FROM products WHERE link = :link AND id <> :id LIMIT 1');
+                    $occupied->execute(['link' => $oldLink, 'id' => $productId]);
+                    if ($occupied->fetchColumn()) {
+                        $skipped++;
+                        continue;
+                    }
+                    save_url_redirect($pdo, $currentLink, $oldLink, $productId, 'product_slug_rollback');
+                    $update = $pdo->prepare('UPDATE products SET link = :link WHERE id = :id');
+                    $update->execute(['link' => $oldLink, 'id' => $productId]);
+                    $delete = $pdo->prepare('DELETE FROM url_redirects WHERE id = :id');
+                    $delete->execute(['id' => (int)$row['id']]);
+                    $rolledBack++;
+                }
+                $pdo->commit();
+                $message = 'Возвращено старых URL: ' . $rolledBack . '.';
+                if ($skipped > 0) $message .= ' Пропущено из-за занятых адресов: ' . $skipped . '.';
             } else {
                 throw new RuntimeException('Неизвестное действие.');
             }
@@ -100,6 +136,7 @@ $csrf = csrf_token();
 <?php if ($message): ?><div class="alert alert-success"><?= admin_h($message) ?></div><?php endif; ?>
 <?php if ($error): ?><div class="alert alert-danger"><?= admin_h($error) ?></div><?php endif; ?>
 <div class="redirect-card"><h4>Массовая генерация URL товаров</h4><p class="redirect-help">URL генерируются из названий товаров: выполняется транслитерация, нижний регистр и замена разделителей на нижние подчёркивания. При совпадении добавляется суффикс <code>_2</code>, <code>_3</code> и т. д. Для каждого изменённого товара старый адрес автоматически сохраняется как постоянный 301-редирект.</p><form method="post" onsubmit="return confirm('Сгенерировать URL всех товаров из названий и создать 301-редиректы?');"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="normalize_products"><button class="btn btn-primary" type="submit">Сгенерировать URL товаров</button></form></div>
+<div class="redirect-card"><h4>Откат генерации URL</h4><p class="redirect-help">Вернуть старые URL можно только для товаров, чьи текущие ссылки были созданы этой генерацией. Новые URL получат постоянный 301-редирект обратно на старые адреса. Если старый адрес уже занят другим товаром, такой товар будет пропущен.</p><form method="post" onsubmit="return confirm('Вернуть старые URL товаров? Новые адреса будут перенаправлять на старые через 301.');"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="rollback_product_urls"><button class="btn btn-warning" type="submit">Вернуть старые URL</button></form></div>
 <div class="redirect-card"><h4>Добавить ручной редирект</h4><form method="post" class="redirect-form"><input type="hidden" name="csrf_token" value="<?= admin_h($csrf) ?>"><input type="hidden" name="action" value="create"><div class="form-group"><label for="source_path">Старый URL</label><input class="form-control" id="source_path" name="source_path" placeholder="/old_product" required></div><div class="form-group"><label for="target_path">Новый URL</label><input class="form-control" id="target_path" name="target_path" placeholder="/new_product" required></div><button class="btn btn-secondary" type="submit">Добавить 301</button></form></div>
 <div class="redirect-card"><h4>Список редиректов (<?= count($redirects) ?>)</h4><div class="table-responsive"><table class="table table-bordered table-striped"><thead><tr><th>Статус</th><th>Старый URL</th><th>Новый URL</th><th>Товар</th><th>Проверка</th><th>Действия</th></tr></thead><tbody>
 <?php foreach ($redirects as $redirect): $targetExists = false; try { $targetCheck = $pdo->prepare('SELECT id FROM products WHERE link = :link LIMIT 1'); $targetCheck->execute(['link' => normalize_redirect_path((string)$redirect['target_path'])]); $targetExists = (bool)$targetCheck->fetchColumn(); } catch (Throwable $e) {} ?>

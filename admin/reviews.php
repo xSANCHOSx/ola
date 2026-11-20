@@ -239,10 +239,11 @@ function review_status_label(string $status): string
 </div>
 
 <!-- CKEditor 5 — тот же визуальный редактор, что и в описании товара -->
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/translations/ru.js"></script>
-<script src="/js/bootstrap.min.js"></script>
+<script defer src="/admin/assets/ckeditor/ckeditor.js?v=41.1.0"></script>
+<script defer src="/admin/assets/ckeditor/translations/ru.js?v=41.1.0"></script>
+<script defer src="/js/bootstrap.min.js"></script>
 <script>
+window.addEventListener('DOMContentLoaded', function () {
 (function () {
     var modalEl = document.getElementById('reviewEditModal');
     if (!modalEl || typeof bootstrap === 'undefined') return;
@@ -351,6 +352,7 @@ function review_status_label(string $status): string
         });
     });
 })();
+});
 </script>
 </body>
 </html>

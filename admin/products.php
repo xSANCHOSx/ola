@@ -567,10 +567,10 @@ $gallery = [];
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
 	<link rel="stylesheet" href="/css/admin.css">
 	<!-- SortableJS — drag-and-drop библиотека для таблицы товаров -->
-	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+	<script defer src="/admin/assets/sortablejs/Sortable.min.js?v=1.15.2"></script>
 	<!-- CKEditor 5 — визуальный редактор, используемый в блоге -->
-	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
-	<script src="/admin/ckeditor-upload-adapter.js"></script>
+	<script defer src="/admin/assets/ckeditor/ckeditor.js?v=41.1.0"></script>
+	<script defer src="/admin/ckeditor-upload-adapter.js?v=1"></script>
 	<style>
 		.product-form-wrapper {
 			display: flex;
@@ -1533,10 +1533,15 @@ $gallery = [];
 
 		<script>
 			/* ====== Визуальные редакторы описаний товара ====== */
+			window.addEventListener('DOMContentLoaded', function() {
 			(function() {
 				var form = document.getElementById('productForm');
 				var textareas = document.querySelectorAll('.product-description-editor');
-				if (!form || !textareas.length || typeof ClassicEditor === 'undefined') return;
+				if (!form || !textareas.length) return;
+				if (typeof ClassicEditor === 'undefined' || typeof CkeditorUploadAdapterPlugin === 'undefined') {
+					console.error('CKEditor или его upload adapter не загрузился; доступны обычные поля описания.');
+					return;
+				}
 
 				var editors = [];
 				var editorConfig = {
@@ -1614,6 +1619,7 @@ $gallery = [];
 					});
 				});
 			})();
+			});
 
 			/* ====== Порядок дополнительных фото ====== */
 			(function() {
@@ -1831,6 +1837,7 @@ $gallery = [];
 			})();
 
 			/* ====== Drag-and-drop сортировка товаров ====== */
+			window.addEventListener('DOMContentLoaded', function() {
 			(function() {
 				var tbody = document.getElementById('sortable-products');
 				var saveBtn = document.getElementById('saveOrderBtn');
@@ -1848,6 +1855,10 @@ $gallery = [];
 			var hasChanges = false;
 
 			// Инициализация SortableJS
+				if (typeof Sortable === 'undefined') {
+					console.error('SortableJS не загрузился; перетаскивание товаров недоступно.');
+					return;
+				}
 				var sortable = Sortable.create(tbody, {
 				handle: '.drag-handle', // тащить только за иконку
 				animation: 150, // плавная анимация перемещения
@@ -1948,6 +1959,7 @@ $gallery = [];
 				}
 			});
 		})();
+		});
 	</script>
 </body>
 

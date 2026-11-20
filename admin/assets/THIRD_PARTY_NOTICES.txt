@@ -1,0 +1,14 @@
+Third-party admin assets
+=========================
+
+ckeditor/ckeditor.js
+ckeditor/translations/ru.js
+  CKEditor 5 Classic build and Russian translation, version 41.1.0.
+  Source: https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/
+  The CKEditor 5 distribution is available under the GPL 2+ license or a
+  commercial license, subject to the project's applicable licensing terms.
+
+sortablejs/Sortable.min.js
+  SortableJS version 1.15.2.
+  Source: https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js
+  License: MIT.

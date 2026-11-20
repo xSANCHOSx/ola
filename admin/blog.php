@@ -553,8 +553,8 @@ if (isset($_GET['msg'])) {
 	<title>Админка - Блог</title>
 	<link rel="stylesheet" href="/css/bootstrap.min.css">
 	<link rel="stylesheet" href="/css/admin.css">
-	<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
-	<script src="/admin/ckeditor-upload-adapter.js"></script>
+	<script defer src="/admin/assets/ckeditor/ckeditor.js?v=41.1.0"></script>
+	<script defer src="/admin/ckeditor-upload-adapter.js?v=1"></script>
 	<style>
 		/* ── Alerts ── */
 		.alert {
@@ -778,6 +778,12 @@ if (isset($_GET['msg'])) {
 
 		.ck-content {
 			min-height: 300px;
+		}
+		/* Резервное поле остаётся доступным, если локальные JS-зависимости не загрузились. */
+		#content {
+			width: 100%;
+			min-height: 320px;
+			box-sizing: border-box;
 		}
 
 		/* ══════════════════════════════════════════════════════════
@@ -1106,8 +1112,8 @@ if (isset($_GET['msg'])) {
 					</div>
 					<div class="form-group-wrapper">
 						<label>Полное содержимое *</label>
-						<textarea id="content" name="content"
-							style="position:absolute; width:0; height:0; opacity:0; pointer-events:none;"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
+						<textarea id="content" name="content" rows="14"
+							placeholder="Введите полный текст статьи…"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
 						<div id="contentError" style="color:#dc3545; font-size:13px; margin-top:6px; display:none;"></div>
 					</div>
 				</div>
@@ -1477,6 +1483,15 @@ if (isset($_GET['msg'])) {
 			/* ══════════════════════════════════════════════════════════════
 			   CKEDITOR
 			══════════════════════════════════════════════════════════════ */
+			window.addEventListener('DOMContentLoaded', function() {
+				if (typeof ClassicEditor === 'undefined') {
+					console.error('CKEditor не загрузился; используется обычное поле content.');
+					return;
+				}
+				if (typeof CkeditorUploadAdapterPlugin === 'undefined') {
+					console.error('Upload adapter CKEditor не загрузился; используется обычное поле content.');
+					return;
+				}
 			ClassicEditor
 				.create(document.querySelector('#content'), {
 					toolbar: {
@@ -1571,6 +1586,8 @@ if (isset($_GET['msg'])) {
 				.catch(function(err) {
 					console.error(err);
 				});
+
+			});
 
 			/* ══════════════════════════════════════════════════════════════
 			   IMAGE PREVIEW WIDGET

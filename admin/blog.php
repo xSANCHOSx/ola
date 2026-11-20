@@ -780,6 +780,13 @@ if (isset($_GET['msg'])) {
 			min-height: 300px;
 		}
 
+		/* При недоступности CDN CKEditor textarea остаётся рабочим редактором. */
+		#content {
+			width: 100%;
+			min-height: 320px;
+			box-sizing: border-box;
+		}
+
 		/* ══════════════════════════════════════════════════════════
 		   Tag widget
 		═══════════════════════════════════════════════════════ */
@@ -1106,8 +1113,8 @@ if (isset($_GET['msg'])) {
 					</div>
 					<div class="form-group-wrapper">
 						<label>Полное содержимое *</label>
-						<textarea id="content" name="content"
-							style="position:absolute; width:0; height:0; opacity:0; pointer-events:none;"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
+						<textarea id="content" name="content" rows="14"
+							placeholder="Введите полный текст статьи…"><?= admin_h((string)($edit['content'] ?? '')) ?></textarea>
 						<div id="contentError" style="color:#dc3545; font-size:13px; margin-top:6px; display:none;"></div>
 					</div>
 				</div>

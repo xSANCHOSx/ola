@@ -109,7 +109,11 @@ $productSchema = [
         'url' => $siteBaseUrl . '/' . ltrim((string)$currentProduct['link'], '/'),
         'priceCurrency' => 'RUB',
         'price' => (string)$currentProduct['price'],
-        'availability' => $currentProduct['in_stock'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+        'availability' => ($currentProduct['status'] ?? '') === 'preorder'
+            ? 'https://schema.org/PreOrder'
+            : (($currentProduct['status'] ?? '') === 'disabled'
+                ? 'https://schema.org/OutOfStock'
+                : 'https://schema.org/InStock')
     ],
 ];
 if ($reviewStats['count'] > 0) {
@@ -193,6 +197,9 @@ require __DIR__ . '/head.php'; ?>
                     <div class="product-divider"></div>
                     <div class="product-short-description"><?= $currentProduct['short_desc'] ?></div>
                     <div class="product-buy-panel">
+                        <div class="product-status product-status--<?= htmlspecialchars((string)($currentProduct['status'] ?? 'unknown'), ENT_QUOTES, 'UTF-8') ?>">
+                            <?= htmlspecialchars(product_status_label($currentProduct), ENT_QUOTES, 'UTF-8') ?>
+                        </div>
                         <?php if (product_is_buyable($currentProduct)): ?>
                             <?php include 'single_special.php'; ?>
                             <div class="product-price-row">
@@ -200,17 +207,17 @@ require __DIR__ . '/head.php'; ?>
                                         class="product-price-old"><?= htmlspecialchars((string)$currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?>
                                         ₽</span><strong
                                         class="product-price"><?= htmlspecialchars((string)$currentProduct['price'], ENT_QUOTES, 'UTF-8') ?>
-                                        ₽</strong></div><span class="product-stock"><i></i> В наличии</span>
+                                        ₽</strong></div><span class="product-stock"><i></i> <?= htmlspecialchars(product_status_label($currentProduct), ENT_QUOTES, 'UTF-8') ?></span>
                             </div>
                         <?php elseif (($currentProduct['status'] ?? '') === 'preorder'): ?>
-                            <div class="product-price-row"><strong class="product-price">Предзаказ</strong><span
+                            <div class="product-price-row"><strong class="product-price">Под заказ</strong><span
                                     class="product-stock">Доставка 7–14 дней</span></div>
                         <?php else: ?>
                             <div class="product-price-row"><strong class="product-price">Нет в наличии</strong></div>
                         <?php endif; ?>
-                        <button class="b1c product-buy-button"
+                        <button class="b1c product-buy-button<?= ($currentProduct['status'] ?? '') === 'preorder' ? ' product-preorder-button' : '' ?>"
                             <?php if (product_is_buyable($currentProduct)): ?>onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>')"
-                            <?php else: ?>disabled<?php endif; ?>><?= product_button_label($currentProduct) ?><span>→</span></button>
+                            <?php elseif (($currentProduct['status'] ?? '') === 'disabled'): ?>disabled<?php endif; ?> data-product-status="<?= htmlspecialchars((string)($currentProduct['status'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"><?= product_button_label($currentProduct) ?><span>→</span></button>
                         <div class="product-benefits"><span>✓ Оригинал</span><span>✓ Безопасная оплата</span></div>
                     </div>
                     <div class="product-accordion">

@@ -3,23 +3,39 @@
 declare(strict_types=1);
 
 /**
- * Проверяет, можно ли купить продукт
- * Можно купить, если товар в наличии или это предзаказ
+ * Возвращает нормализованный публичный статус товара.
+ * Публикация товара определяется отдельно через is_visible.
  */
-function product_is_buyable(array $product): bool
+function product_status_label(array $product): string
 {
-    return !empty($product['in_stock']) || (!empty($product['status']) && $product['status'] === 'preorder');
+    return match ((string)($product['status'] ?? '')) {
+        'active' => 'В наличии',
+        'preorder' => 'Под заказ',
+        'disabled' => 'Нет в наличии',
+        default => !empty($product['in_stock']) ? 'В наличии' : 'Нет в наличии',
+    };
 }
 
 /**
- * Возвращает текст для кнопки покупки
+ * Проверяет, можно ли добавить продукт в обычную корзину.
+ * Предзаказ и выключенный товар в обычную корзину не попадают.
+ */
+function product_is_buyable(array $product): bool
+{
+    $status = (string)($product['status'] ?? '');
+    return $status === 'active' || ($status === '' && !empty($product['in_stock']));
+}
+
+/**
+ * Возвращает публичный текст и для обычной, и для preorder-кнопки.
  */
 function product_button_label(array $product): string
 {
-    if (!empty($product['status']) && $product['status'] === 'preorder') {
-        return 'Предзаказ';
-    }
-    return 'Купить';
+    return match ((string)($product['status'] ?? '')) {
+        'preorder' => 'Под заказ',
+        'disabled' => 'Выключено',
+        default => product_is_buyable($product) ? 'Купить' : 'Выключено',
+    };
 }
 
 /**

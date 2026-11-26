@@ -1489,6 +1489,9 @@ section.slider {
 .product-short-description { color: #5d5553; font-size: 15px; line-height: 1.7; }
 .product-buy-panel { background: #fbf6f5; margin-top: 24px; padding: 22px; }
 .product-buy-panel .special { margin-bottom: 12px; }
+.product-status { color: #65715e; font-size: 13px; font-weight: 600; letter-spacing: .04em; margin: 0 0 10px; text-transform: uppercase; }
+.product-status--preorder { color: #b47728; }
+.product-status--disabled { color: #8b7470; }
 .product-price-row { align-items: end; display: flex; justify-content: space-between; gap: 16px; margin-bottom: 17px; }
 .product-price-old { color: #a89b99; display: block; font-size: 13px; text-decoration: line-through; }
 .product-price { color: #ba385c !important; display: block; font-size: 29px !important; font-weight: 700; line-height: 1.1; }

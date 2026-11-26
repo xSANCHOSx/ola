@@ -406,6 +406,7 @@ require __DIR__ . '/templates/head.php'; ?>
 	<?php include 'templates/delivery.php'; ?>
 	<?php include 'templates/footer.php'; ?>
 	<?php include 'templates/order_form.php'; ?>
+	<?php include 'templates/preorder_form.php'; ?>
 
 	<!-- All JavaScript libraries -->
 	<script defer src="/js/jquery-3.7.1.min.js"></script>
@@ -426,6 +427,7 @@ require __DIR__ . '/templates/head.php'; ?>
 	</script>
 	<script defer src="/js/cart.js?v=<?= $cssBust('js/cart.js') ?>"></script>
 	<script defer src="/js/cart-init.js"></script>
+	<script defer src="/js/preorder.js?v=<?= $cssBust('js/preorder.js') ?>"></script>
 	<script defer src="/js/jquery.flexslider-min.js"></script>
 	<script defer src="/js/anchor-scroll.js"></script>
 	<script defer src="/js/main.js?v=<?php echo date('Ymd', filemtime(__DIR__ . '/js/main.js')); ?>">

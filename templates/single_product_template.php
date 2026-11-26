@@ -109,7 +109,11 @@ $productSchema = [
         'url' => $siteBaseUrl . '/' . ltrim((string)$currentProduct['link'], '/'),
         'priceCurrency' => 'RUB',
         'price' => (string)$currentProduct['price'],
-        'availability' => $currentProduct['in_stock'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+        'availability' => match (product_status($currentProduct)) {
+            'preorder' => 'https://schema.org/PreOrder',
+            'active' => 'https://schema.org/InStock',
+            default => 'https://schema.org/OutOfStock',
+        }
     ],
 ];
 if ($reviewStats['count'] > 0) {
@@ -192,7 +196,8 @@ require __DIR__ . '/head.php'; ?>
                     </div>
                     <div class="product-divider"></div>
                     <div class="product-short-description"><?= $currentProduct['short_desc'] ?></div>
-                    <div class="product-buy-panel">
+                    <?php $currentProductStatus = product_status($currentProduct); ?>
+                    <div class="product-buy-panel" data-product-status="<?= htmlspecialchars($currentProductStatus, ENT_QUOTES, 'UTF-8') ?>">
                         <?php if (product_is_buyable($currentProduct)): ?>
                             <?php include 'single_special.php'; ?>
                             <div class="product-price-row">
@@ -200,17 +205,21 @@ require __DIR__ . '/head.php'; ?>
                                         class="product-price-old"><?= htmlspecialchars((string)$currentProduct['old_price'], ENT_QUOTES, 'UTF-8') ?>
                                         ₽</span><strong
                                         class="product-price"><?= htmlspecialchars((string)$currentProduct['price'], ENT_QUOTES, 'UTF-8') ?>
-                                        ₽</strong></div><span class="product-stock"><i></i> В наличии</span>
+                                        ₽</strong></div><span class="product-stock"><i></i> <?= htmlspecialchars(product_status_label($currentProduct), ENT_QUOTES, 'UTF-8') ?></span>
                             </div>
-                        <?php elseif (($currentProduct['status'] ?? '') === 'preorder'): ?>
+                        <?php elseif ($currentProductStatus === 'preorder'): ?>
                             <div class="product-price-row"><strong class="product-price">Предзаказ</strong><span
                                     class="product-stock">Доставка 7–14 дней</span></div>
                         <?php else: ?>
                             <div class="product-price-row"><strong class="product-price">Нет в наличии</strong></div>
                         <?php endif; ?>
-                        <button class="b1c product-buy-button"
+                        <button class="b1c product-buy-button<?= $currentProductStatus === 'preorder' ? ' product-buy-button--preorder' : '' ?>"
+                            data-product-id="<?= htmlspecialchars((string)$currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>"
+                            data-product-status="<?= htmlspecialchars($currentProductStatus, ENT_QUOTES, 'UTF-8') ?>"
+                            data-product-name="<?= htmlspecialchars((string)$currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>"
                             <?php if (product_is_buyable($currentProduct)): ?>onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>')"
-                            <?php else: ?>disabled<?php endif; ?>><?= product_button_label($currentProduct) ?><span>→</span></button>
+                            <?php elseif ($currentProductStatus === 'preorder'): ?>type="button" data-preorder-product aria-label="Оставить заявку на <?= htmlspecialchars((string)$currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>"
+                            <?php else: ?>type="button" disabled<?php endif; ?>><?= product_button_label($currentProduct) ?><span>→</span></button>
                         <div class="product-benefits"><span>✓ Оригинал</span><span>✓ Безопасная оплата</span></div>
                     </div>
                     <div class="product-accordion">
@@ -301,6 +310,7 @@ require __DIR__ . '/head.php'; ?>
     <?php include __DIR__ . '/delivery.php'; ?>
     <?php include 'footer.php'; ?>
     <?php include 'order_form.php'; ?>
+    <?php include 'preorder_form.php'; ?>
 
     <script defer src="/js/jquery-3.7.1.min.js"></script>
     <script defer src="/js/bootstrap.min.js"></script>
@@ -311,6 +321,7 @@ require __DIR__ . '/head.php'; ?>
     </script>
     <script defer src="/js/cart.js?v=<?= $cssBust('js/cart.js') ?>"></script>
     <script defer src="/js/cart-init.js"></script>
+    <script defer src="/js/preorder.js?v=<?= $cssBust('js/preorder.js') ?>"></script>
     <script defer src="/js/jquery.flexslider-min.js"></script>
     <script defer src="/js/main.js?v=<?= date('Ymd', filemtime(__DIR__ . '/../js/main.js')) ?>"></script>
     <script>

@@ -15,10 +15,23 @@ function generate_product_feeds(PDO $pdo, ?string $documentRoot = null): array
     $baseUrl = 'https://' . rtrim((string)$domain, '/');
 
     $products = [];
-    $stmt = $pdo->query(
-        'SELECT id AS db_id, external_id, name, old_price, price, image, link, `desc`, in_stock, status
-         FROM products ORDER BY id ASC'
-    );
+    try {
+        $stmt = $pdo->query(
+            'SELECT id AS db_id, external_id, name, old_price, price, image, link, `desc`, in_stock, status
+             FROM products
+             WHERE is_visible = 1
+             ORDER BY id ASC'
+        );
+    } catch (Throwable $visibilityError) {
+        // До применения миграции все существующие товары считаются видимыми.
+        if (function_exists('dev_log_runtime')) {
+            dev_log_runtime('Feed visibility column unavailable, using legacy fallback: ' . $visibilityError->getMessage());
+        }
+        $stmt = $pdo->query(
+            'SELECT id AS db_id, external_id, name, old_price, price, image, link, `desc`, in_stock, status
+             FROM products ORDER BY id ASC'
+        );
+    }
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $productIndexes = [];
     foreach ($rows as $row) {

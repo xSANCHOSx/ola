@@ -1503,6 +1503,21 @@ section.slider {
 .product-description { border-top: 1px solid #eee5e3; color: #5d5553; font-size: 15px; line-height: 1.7; margin-top: 23px; padding-top: 17px; }
 .product-description h2 { color: #2d2928; font-size: 14px; font-weight: 600; margin: 0 0 13px; }
 .product-description p { margin: 0 0 12px; }
+.preorder-modal[hidden] { display: none; }
+.preorder-modal { align-items: center; display: flex; inset: 0; justify-content: center; padding: 20px; position: fixed; z-index: 1100; }
+.preorder-modal__backdrop { background: rgba(45, 41, 40, .55); inset: 0; position: absolute; }
+.preorder-modal__dialog { background: #fff; box-shadow: 0 16px 50px rgba(45, 41, 40, .22); max-width: 460px; padding: 30px; position: relative; width: 100%; z-index: 1; }
+.preorder-modal__dialog h2 { color: #2d2928; font-size: 24px; margin: 0 25px 10px 0; }
+.preorder-modal__close { background: transparent; border: 0; color: #837876; cursor: pointer; font-size: 30px; line-height: 1; position: absolute; right: 16px; top: 12px; }
+.preorder-modal__product { color: #5d5553; font-weight: 600; margin: 0 0 20px; }
+.preorder-modal label { color: #5d5553; display: block; font-size: 13px; margin: 0 0 13px; }
+.preorder-modal label span { color: #ba385c; }
+.preorder-modal label small { color: #837876; }
+.preorder-modal input { border: 1px solid #ddd2cf; box-sizing: border-box; display: block; font: inherit; margin-top: 6px; padding: 11px 12px; width: 100%; }
+.preorder-modal .preorder-honeypot { height: 1px; left: -10000px; opacity: 0; position: absolute; width: 1px; }
+.preorder-form__error { color: #a12e45; font-size: 13px; margin: 8px 0 12px; }
+.preorder-form__success { color: #4f7a4b; font-weight: 600; margin: 12px 0 0; }
+body.preorder-modal-open { overflow: hidden; }
 
 @media (max-width: 900px) {
   .product-layout { gap: 28px; grid-template-columns: minmax(0, 1fr) minmax(300px, .8fr); padding: 18px; }

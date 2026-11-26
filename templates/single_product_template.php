@@ -217,6 +217,7 @@ require __DIR__ . '/head.php'; ?>
                         <?php endif; ?>
                         <button class="b1c product-buy-button<?= ($currentProduct['status'] ?? '') === 'preorder' ? ' product-preorder-button' : '' ?>"
                             <?php if (product_is_buyable($currentProduct)): ?>onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>')"
+                            <?php elseif (($currentProduct['status'] ?? '') === 'preorder'): ?>type="button" onclick="openPreorderModal(this)" data-product-id="<?= htmlspecialchars((string)$currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>" data-product-name="<?= htmlspecialchars((string)$currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>"
                             <?php elseif (($currentProduct['status'] ?? '') === 'disabled'): ?>disabled<?php endif; ?> data-product-status="<?= htmlspecialchars((string)($currentProduct['status'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"><?= product_button_label($currentProduct) ?><span>→</span></button>
                         <div class="product-benefits"><span>✓ Оригинал</span><span>✓ Безопасная оплата</span></div>
                     </div>
@@ -306,6 +307,7 @@ require __DIR__ . '/head.php'; ?>
     </section>
     <?php include __DIR__ . '/slider_in_card.php'; ?>
     <?php include __DIR__ . '/delivery.php'; ?>
+    <?php include __DIR__ . '/preorder_form.php'; ?>
     <?php include 'footer.php'; ?>
     <?php include 'order_form.php'; ?>
 

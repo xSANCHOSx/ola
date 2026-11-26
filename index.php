@@ -246,8 +246,9 @@ require __DIR__ . '/templates/head.php'; ?>
 			</div>
 		</div>
 	</section>
-	<!-- ./ Ending Meet the team section -->
-	<!-- What Customers Say section -->
+		<!-- ./ Ending Meet the team section -->
+		<?php include __DIR__ . '/templates/preorder_form.php'; ?>
+		<!-- What Customers Say section -->
 	<section id="max-testimonial-section">
 		<div class="row">
 			<div class="col-md-12">

@@ -35,7 +35,7 @@
 					<p><a class="name_link" href="<?= $product['link'] ?>"><?= $product['short_desc2'] ?></a></p>
 				<?php endif; ?>
 					<button class="b1c<?= ($product['status'] ?? '') === 'preorder' ? ' product-preorder-button' : '' ?>" <?php if (product_is_buyable($product)): ?>
-						onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$product['id']) ?>')" <?php elseif (($product['status'] ?? '') === 'disabled'): ?> disabled
+						onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$product['id']) ?>')" <?php elseif (($product['status'] ?? '') === 'preorder'): ?> type="button" onclick="openPreorderModal(this)" data-product-id="<?= htmlspecialchars((string)$product['id'], ENT_QUOTES, 'UTF-8') ?>" data-product-name="<?= htmlspecialchars((string)$product['name'], ENT_QUOTES, 'UTF-8') ?>" <?php elseif (($product['status'] ?? '') === 'disabled'): ?> disabled
 						<?php endif; ?> data-product-status="<?= htmlspecialchars((string)($product['status'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
 					<?php echo product_button_label($product); ?>
 				</button>

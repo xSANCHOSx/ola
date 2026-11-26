@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS products (
   `desc` TEXT,
   full_desc MEDIUMTEXT,
   in_stock TINYINT(1) NOT NULL DEFAULT 1,
+  is_visible TINYINT(1) NOT NULL DEFAULT 1,
   status VARCHAR(64) DEFAULT NULL,
   seo_title VARCHAR(255) DEFAULT NULL,
   seo_description VARCHAR(255) DEFAULT NULL,
@@ -59,7 +60,8 @@ CREATE TABLE IF NOT EXISTS products (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_products_link (link),
-  UNIQUE KEY uq_products_external_id (external_id)
+  UNIQUE KEY uq_products_external_id (external_id),
+  KEY idx_products_is_visible (is_visible)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS product_images (

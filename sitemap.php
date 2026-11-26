@@ -21,7 +21,7 @@ $staticPages = [
 $products = [];
 $pdo = dev_db_connection();
 if ($pdo instanceof PDO) {
-    $stmt = $pdo->query('SELECT link, updated_at FROM products WHERE status != "deleted" OR status IS NULL ORDER BY id ASC');
+    $stmt = $pdo->query('SELECT link, updated_at FROM products WHERE is_visible = 1 AND (status != "deleted" OR status IS NULL) ORDER BY id ASC');
     $rows = $stmt->fetchAll();
     foreach ($rows as $row) {
         $products[] = [

@@ -17,7 +17,7 @@ function generate_product_feeds(PDO $pdo, ?string $documentRoot = null): array
     $products = [];
     $stmt = $pdo->query(
         'SELECT id AS db_id, external_id, name, old_price, price, image, link, `desc`, in_stock, status
-         FROM products ORDER BY id ASC'
+         FROM products WHERE is_visible = 1 ORDER BY id ASC'
     );
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $productIndexes = [];

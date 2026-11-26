@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 	$id = (int)($_POST['product_id'] ?? 0);
 	$field = (string)($_POST['field'] ?? '');
 	$value = trim((string)($_POST['value'] ?? ''));
-	$allowed = ['price', 'old_price', 'status', 'in_stock'];
+	$allowed = ['price', 'old_price', 'status', 'in_stock', 'is_visible'];
 	if ($id <= 0 || !in_array($field, $allowed, true)) {
 		http_response_code(400);
 		echo json_encode(['success' => false, 'message' => 'Некорректные параметры'], JSON_UNESCAPED_UNICODE);
@@ -146,9 +146,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		echo json_encode(['success' => false, 'message' => 'Некорректный статус'], JSON_UNESCAPED_UNICODE);
 		exit;
 	}
-	if ($field === 'in_stock' && !in_array($value, ['0', '1'], true)) {
+	if (in_array($field, ['in_stock', 'is_visible'], true) && !in_array($value, ['0', '1'], true)) {
 		http_response_code(422);
-		echo json_encode(['success' => false, 'message' => 'Некорректное значение наличия'], JSON_UNESCAPED_UNICODE);
+		echo json_encode(['success' => false, 'message' => 'Некорректное значение переключателя'], JSON_UNESCAPED_UNICODE);
 		exit;
 	}
 	if (in_array($field, ['price', 'old_price'], true) && (!is_numeric($value) || (float)$value < 0)) {
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		exit;
 	}
 	$stmt = $pdo->prepare("UPDATE products SET `$field` = :value WHERE id = :id");
-	$stmt->execute(['value' => $field === 'in_stock' ? (int)$value : $value, 'id' => $id]);
+	$stmt->execute(['value' => in_array($field, ['in_stock', 'is_visible'], true) ? (int)$value : $value, 'id' => $id]);
 	try {
 		generate_product_feeds($pdo, dirname(__DIR__));
 	} catch (Throwable $e) {
@@ -177,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 	$ids = array_values(array_unique(array_filter(array_map('intval', (array)($_POST['product_ids'] ?? [])))));
 	$field = (string)($_POST['bulk_field'] ?? '');
 	$value = trim((string)($_POST['bulk_value'] ?? ''));
-		if (!$ids || !in_array($field, ['status', 'price', 'in_stock', 'regenerate_slug'], true)) {
+		if (!$ids || !in_array($field, ['status', 'price', 'in_stock', 'is_visible', 'regenerate_slug'], true)) {
 			product_flash('Выберите товары и поле для изменения.', 'warning');
 			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
 			exit;
@@ -223,8 +223,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
 			exit;
 		}
-		if ($field === 'in_stock' && !in_array($value, ['0', '1', 'active', 'disabled'], true)) {
-			product_flash('Выберите корректное значение наличия.', 'danger');
+		if (in_array($field, ['in_stock', 'is_visible'], true) && !in_array($value, ['0', '1', 'active', 'disabled'], true)) {
+			product_flash('Выберите корректное значение переключателя.', 'danger');
 			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
 			exit;
 		}
@@ -234,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 			exit;
 		}
 		$placeholders = implode(',', array_fill(0, count($ids), '?'));
-		$normalizedValue = $field === 'in_stock'
+		$normalizedValue = in_array($field, ['in_stock', 'is_visible'], true)
 			? (int)in_array($value, ['1', 'active'], true)
 			: $value;
 		$params = array_merge([$normalizedValue], $ids);
@@ -275,7 +275,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		$externalId = (string)$source['external_id'] . '-copy-' . $counter++;
 	}
 	$link = unique_product_link($pdo, (string)$source['link'] . '-copy');
-	$copy = $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:status,:seo_title,:seo_description,:volume,:sort_order)');
+	$copy = $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, is_visible, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:is_visible,:status,:seo_title,:seo_description,:volume,:sort_order)');
 	$copy->execute([
 		'external_id' => $externalId,
 		'cat_number' => $source['cat_number'],
@@ -288,6 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		'desc' => $source['desc'],
 		'full_desc' => $source['full_desc'],
 		'in_stock' => $source['in_stock'],
+		'is_visible' => $source['is_visible'] ?? 1,
 		'status' => 'disabled',
 		'seo_title' => $source['seo_title'],
 		'seo_description' => $source['seo_description'],
@@ -371,8 +372,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		'short_desc' => (string)($_POST['short_desc'] ?? ''),
 		'desc' => (string)($_POST['desc'] ?? ''),
 		'full_desc' => (string)($_POST['full_desc'] ?? ''),
-		'in_stock' => !empty($_POST['in_stock']) ? 1 : 0,
-		'status' => trim((string)($_POST['status'] ?? '')),
+			'in_stock' => !empty($_POST['in_stock']) ? 1 : 0,
+			'is_visible' => !empty($_POST['is_visible']) ? 1 : 0,
+			'status' => trim((string)($_POST['status'] ?? '')),
 		'seo_title' => trim((string)($_POST['seo_title'] ?? '')),
 		'seo_description' => trim((string)($_POST['seo_description'] ?? '')),
 			'volume' => trim((string)($_POST['volume'] ?? '')),
@@ -411,9 +413,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 			$oldImage = (string)($oldRecord['image'] ?? '');
 			$oldLink = (string)($oldRecord['link'] ?? '');
 			$data['id'] = $id;
-			$sql = 'UPDATE products SET external_id=:external_id, cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, image=:image, link=:link, short_desc=:short_desc, `desc`=:desc, full_desc=:full_desc, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume, sort_order=:sort_order WHERE id=:id';
+			$sql = 'UPDATE products SET external_id=:external_id, cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, image=:image, link=:link, short_desc=:short_desc, `desc`=:desc, full_desc=:full_desc, in_stock=:in_stock, is_visible=:is_visible, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume, sort_order=:sort_order WHERE id=:id';
 		} else {
-			$sql = 'INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:status,:seo_title,:seo_description,:volume,:sort_order)';
+			$sql = 'INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, is_visible, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:is_visible,:status,:seo_title,:seo_description,:volume,:sort_order)';
 		}
 		$pdo->prepare($sql)->execute($data);
 		$productId = $id > 0 ? $id : (int)$pdo->lastInsertId();
@@ -1210,7 +1212,7 @@ $gallery = [];
 							<div class="status-section">
 								<div class="status-row">
 									<div class="form-group-wrapper">
-										<label for="status">Статус</label>
+									<label for="status">Статус товара</label>
 										<select class="form-control" id="status" name="status">
 											<option value="">Выбрать</option>
 											<option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активный
@@ -1221,14 +1223,15 @@ $gallery = [];
 											</option>
 										</select>
 									</div>
-									<div class="form-group-wrapper">
-										<button type="button" class="status-badge <?= !empty($edit['in_stock']) ? 'active' : 'inactive' ?>"
-											id="inStockToggle" onclick="toggleInStock()">
-											<?= !empty($edit['in_stock']) ? '✓ В наличии' : '✗ Нет' ?>
-										</button>
-										<input type="hidden" id="in_stock" name="in_stock"
-											value="<?= !empty($edit['in_stock']) ? '1' : '0' ?>">
-									</div>
+										<div class="form-group-wrapper">
+											<label for="is_visible">Показывать на сайте</label>
+											<button type="button" class="status-badge <?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? 'active' : 'inactive' ?>"
+												id="visibilityToggle" onclick="toggleVisibility()">
+												<?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? 'Да' : 'Нет' ?>
+											</button>
+											<input type="hidden" id="is_visible" name="is_visible"
+												value="<?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? '1' : '0' ?>">
+										</div>
 								</div>
 							</div>
 							<div class="form-group-wrapper">
@@ -1433,9 +1436,10 @@ $gallery = [];
 					<strong>Массовое изменение:</strong>
 					<select name="bulk_field" id="bulkField" class="form-control input-sm" required>
 						<option value="">Выберите поле</option>
-						<option value="status">Статус наличия</option>
+						<option value="status">Статус товара</option>
 						<option value="price">Цена</option>
 						<option value="in_stock">Флаг «В наличии»</option>
+						<option value="is_visible">Показывать на сайте</option>
 						<option value="regenerate_slug">URL товара</option>
 					</select>
 						<select name="bulk_value" id="bulkValue" class="form-control input-sm" required>
@@ -1443,8 +1447,10 @@ $gallery = [];
 						<option value="active" data-bulk-fields="status">Активный</option>
 						<option value="preorder" data-bulk-fields="status">Под заказ</option>
 						<option value="disabled" data-bulk-fields="status">Нет в наличии</option>
-						<option value="1" data-bulk-fields="in_stock">В наличии (1)</option>
-						<option value="0" data-bulk-fields="in_stock">Нет в наличии (0)</option>
+							<option value="1" data-bulk-fields="in_stock">В наличии (1)</option>
+							<option value="0" data-bulk-fields="in_stock">Нет в наличии (0)</option>
+							<option value="1" data-bulk-fields="is_visible">Показывать: Да</option>
+							<option value="0" data-bulk-fields="is_visible">Показывать: Нет</option>
 						<option value="regenerate" data-bulk-fields="regenerate_slug">Перегенерировать из названия</option>
 						</select>
 						<input type="number" name="bulk_value" id="bulkPrice" class="form-control input-sm" min="0" step="0.01" placeholder="Новая цена" disabled>
@@ -1466,7 +1472,8 @@ $gallery = [];
 							<th>Цена</th>
 							<th>Slug</th>
 							<th>Наличие</th>
-							<th>Статус</th>
+									<th>Статус</th>
+									<th>На сайте</th>
 							<th></th>
 						</tr>
 					</thead>
@@ -1505,9 +1512,10 @@ $gallery = [];
 										role="img"
 										aria-label="<?= admin_h($availability['label']) ?>"><?= admin_h($availability['icon']) ?></span>
 								</td>
-								<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" aria-label="Статус">
-									<?php foreach (['active' => 'Активный', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии'] as $statusValue => $statusText): ?><option value="<?= $statusValue ?>" <?= $st === $statusValue ? 'selected' : '' ?>><?= $statusText ?></option><?php endforeach; ?>
-								</select></td>
+									<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" aria-label="Статус">
+										<?php foreach (['active' => 'Активный', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии'] as $statusValue => $statusText): ?><option value="<?= $statusValue ?>" <?= $st === $statusValue ? 'selected' : '' ?>><?= $statusText ?></option><?php endforeach; ?>
+									</select></td>
+									<td><button type="button" class="status-badge <?= !empty($p['is_visible']) ? 'active' : 'inactive' ?>" data-product-id="<?= (int)$p['id'] ?>" data-value="<?= !empty($p['is_visible']) ? '1' : '0' ?>" onclick="toggleInlineVisibility(this)"><?= !empty($p['is_visible']) ? 'Да' : 'Нет' ?></button></td>
 								<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
 							</tr>
 						<?php endforeach; ?>
@@ -1752,20 +1760,41 @@ $gallery = [];
 			};
 		})();
 
-		// Переключение статуса наличия
-			function toggleInStock() {
-			var toggle = document.getElementById('inStockToggle');
-			var input = document.getElementById('in_stock');
+		// Переключение публичной видимости товара
+			function toggleVisibility() {
+			var toggle = document.getElementById('visibilityToggle');
+			var input = document.getElementById('is_visible');
 			if (toggle.classList.contains('active')) {
 				toggle.classList.replace('active', 'inactive');
-				toggle.textContent = '✗ Нет';
+				toggle.textContent = 'Нет';
 				input.value = '0';
 			} else {
 				toggle.classList.replace('inactive', 'active');
-				toggle.textContent = '✓ В наличии';
+				toggle.textContent = 'Да';
 				input.value = '1';
 			}
 			}
+
+			window.toggleInlineVisibility = function(button) {
+				var nextValue = button.dataset.value === '1' ? '0' : '1';
+				var body = new URLSearchParams({
+					action: 'quick_update',
+					product_id: button.dataset.productId,
+					field: 'is_visible',
+					value: nextValue,
+					csrf_token: document.querySelector('meta[name="csrf-token"]')?.content || ''
+				});
+				fetch('/admin/products.php', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body})
+					.then(function(response) { return response.json(); })
+					.then(function(data) {
+						if (!data.success) throw new Error(data.message || 'Ошибка');
+						button.dataset.value = nextValue;
+						button.textContent = nextValue === '1' ? 'Да' : 'Нет';
+						button.classList.toggle('active', nextValue === '1');
+						button.classList.toggle('inactive', nextValue !== '1');
+					})
+					.catch(function(error) { alert(error.message || 'Не удалось изменить видимость товара.'); });
+			};
 
 			(function() {
 				var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';

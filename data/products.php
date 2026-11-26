@@ -23,7 +23,8 @@ if (!function_exists('save_utm_cookies')) {
 save_utm_cookies();
 
 /**
- * Получить список активных продуктов с кешированием
+ * Получить список видимых продуктов с кешированием.
+ * Статус товара не определяет публикацию: за неё отвечает is_visible.
  */
 function get_products(): array
 {
@@ -42,9 +43,9 @@ function get_products(): array
             $stmt = $pdo->query(
                 'SELECT p.id AS db_id, p.external_id, p.cat_number, p.name, p.old_price, p.price,
                         p.image, p.link, p.short_desc, p.`desc`, p.full_desc,
-                        p.in_stock, p.status, p.seo_title, p.seo_description, p.sort_order, p.volume
+                        p.in_stock, p.is_visible, p.status, p.seo_title, p.seo_description, p.sort_order, p.volume
                  FROM products p
-                 WHERE p.status = "active"
+                 WHERE p.is_visible = 1
                  ORDER BY p.sort_order ASC'
             );
             $productIndexes = [];
@@ -64,6 +65,7 @@ function get_products(): array
                     'full_desc'       => (string)($row['full_desc'] ?? ''),
                     'gallery'         => [],
                     'in_stock'        => (bool)$row['in_stock'],
+                    'is_visible'      => (bool)$row['is_visible'],
                     'sort_order'      => (int)$row['sort_order'],
                     'status'          => $row['status'] !== null ? (string)$row['status'] : null,
                     'seo_title'       => $row['seo_title'] !== null ? (string)$row['seo_title'] : '',

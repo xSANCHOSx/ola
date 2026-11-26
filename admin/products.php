@@ -1184,6 +1184,47 @@ $gallery = [];
 				font-size: 0.9rem;
 			}
 		}
+
+		.visibility-badge {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 38px;
+			height: 32px;
+			padding: 0;
+			border: 0;
+			border-radius: 6px;
+			color: #fff;
+			cursor: pointer;
+			transition: filter 0.15s ease, opacity 0.15s ease;
+		}
+
+		.visibility-badge:hover:not(:disabled) {
+			filter: brightness(0.92);
+		}
+
+		.visibility-badge:disabled {
+			cursor: wait;
+			opacity: 0.65;
+		}
+
+		.visibility-badge.is-visible {
+			background: #28a745;
+		}
+
+		.visibility-badge.is-hidden {
+			background: #dc3545;
+		}
+
+		.visibility-badge svg {
+			width: 18px;
+			height: 18px;
+			fill: none;
+			stroke: currentColor;
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
 	</style>
 </head>
 
@@ -1503,7 +1544,8 @@ $gallery = [];
 							<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" aria-label="Наличие">
 											<?php foreach (['active' => 'В наличии', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии'] as $statusValue => $statusText): ?><option value="<?= $statusValue ?>" <?= $st === $statusValue ? 'selected' : '' ?>><?= $statusText ?></option><?php endforeach; ?>
 								</select></td>
-									<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="is_visible" aria-label="Видимость"><option value="1" <?= !isset($p['is_visible']) || (int)$p['is_visible'] === 1 ? 'selected' : '' ?>>Видим</option><option value="0" <?= isset($p['is_visible']) && (int)$p['is_visible'] === 0 ? 'selected' : '' ?>>Скрыт</option></select></td>
+									<td><?php $isProductVisible = !isset($p['is_visible']) || (int)$p['is_visible'] === 1; ?><button type="button" class="visibility-badge product-inline-field <?= $isProductVisible ? 'is-visible' : 'is-hidden' ?>" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="is_visible" data-value="<?= $isProductVisible ? '1' : '0' ?>" aria-label="<?= $isProductVisible ? 'Скрыть товар' : 'Показать товар' ?>" aria-pressed="<?= $isProductVisible ? 'true' : 'false' ?>" title="<?= $isProductVisible ? 'Видим на сайте' : 'Скрыт с сайта' ?>">
+										<svg viewBox="0 0 24 24" aria-hidden="true"><?php if ($isProductVisible): ?><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle><?php else: ?><path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.7 15.7 0 0 1-3.1 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.2-.9"></path></svg><?php endif; ?></button></td>
 									<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
 							</tr>
 						<?php endforeach; ?>
@@ -1792,18 +1834,37 @@ $gallery = [];
 						bulkField.addEventListener('change', syncBulkValues);
 						syncBulkValues();
 					}
-					document.querySelectorAll('.product-inline-field').forEach(function(field) {
-					field.addEventListener('change', function() {
-						var oldValue = field.getAttribute('data-original') || field.value;
+					function updateVisibilityBadge(button, value) {
+						var isVisible = value === '1';
+						button.dataset.value = value;
+						button.classList.toggle('is-visible', isVisible);
+						button.classList.toggle('is-hidden', !isVisible);
+						button.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+						button.setAttribute('aria-label', isVisible ? 'Скрыть товар' : 'Показать товар');
+						button.title = isVisible ? 'Видим на сайте' : 'Скрыт с сайта';
+						button.innerHTML = isVisible
+							? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+							: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.7 15.7 0 0 1-3.1 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.2-.9"></path></svg>';
+					}
+					function saveInlineField(field, nextValue) {
+						var isBadge = field.tagName === 'BUTTON';
+						var oldValue = isBadge ? field.dataset.value : (field.getAttribute('data-original') || field.value);
+						if (isBadge) updateVisibilityBadge(field, nextValue);
 						field.disabled = true;
-						var body = new URLSearchParams({action: 'quick_update', csrf_token: csrf, product_id: field.dataset.productId, field: field.dataset.quickField, value: field.value});
+						var body = new URLSearchParams({action: 'quick_update', csrf_token: csrf, product_id: field.dataset.productId, field: field.dataset.quickField, value: nextValue});
 						fetch('/admin/products.php', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}, body: body.toString()})
 							.then(function(response) { return response.json().then(function(data) { if (!response.ok || !data.success) throw new Error(data.message || 'Ошибка сохранения'); }); })
-							.then(function() { field.setAttribute('data-original', field.value); field.classList.add('is-valid'); setTimeout(function() { field.classList.remove('is-valid'); }, 1000); })
-							.catch(function(error) { field.value = oldValue; window.alert(error.message); })
+							.then(function() { field.setAttribute('data-original', nextValue); field.classList.add('is-valid'); setTimeout(function() { field.classList.remove('is-valid'); }, 1000); })
+							.catch(function(error) { if (isBadge) updateVisibilityBadge(field, oldValue); else field.value = oldValue; window.alert(error.message); })
 							.finally(function() { field.disabled = false; });
+					}
+					document.querySelectorAll('.product-inline-field').forEach(function(field) {
+						if (field.tagName === 'BUTTON') {
+							field.addEventListener('click', function() { saveInlineField(field, field.dataset.value === '1' ? '0' : '1'); });
+						} else {
+							field.addEventListener('change', function() { saveInlineField(field, field.value); });
+						}
 					});
-				});
 					var duplicateSelected = document.getElementById('duplicateSelectedProduct');
 					if (duplicateSelected) {
 						duplicateSelected.addEventListener('click', function() {

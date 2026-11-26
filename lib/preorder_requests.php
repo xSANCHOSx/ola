@@ -185,3 +185,25 @@ function preorder_ensure_sqlite_index(PDO $pdo, string $name, string $columns): 
         $pdo->exec('CREATE INDEX ' . $safeName . ' ON preorder_requests (' . $columns . ')');
     }
 }
+
+/**
+ * Возвращает true, если такой товар уже заявлялся с этим нормализованным
+ * телефоном в пределах окна защиты от повторной отправки.
+ */
+function preorder_has_recent_duplicate(PDO $pdo, int $productId, string $phone, int $windowSeconds = 600): bool
+{
+    $createdAfter = date('Y-m-d H:i:s', time() - max(1, $windowSeconds));
+    $duplicate = $pdo->prepare(
+        'SELECT id FROM preorder_requests
+         WHERE product_id = :product_id
+           AND customer_phone = :customer_phone
+           AND created_at >= :created_after
+         LIMIT 1'
+    );
+    $duplicate->execute([
+        'product_id' => $productId,
+        'customer_phone' => $phone,
+        'created_after' => $createdAfter,
+    ]);
+    return $duplicate->fetchColumn() !== false;
+}

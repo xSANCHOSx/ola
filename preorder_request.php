@@ -60,19 +60,7 @@ try {
 
     // Защита от двойного клика, повторной отправки формы и ретраев браузера.
     // Телефон нормализован, поэтому разные форматы одного номера не обходят проверку.
-    $duplicate = $pdo->prepare(
-        'SELECT id FROM preorder_requests
-         WHERE product_id = :product_id
-           AND customer_phone = :customer_phone
-           AND created_at >= :created_after
-         LIMIT 1'
-    );
-    $duplicate->execute([
-        'product_id' => (int)$product['id'],
-        'customer_phone' => $normalizedPhone,
-        'created_after' => date('Y-m-d H:i:s', time() - 600),
-    ]);
-    if ($duplicate->fetchColumn() !== false) {
+    if (preorder_has_recent_duplicate($pdo, (int)$product['id'], $normalizedPhone)) {
         $respond(['success' => false, 'message' => 'Такая заявка уже была отправлена недавно. Мы свяжемся с вами.'], 409);
     }
 

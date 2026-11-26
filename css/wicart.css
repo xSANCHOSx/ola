@@ -614,6 +614,65 @@
   padding: 24px 0 0;
 }
 
+.preorder-request-popup h4 {
+  padding-right: 24px;
+  text-align: center;
+}
+
+.preorder-request-popup .close_popup {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.preorder-request-popup .close_popup img {
+  width: 20px;
+  height: 20px;
+}
+
+.preorder-request-product {
+  margin-top: 18px;
+}
+
+.preorder-request-popup label {
+  display: block;
+  width: 100%;
+  margin: 0 0 5px;
+  font-weight: 600;
+}
+
+.preorder-request-popup form {
+  padding-top: 12px;
+}
+
+.preorder-request-popup input[type='text'],
+.preorder-request-popup input[type='tel'],
+.preorder-request-popup input[type='email'] {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 42px;
+  margin: 0 0 12px;
+  padding: 0 12px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.preorder-request-popup input:focus {
+  border-color: #ba385c;
+  outline: none;
+}
+
+.preorder-request-popup [data-preorder-submit] {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+}
+
 .popup input[type='text'],
 .popup input[type='email'] {
   display: block;

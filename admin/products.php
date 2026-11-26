@@ -100,6 +100,14 @@ function products_return_query(): string
 	return $params ? '?' . http_build_query($params) : '';
 }
 
+function product_effective_status(array $product): string
+{
+	$status = (string)($product['status'] ?? '');
+	if ($status === 'preorder') return 'preorder';
+	if ($status === 'disabled' || (int)($product['in_stock'] ?? 0) === 0) return 'disabled';
+	return 'active';
+}
+
 function product_slug_base(string $value): string
 {
 	return trim(normalize_product_link($value), '/');
@@ -517,7 +525,7 @@ if ($pdo instanceof PDO) {
 		$params['search_link'] = $searchValue;
 	}
 	if ($statusFilter !== '') {
-		$where[] = 'status = :status_filter';
+		$where[] = "(CASE WHEN status = 'preorder' THEN 'preorder' WHEN status = 'disabled' OR COALESCE(in_stock, 0) = 0 THEN 'disabled' ELSE 'active' END) = :status_filter";
 		$params['status_filter'] = $statusFilter;
 	}
 	$whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
@@ -1534,7 +1542,7 @@ $gallery = [];
 					</thead>
 					<tbody id="sortable-products">
 						<?php foreach ($products as $i => $p):
-							$st = (string)($p['status'] ?? '');
+							$st = product_effective_status($p);
 							$rowClass = match ($st) {
 								'active'   => 'table-row-active',
 								'preorder' => 'table-row-preorder',

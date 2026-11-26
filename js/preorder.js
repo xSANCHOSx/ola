@@ -83,7 +83,13 @@
                 })
                 .then(function () {
                     form.reset();
-                    success.hidden = false;
+                    var successMessage = success.textContent.trim() || 'Заявка отправлена. Мы свяжемся с вами.';
+                    if (window.cart && typeof window.cart.showToast === 'function') {
+                        closeModal();
+                        window.cart.showToast(successMessage);
+                    } else {
+                        success.hidden = false;
+                    }
                 })
                 .catch(function (requestError) {
                     error.textContent = requestError.message || 'Не удалось отправить заявку.';

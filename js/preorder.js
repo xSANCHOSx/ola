@@ -68,7 +68,16 @@
             fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } })
                 .then(function (response) {
                     return response.json().then(function (payload) {
-                        if (!response.ok || !payload.success) throw new Error(payload.message || 'Не удалось отправить заявку.');
+                        if (!response.ok || !payload.success) {
+                            var fieldLabels = { product_id: 'Товар', name: 'Имя', phone: 'Телефон', email: 'Email' };
+                            var details = Object.keys(payload.errors || {}).map(function (field) {
+                                var label = fieldLabels[field] || 'Поле';
+                                return label + ': ' + payload.errors[field];
+                            });
+                            var message = payload.message || 'Не удалось отправить заявку.';
+                            if (details.length) message += ' ' + details.join(' ');
+                            throw new Error(message);
+                        }
                         return payload;
                     });
                 })

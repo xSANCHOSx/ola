@@ -18,10 +18,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 if (!validate_csrf_token()) {
     $respond(['success' => false, 'message' => 'Сессия формы устарела. Обновите страницу.'], 403);
 }
-if (trim((string)($_POST['website'] ?? '')) !== '') {
-    // Не раскрываем автоматике факт срабатывания honeypot.
-    $respond(['success' => true, 'message' => 'Заявка принята.']);
-}
 
 $length = static function (string $value): int {
     return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);

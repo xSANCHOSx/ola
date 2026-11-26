@@ -20,12 +20,21 @@
             form.reset();
             productId.value = button.getAttribute('data-product-id') || '';
             productName.value = button.getAttribute('data-product-name') || 'Выбранный товар';
-            modal.style.display = 'block';
-            modal.classList.add('active');
+            if (window.cart && window.cart.ui && typeof window.cart.ui.ensureBasketModal === 'function') {
+                window.cart.ui.ensureBasketModal();
+                window.cart.showWinow('preorder-request', 1);
+            } else {
+                modal.style.display = 'block';
+                modal.classList.add('active');
+            }
         };
         var closeModal = function () {
-            modal.classList.remove('active');
-            modal.style.display = 'none';
+            if (window.cart && window.cart.ui && typeof window.cart.ui.ensureBasketModal === 'function') {
+                window.cart.closeWindow('preorder-request', 1);
+            } else {
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            }
         };
 
         document.addEventListener('click', function (event) {

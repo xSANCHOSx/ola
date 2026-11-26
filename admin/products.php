@@ -462,6 +462,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		if ($pdo->inTransaction()) {
 			$pdo->rollBack();
 		}
+		dev_log_runtime('Product save failed: ' . $e->getMessage());
 		foreach ($createdFiles as $createdFile) {
 			delete_product_image_file($createdFile);
 		}

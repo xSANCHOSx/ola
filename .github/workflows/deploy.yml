@@ -91,6 +91,23 @@ jobs:
             -e "ssh -i ~/.ssh/deploy_key -p $PORT -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15" \
             ./ "$DEPLOY_USER@$DEPLOY_HOST:$TEMP_DIR/"
 
+      - name: Run one-time product schema migration
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -eu
+          PORT="${DEPLOY_PORT:-22}"
+          TEMP_DIR="/home/c/cs16144/www452/temp"
+          ssh -i ~/.ssh/deploy_key \
+            -p "$PORT" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "php '$TEMP_DIR/database/migrate_product_status.php' && rm -f '$TEMP_DIR/database/migrate_product_status.php'"
+
       - name: Sync temp to public_html
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}

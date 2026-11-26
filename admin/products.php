@@ -1212,10 +1212,10 @@ $gallery = [];
 							<div class="status-section">
 								<div class="status-row">
 									<div class="form-group-wrapper">
-										<label for="status">Статус</label>
+											<label for="status">Наличие</label>
 										<select class="form-control" id="status" name="status">
 											<option value="">Выбрать</option>
-											<option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активный
+												<option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>В наличии
 											</option>
 								<option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Под заказ
 								</option>
@@ -1224,19 +1224,19 @@ $gallery = [];
 										</select>
 									</div>
 									<div class="form-group-wrapper">
-										<button type="button" class="status-badge <?= !empty($edit['in_stock']) ? 'active' : 'inactive' ?>"
-											id="inStockToggle" onclick="toggleInStock()">
-											<?= !empty($edit['in_stock']) ? '✓ В наличии' : '✗ Нет' ?>
-										</button>
-										<input type="hidden" id="in_stock" name="in_stock"
-											value="<?= !empty($edit['in_stock']) ? '1' : '0' ?>">
+										<label for="visibilityToggle">Видимость на сайте</label>
+										<button type="button" class="status-badge <?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? 'active' : 'inactive' ?>"
+												id="visibilityToggle" onclick="toggleVisibility()">
+												<?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? '✓ Да' : '✗ Нет' ?>
+											</button>
+											<input type="hidden" id="is_visible" name="is_visible"
+												value="<?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? '1' : '0' ?>">
+											<input type="hidden" name="in_stock" value="<?= !isset($edit['in_stock']) || !empty($edit['in_stock']) ? '1' : '0' ?>">
+										</div>
 									</div>
 								</div>
-							</div>
-							<div class="form-group-wrapper">
-								<label><input type="checkbox" name="is_visible" value="1" <?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? 'checked' : '' ?>> Показывать товар на сайте</label>
-								<small class="text-muted d-block">Видимость не зависит от статуса товара.</small>
-								<label for="sort_order">Порядок сортировки <small style="color:#888;font-weight:normal">(устанавливается
+								<div class="form-group-wrapper">
+									<label for="sort_order">Порядок сортировки <small style="color:#888;font-weight:normal">(устанавливается
 										перетягиванием в списке)</small></label>
 								<input type="number" class="form-control" id="sort_order" name="sort_order"
 									value="<?= admin_h((string)($edit['sort_order'] ?? '0')) ?>">
@@ -1410,7 +1410,7 @@ $gallery = [];
 					<input id="productSearch" name="q" class="form-control input-sm" value="<?= admin_h($search) ?>" placeholder="Название, ID, код, slug">
 					<select name="status_filter" class="form-control input-sm" aria-label="Фильтр наличия">
 						<option value="">Все товары</option>
-						<option value="active" <?= $statusFilter === 'active' ? 'selected' : '' ?>>Активный</option>
+					<option value="active" <?= $statusFilter === 'active' ? 'selected' : '' ?>>В наличии</option>
 						<option value="preorder" <?= $statusFilter === 'preorder' ? 'selected' : '' ?>>Под заказ</option>
 						<option value="disabled" <?= $statusFilter === 'disabled' ? 'selected' : '' ?>>Нет в наличии</option>
 					</select>
@@ -1437,21 +1437,18 @@ $gallery = [];
 					<strong>Массовое изменение:</strong>
 					<select name="bulk_field" id="bulkField" class="form-control input-sm" required>
 						<option value="">Выберите поле</option>
-						<option value="status">Статус наличия</option>
+						<option value="status">Наличие</option>
 						<option value="price">Цена</option>
-						<option value="in_stock">Флаг «В наличии»</option>
-							<option value="is_visible">Видимость на сайте</option>
+						<option value="is_visible">Видимость на сайте</option>
 						<option value="regenerate_slug">URL товара</option>
 					</select>
 						<select name="bulk_value" id="bulkValue" class="form-control input-sm" required>
 						<option value="">Выберите значение</option>
-						<option value="active" data-bulk-fields="status">Активный</option>
+						<option value="active" data-bulk-fields="status">В наличии</option>
 						<option value="preorder" data-bulk-fields="status">Под заказ</option>
 						<option value="disabled" data-bulk-fields="status">Нет в наличии</option>
-						<option value="1" data-bulk-fields="in_stock">В наличии (1)</option>
-						<option value="0" data-bulk-fields="in_stock">Нет в наличии (0)</option>
-							<option value="1" data-bulk-fields="is_visible">Показывать на сайте</option>
-							<option value="0" data-bulk-fields="is_visible">Скрыть с сайта</option>
+						<option value="1" data-bulk-fields="is_visible">Показывать на сайте</option>
+						<option value="0" data-bulk-fields="is_visible">Скрыть с сайта</option>
 						<option value="regenerate" data-bulk-fields="regenerate_slug">Перегенерировать из названия</option>
 						</select>
 						<input type="number" name="bulk_value" id="bulkPrice" class="form-control input-sm" min="0" step="0.01" placeholder="Новая цена" disabled>
@@ -1472,9 +1469,8 @@ $gallery = [];
 							<th>Объем</th>
 							<th>Цена</th>
 							<th>Slug</th>
-								<th>Наличие</th>
-								<th>Статус</th>
-								<th>Видимость</th>
+							<th>Наличие</th>
+							<th>Видимость</th>
 								<th></th>
 						</tr>
 					</thead>
@@ -1488,16 +1484,13 @@ $gallery = [];
 								default    => '',
 							};
 							$statusLabel = match ($st) {
-								'active'   => 'Активный',
+								'active'   => 'В наличии',
 								'preorder' => 'Под заказ',
 								'disabled' => 'Нет в наличии',
 								default    => '—',
 							};
-							$availability = !empty($p['in_stock'])
-								? ['class' => 'active', 'icon' => '✓', 'label' => 'В наличии']
-								: ['class' => 'disabled', 'icon' => '×', 'label' => 'Нет в наличии'];
 						?>
-							<tr data-id="<?= (int)$p['id'] ?>" data-availability="<?= admin_h($availability['class']) ?>" class="<?= $rowClass ?>">
+							<tr data-id="<?= (int)$p['id'] ?>" data-availability="<?= admin_h($st) ?>" class="<?= $rowClass ?>">
 								<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
 								<td><input type="checkbox" name="product_ids[]" value="<?= (int)$p['id'] ?>" class="product-select" aria-label="Выбрать товар"></td>
 								<td class="row-position" style=" display:none;"><?= $i + 1 ?></td>
@@ -1507,15 +1500,9 @@ $gallery = [];
 								<td><?= admin_h((string)$p['volume']) ?></td>
 								<td><input class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="price" type="number" step="0.01" min="0" value="<?= admin_h((string)$p['price']) ?>" aria-label="Цена"></td>
 								<td><?= admin_h((string)$p['link']) ?></td>
-								<td>
-									<span class="product-availability product-availability--<?= admin_h($availability['class']) ?>"
-										title="<?= admin_h($availability['label']) ?>"
-										role="img"
-										aria-label="<?= admin_h($availability['label']) ?>"><?= admin_h($availability['icon']) ?></span>
-								</td>
-									<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" aria-label="Статус">
-										<?php foreach (['active' => 'Активный', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии'] as $statusValue => $statusText): ?><option value="<?= $statusValue ?>" <?= $st === $statusValue ? 'selected' : '' ?>><?= $statusText ?></option><?php endforeach; ?>
-									</select></td>
+							<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" aria-label="Наличие">
+											<?php foreach (['active' => 'В наличии', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии'] as $statusValue => $statusText): ?><option value="<?= $statusValue ?>" <?= $st === $statusValue ? 'selected' : '' ?>><?= $statusText ?></option><?php endforeach; ?>
+								</select></td>
 									<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="is_visible" aria-label="Видимость"><option value="1" <?= !isset($p['is_visible']) || (int)$p['is_visible'] === 1 ? 'selected' : '' ?>>Видим</option><option value="0" <?= isset($p['is_visible']) && (int)$p['is_visible'] === 0 ? 'selected' : '' ?>>Скрыт</option></select></td>
 									<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
 							</tr>
@@ -1761,17 +1748,17 @@ $gallery = [];
 			};
 		})();
 
-		// Переключение статуса наличия
-			function toggleInStock() {
-			var toggle = document.getElementById('inStockToggle');
-			var input = document.getElementById('in_stock');
+		// Переключение видимости товара на сайте
+			function toggleVisibility() {
+			var toggle = document.getElementById('visibilityToggle');
+			var input = document.getElementById('is_visible');
 			if (toggle.classList.contains('active')) {
 				toggle.classList.replace('active', 'inactive');
 				toggle.textContent = '✗ Нет';
 				input.value = '0';
 			} else {
 				toggle.classList.replace('inactive', 'active');
-				toggle.textContent = '✓ В наличии';
+				toggle.textContent = '✓ Да';
 				input.value = '1';
 			}
 			}

@@ -136,6 +136,14 @@
    ============================================================ */
 @media (max-width: 767px) {
 
+    /* Use the available mobile width instead of Bootstrap's centered max-width container. */
+    body > .container {
+        width: 100%;
+        max-width: none;
+        padding-right: 8px;
+        padding-left: 8px;
+    }
+
     .admin-nav {
         padding: 8px 0;
         margin-bottom: 16px;

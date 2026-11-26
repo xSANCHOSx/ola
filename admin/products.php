@@ -1127,6 +1127,23 @@ $gallery = [];
 		}
 
 		@media (max-width: 768px) {
+			.products-availability-filter {
+				width: 100%;
+				min-width: 0;
+				margin-left: 0;
+				flex-wrap: wrap;
+			}
+
+			.products-availability-filter label,
+			.products-availability-filter input,
+			.products-availability-filter select {
+				flex: 1 1 100%;
+				width: 100%;
+				min-width: 0;
+				max-width: 100%;
+				box-sizing: border-box;
+			}
+
 			.product-form-top {
 				grid-template-columns: 1fr;
 			}

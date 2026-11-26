@@ -1185,7 +1185,8 @@ $gallery = [];
 			}
 		}
 
-		.visibility-badge {
+		.visibility-badge,
+		.availability-badge {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
@@ -1199,11 +1200,13 @@ $gallery = [];
 			transition: filter 0.15s ease, opacity 0.15s ease;
 		}
 
-		.visibility-badge:hover:not(:disabled) {
+		.visibility-badge:hover:not(:disabled),
+		.availability-badge:hover:not(:disabled) {
 			filter: brightness(0.92);
 		}
 
-		.visibility-badge:disabled {
+		.visibility-badge:disabled,
+		.availability-badge:disabled {
 			cursor: wait;
 			opacity: 0.65;
 		}
@@ -1216,7 +1219,20 @@ $gallery = [];
 			background: #dc3545;
 		}
 
-		.visibility-badge svg {
+		.availability-badge.is-active {
+			background: #28a745;
+		}
+
+		.availability-badge.is-preorder {
+			background: #f0ad4e;
+		}
+
+		.availability-badge.is-disabled {
+			background: #dc3545;
+		}
+
+		.visibility-badge svg,
+		.availability-badge svg {
 			width: 18px;
 			height: 18px;
 			fill: none;
@@ -1541,9 +1557,8 @@ $gallery = [];
 								<td><?= admin_h((string)$p['volume']) ?></td>
 								<td><input class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="price" type="number" step="0.01" min="0" value="<?= admin_h((string)$p['price']) ?>" aria-label="Цена"></td>
 								<td><?= admin_h((string)$p['link']) ?></td>
-							<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" aria-label="Наличие">
-											<?php foreach (['active' => 'В наличии', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии'] as $statusValue => $statusText): ?><option value="<?= $statusValue ?>" <?= $st === $statusValue ? 'selected' : '' ?>><?= $statusText ?></option><?php endforeach; ?>
-								</select></td>
+							<td><?php $productStatusLabels = ['active' => 'В наличии', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии']; $productStatus = isset($productStatusLabels[$st]) ? $st : 'disabled'; ?><button type="button" class="availability-badge product-inline-field <?= 'is-' . $productStatus ?>" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" data-value="<?= admin_h($productStatus) ?>" aria-label="Наличие: <?= admin_h($productStatusLabels[$productStatus]) ?>. Нажмите, чтобы изменить" title="<?= admin_h($productStatusLabels[$productStatus]) ?>">
+									<?php if ($productStatus === 'active'): ?><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg><?php elseif ($productStatus === 'preorder'): ?><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><?php else: ?><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg><?php endif; ?></button></td>
 									<td><?php $isProductVisible = !isset($p['is_visible']) || (int)$p['is_visible'] === 1; ?><button type="button" class="visibility-badge product-inline-field <?= $isProductVisible ? 'is-visible' : 'is-hidden' ?>" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="is_visible" data-value="<?= $isProductVisible ? '1' : '0' ?>" aria-label="<?= $isProductVisible ? 'Скрыть товар' : 'Показать товар' ?>" aria-pressed="<?= $isProductVisible ? 'true' : 'false' ?>" title="<?= $isProductVisible ? 'Видим на сайте' : 'Скрыт с сайта' ?>">
 										<svg viewBox="0 0 24 24" aria-hidden="true"><?php if ($isProductVisible): ?><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle><?php else: ?><path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.7 15.7 0 0 1-3.1 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.2-.9"></path></svg><?php endif; ?></button></td>
 									<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
@@ -1846,21 +1861,49 @@ $gallery = [];
 							? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
 							: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.7 15.7 0 0 1-3.1 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.2-.9"></path></svg>';
 					}
+					function updateAvailabilityBadge(button, value) {
+						var labels = {active: 'В наличии', preorder: 'Под заказ', disabled: 'Нет в наличии'};
+						var icons = {
+							active: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>',
+							preorder: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>',
+							disabled: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg>'
+						};
+						button.dataset.value = value;
+						button.classList.remove('is-active', 'is-preorder', 'is-disabled');
+						button.classList.add('is-' + value);
+						button.setAttribute('aria-label', 'Наличие: ' + labels[value] + '. Нажмите, чтобы изменить');
+						button.title = labels[value];
+						button.innerHTML = icons[value];
+					}
 					function saveInlineField(field, nextValue) {
 						var isBadge = field.tagName === 'BUTTON';
 						var oldValue = isBadge ? field.dataset.value : (field.getAttribute('data-original') || field.value);
-						if (isBadge) updateVisibilityBadge(field, nextValue);
+						if (isBadge && field.dataset.quickField === 'is_visible') updateVisibilityBadge(field, nextValue);
+						if (isBadge && field.dataset.quickField === 'status') updateAvailabilityBadge(field, nextValue);
 						field.disabled = true;
 						var body = new URLSearchParams({action: 'quick_update', csrf_token: csrf, product_id: field.dataset.productId, field: field.dataset.quickField, value: nextValue});
 						fetch('/admin/products.php', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}, body: body.toString()})
 							.then(function(response) { return response.json().then(function(data) { if (!response.ok || !data.success) throw new Error(data.message || 'Ошибка сохранения'); }); })
 							.then(function() { field.setAttribute('data-original', nextValue); field.classList.add('is-valid'); setTimeout(function() { field.classList.remove('is-valid'); }, 1000); })
-							.catch(function(error) { if (isBadge) updateVisibilityBadge(field, oldValue); else field.value = oldValue; window.alert(error.message); })
+							.catch(function(error) {
+								if (isBadge && field.dataset.quickField === 'is_visible') updateVisibilityBadge(field, oldValue);
+								else if (isBadge && field.dataset.quickField === 'status') updateAvailabilityBadge(field, oldValue);
+								else field.value = oldValue;
+								window.alert(error.message);
+							})
 							.finally(function() { field.disabled = false; });
 					}
-					document.querySelectorAll('.product-inline-field').forEach(function(field) {
-						if (field.tagName === 'BUTTON') {
-							field.addEventListener('click', function() { saveInlineField(field, field.dataset.value === '1' ? '0' : '1'); });
+						document.querySelectorAll('.product-inline-field').forEach(function(field) {
+							if (field.tagName === 'BUTTON') {
+								field.addEventListener('click', function() {
+									if (field.dataset.quickField === 'status') {
+										var statusCycle = ['active', 'preorder', 'disabled'];
+										var currentIndex = statusCycle.indexOf(field.dataset.value);
+										saveInlineField(field, statusCycle[(currentIndex + 1) % statusCycle.length]);
+									} else {
+										saveInlineField(field, field.dataset.value === '1' ? '0' : '1');
+									}
+								});
 						} else {
 							field.addEventListener('change', function() { saveInlineField(field, field.value); });
 						}

@@ -82,6 +82,7 @@ function admin_permission_catalog(): array
         'blog' => ['label' => 'Блог', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Редактирование', 'delete' => 'Удаление']],
         'coupons' => ['label' => 'Купоны', 'actions' => ['view' => 'Просмотр', 'create' => 'Создание', 'edit' => 'Редактирование', 'delete' => 'Удаление']],
         'stats' => ['label' => 'Статистика', 'actions' => ['view' => 'Просмотр']],
+        'preorders' => ['label' => 'Товары под заказ', 'actions' => ['view' => 'Просмотр', 'edit' => 'Обработка заявок']],
     ];
 }
 
@@ -111,6 +112,7 @@ function admin_default_path(): string
         'blog' => '/admin/blog.php',
         'coupons' => '/admin/coupons.php',
         'stats' => '/admin/stats.php',
+        'preorders' => '/admin/preorders.php',
     ];
     foreach ($available as $section => $path) {
         if (admin_can($section, 'view')) return $path;

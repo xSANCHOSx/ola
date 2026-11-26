@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS products (
   full_desc MEDIUMTEXT,
   in_stock TINYINT(1) NOT NULL DEFAULT 1,
   status VARCHAR(64) DEFAULT NULL,
+  is_visible TINYINT(1) NOT NULL DEFAULT 1,
   seo_title VARCHAR(255) DEFAULT NULL,
   seo_description VARCHAR(255) DEFAULT NULL,
   volume VARCHAR(255) DEFAULT NULL,
@@ -133,4 +134,27 @@ CREATE TABLE IF NOT EXISTS order_items (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   KEY idx_order_items_order_id (order_id),
   CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS preorder_requests (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  product_id BIGINT UNSIGNED NOT NULL,
+  product_external_id VARCHAR(32) NOT NULL,
+  product_name_snapshot VARCHAR(255) NOT NULL,
+  product_cat_number_snapshot VARCHAR(120) DEFAULT NULL,
+  customer_name VARCHAR(255) NOT NULL,
+  customer_phone VARCHAR(64) NOT NULL,
+  customer_email VARCHAR(255) DEFAULT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'new',
+  manager_comment TEXT DEFAULT NULL,
+  processed_at DATETIME DEFAULT NULL,
+  processed_by INT UNSIGNED DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_preorder_requests_status_created (status, created_at),
+  KEY idx_preorder_requests_product_created (product_id, created_at),
+  KEY idx_preorder_requests_processed_by (processed_by),
+  CONSTRAINT fk_preorder_requests_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_preorder_requests_admin FOREIGN KEY (processed_by) REFERENCES admin_users(id) ON DELETE SET NULL,
+  CONSTRAINT chk_preorder_requests_status CHECK (status IN ('new', 'in_progress', 'processed', 'cancelled'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -23,7 +23,8 @@ if (!function_exists('save_utm_cookies')) {
 save_utm_cookies();
 
 /**
- * Получить список активных продуктов с кешированием
+ * Получить список видимых продуктов с кешированием.
+ * Статус товара (active/preorder/disabled) не определяет его видимость.
  */
 function get_products(): array
 {
@@ -36,17 +37,32 @@ function get_products(): array
     $pdo = dev_db_connection();
     if ($pdo instanceof PDO) {
         try {
-            // ИСПРАВЛЕНО: добавлена запятая перед sort_order
-            // ИСПРАВЛЕНО: ORDER BY p.sort_order — явная ссылка на колонку таблицы,
-            //             а не на алиас из SELECT (MySQL иначе сортирует по алиасу)
-            $stmt = $pdo->query(
-                'SELECT p.id AS db_id, p.external_id, p.cat_number, p.name, p.old_price, p.price,
-                        p.image, p.link, p.short_desc, p.`desc`, p.full_desc,
-                        p.in_stock, p.status, p.seo_title, p.seo_description, p.sort_order, p.volume
-                 FROM products p
-                 WHERE p.status = "active"
-                 ORDER BY p.sort_order ASC'
-            );
+            // Публичная выборка не зависит от статуса: видимость управляется
+            // отдельным полем, а active/preorder/disabled отображаются по-разному.
+            $select = 'SELECT p.id AS db_id, p.external_id, p.cat_number, p.name, p.old_price, p.price,
+                              p.image, p.link, p.short_desc, p.`desc`, p.full_desc,
+                              p.in_stock, p.status, p.is_visible, p.seo_title, p.seo_description,
+                              p.sort_order, p.volume
+                       FROM products p
+                       WHERE p.is_visible = 1
+                         AND (p.status IN ("active", "preorder", "disabled") OR p.status IS NULL)
+                       ORDER BY p.sort_order ASC';
+            try {
+                $stmt = $pdo->query($select);
+            } catch (Throwable $visibilityError) {
+                // До применения миграции старые инсталляции остаются рабочими:
+                // отсутствие колонки трактуется как видимость всех товаров.
+                dev_log_runtime('Product visibility column unavailable, using legacy fallback: ' . $visibilityError->getMessage());
+                $stmt = $pdo->query(
+                    'SELECT p.id AS db_id, p.external_id, p.cat_number, p.name, p.old_price, p.price,
+                            p.image, p.link, p.short_desc, p.`desc`, p.full_desc,
+                            p.in_stock, p.status, 1 AS is_visible, p.seo_title, p.seo_description,
+                            p.sort_order, p.volume
+                     FROM products p
+                     WHERE (p.status IN ("active", "preorder", "disabled") OR p.status IS NULL)
+                     ORDER BY p.sort_order ASC'
+                );
+            }
             $productIndexes = [];
             foreach ($stmt->fetchAll() as $row) {
                 $productIndexes[(int)$row['db_id']] = count($cache);
@@ -66,6 +82,7 @@ function get_products(): array
                     'in_stock'        => (bool)$row['in_stock'],
                     'sort_order'      => (int)$row['sort_order'],
                     'status'          => $row['status'] !== null ? (string)$row['status'] : null,
+                    'is_visible'      => (bool)($row['is_visible'] ?? true),
                     'seo_title'       => $row['seo_title'] !== null ? (string)$row['seo_title'] : '',
 'seo_description' => $row['seo_description'] !== null ? (string)$row['seo_description'] : '',
                         'volume'          => $row['volume'] !== null ? (string)$row['volume'] : '',

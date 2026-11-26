@@ -1,0 +1,39 @@
+name: PHP Tests
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - 'feature/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preorder-protection:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP with SQLite
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_sqlite
+          coverage: none
+
+      - name: PHP lint
+        run: |
+          set -eu
+          while IFS= read -r file; do
+            php -l "$file"
+          done < <(find . -type f -name '*.php' -not -path './.git/*' | sort)
+
+      - name: Preorder protection tests
+        run: php tests/preorder_protection_test.php

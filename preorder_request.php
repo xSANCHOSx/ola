@@ -22,12 +22,12 @@ if (!validate_csrf_token()) {
 $length = static function (string $value): int {
     return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
 };
-$productId = (int)($_POST['product_id'] ?? 0);
+$productReference = trim((string)($_POST['product_id'] ?? ''));
 $name = trim((string)($_POST['name'] ?? ''));
 $phone = trim((string)($_POST['phone'] ?? ''));
 $email = trim((string)($_POST['email'] ?? ''));
 $errors = [];
-if ($productId <= 0) $errors['product_id'] = 'Не удалось определить товар.';
+if ($productReference === '') $errors['product_id'] = 'Не удалось определить товар.';
 if ($name === '' || $length($name) < 2 || $length($name) > 255) $errors['name'] = 'Укажите имя.';
 $normalizedPhone = validate_phone($phone);
 if ($normalizedPhone === null) $errors['phone'] = 'Укажите корректный телефон.';
@@ -42,14 +42,39 @@ if (!check_rate_limit('preorder:' . (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown
 try {
     $pdo = dev_db_connection();
     ensure_preorder_requests_table($pdo);
-    $productStmt = $pdo->prepare(
-        'SELECT id, external_id, name, cat_number
-         FROM products
-         WHERE id = :id AND is_visible = 1 AND status = :status
-         LIMIT 1'
-    );
-    $productStmt->execute(['id' => $productId, 'status' => 'preorder']);
-    $product = $productStmt->fetch(PDO::FETCH_ASSOC);
+    $product = false;
+    if (preg_match('/^db:([1-9][0-9]*)$/D', $productReference, $matches)) {
+        $productStmt = $pdo->prepare(
+            'SELECT id, external_id, name, cat_number
+             FROM products
+             WHERE id = :id AND is_visible = 1 AND status = :status
+             LIMIT 1'
+        );
+        $productStmt->execute(['id' => (int)$matches[1], 'status' => 'preorder']);
+        $product = $productStmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+        // Старые/cached страницы передавали external_id вместо products.id.
+        $productStmt = $pdo->prepare(
+            'SELECT id, external_id, name, cat_number
+             FROM products
+             WHERE external_id = :external_id AND is_visible = 1 AND status = :status
+             LIMIT 1'
+        );
+        $productStmt->execute(['external_id' => $productReference, 'status' => 'preorder']);
+        $product = $productStmt->fetch(PDO::FETCH_ASSOC);
+
+        // Также принимаем legacy-клиенты, отправлявшие числовой database ID без префикса.
+        if (!$product && ctype_digit($productReference)) {
+            $productStmt = $pdo->prepare(
+                'SELECT id, external_id, name, cat_number
+                 FROM products
+                 WHERE id = :id AND is_visible = 1 AND status = :status
+                 LIMIT 1'
+            );
+            $productStmt->execute(['id' => (int)$productReference, 'status' => 'preorder']);
+            $product = $productStmt->fetch(PDO::FETCH_ASSOC);
+        }
+    }
     if (!$product) {
         $respond(['success' => false, 'message' => 'Товар больше недоступен для заявки.'], 404);
     }

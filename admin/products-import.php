@@ -34,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $line = 1;
                 try {
                     $findStmt = $pdo->prepare('SELECT id FROM products WHERE external_id = :external_id LIMIT 1');
-                    $updateStmt = $pdo->prepare('UPDATE products SET cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, link=:link, in_stock=:in_stock, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume WHERE id=:id');
-                    $insertStmt = $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, link, in_stock, status, seo_title, seo_description, volume) VALUES (:external_id,:cat_number,:name,:old_price,:price,:link,:in_stock,:status,:seo_title,:seo_description,:volume)');
+                    $updateStmt = $pdo->prepare('UPDATE products SET cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, link=:link, in_stock=:in_stock, status=:status, is_visible=:is_visible, seo_title=:seo_title, seo_description=:seo_description, volume=:volume WHERE id=:id');
+                    $insertStmt = $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, link, in_stock, status, is_visible, seo_title, seo_description, volume) VALUES (:external_id,:cat_number,:name,:old_price,:price,:link,:in_stock,:status,:is_visible,:seo_title,:seo_description,:volume)');
                     $pdo->beginTransaction();
                     while (($values = fgetcsv($handle, 0, $delimiter)) !== false) {
                         $line++;
@@ -54,6 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (!in_array($status, ['active', 'preorder', 'disabled'], true)) {
                             throw new InvalidArgumentException('Строка ' . $line . ': указан некорректный status.');
                         }
+                        $isVisible = $row['is_visible'] ?? '1';
+                        if (!in_array($isVisible, ['0', '1'], true)) {
+                            throw new InvalidArgumentException('Строка ' . $line . ': is_visible должен быть равен 0 или 1.');
+                        }
                         if (($row['old_price'] ?? '') !== '' && (!is_numeric($row['old_price']) || (float)$row['old_price'] < 0)) {
                             throw new InvalidArgumentException('Строка ' . $line . ': указана некорректная old_price.');
                         }
@@ -63,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'external_id' => $row['external_id'], 'cat_number' => $row['cat_number'] ?? '', 'name' => $row['name'],
                             'old_price' => is_numeric($row['old_price'] ?? '') ? (float)$row['old_price'] : 0, 'price' => (float)$row['price'],
                             'link' => $row['link'], 'in_stock' => (int)$inStock,
-                            'status' => $status,
+                            'status' => $status, 'is_visible' => (int)$isVisible,
                             'seo_title' => $row['seo_title'] ?? '', 'seo_description' => $row['seo_description'] ?? '', 'volume' => $row['volume'] ?? '',
                         ];
                         if ($id > 0) {
@@ -79,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'link' => $data['link'],
                                 'in_stock' => $data['in_stock'],
                                 'status' => $data['status'],
+                                'is_visible' => $data['is_visible'],
                                 'seo_title' => $data['seo_title'],
                                 'seo_description' => $data['seo_description'],
                                 'volume' => $data['volume'],
@@ -111,6 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body><div class="container"><?php require __DIR__ . '/_nav.php'; ?><h3>CSV импорт товаров</h3>
 <?php if ($summary): ?><div class="alert alert-success"><?= admin_h($summary) ?></div><?php endif; ?>
 <?php foreach ($errors as $error): ?><div class="alert alert-danger"><?= admin_h($error) ?></div><?php endforeach; ?>
-<p>Обязательные колонки: <code>external_id</code>, <code>name</code>, <code>price</code>, <code>link</code>. Дополнительно поддерживаются <code>cat_number</code>, <code>old_price</code>, <code>in_stock</code>, <code>status</code>, <code>seo_title</code>, <code>seo_description</code>, <code>volume</code>.</p>
+<p>Обязательные колонки: <code>external_id</code>, <code>name</code>, <code>price</code>, <code>link</code>. Дополнительно поддерживаются <code>cat_number</code>, <code>old_price</code>, <code>in_stock</code>, <code>status</code>, <code>is_visible</code>, <code>seo_title</code>, <code>seo_description</code>, <code>volume</code>.</p>
 <form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="<?= csrf_token() ?>"><div class="form-group"><label for="csv_file">CSV-файл</label><input class="form-control" type="file" id="csv_file" name="csv_file" accept=".csv,text/csv" required></div><button class="btn btn-primary" type="submit">Импортировать</button> <a class="btn btn-secondary" href="/admin/products.php">Назад к товарам</a></form>
 </div></body></html>

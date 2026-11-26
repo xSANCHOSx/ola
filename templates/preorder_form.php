@@ -2,7 +2,9 @@
 <div id="preorder-request" class="popup" role="dialog" aria-modal="true" aria-labelledby="preorder-request-title" style="display:none">
     <button type="button" class="close_popup" data-preorder-close aria-label="Закрыть">×</button>
     <h4 id="preorder-request-title" style="text-align:center">Товар под заказ</h4>
-    <p class="preorder-request-product-label">Товар: <strong data-preorder-product-name></strong></p>
+    <label class="preorder-request-product-label">Товар
+        <input type="text" data-preorder-product-name readonly aria-readonly="true" tabindex="-1">
+    </label>
     <form id="preorder-request-form" action="/preorder_request.php" method="post">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="product_id" data-preorder-product-id value="">

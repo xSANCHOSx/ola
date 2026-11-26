@@ -14,12 +14,12 @@
         var submit = modal.querySelector('[data-preorder-submit]');
         var openModal = function (button) {
             productId.value = button.getAttribute('data-product-id') || '';
-            productName.textContent = button.getAttribute('data-product-name') || 'Выбранный товар';
+            productName.value = button.getAttribute('data-product-name') || 'Выбранный товар';
             error.hidden = true;
             success.hidden = true;
             form.reset();
             productId.value = button.getAttribute('data-product-id') || '';
-            productName.textContent = button.getAttribute('data-product-name') || 'Выбранный товар';
+            productName.value = button.getAttribute('data-product-name') || 'Выбранный товар';
             modal.style.display = 'block';
             modal.classList.add('active');
         };
@@ -55,7 +55,7 @@
             fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } })
                 .then(function (response) {
                     return response.json().then(function (payload) {
-                        if (!response.ok || !payload.success) throw new Error(payload.error || 'Не удалось отправить заявку.');
+                        if (!response.ok || !payload.success) throw new Error(payload.message || 'Не удалось отправить заявку.');
                         return payload;
                     });
                 })

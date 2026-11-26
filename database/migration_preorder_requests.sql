@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS preorder_requests (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY idx_preorder_requests_status_created (status, created_at),
   KEY idx_preorder_requests_product_created (product_id, created_at),
+  KEY idx_preorder_requests_processed_by (processed_by),
   CONSTRAINT fk_preorder_requests_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
-  CONSTRAINT fk_preorder_requests_admin FOREIGN KEY (processed_by) REFERENCES admin_users(id) ON DELETE SET NULL
+  CONSTRAINT fk_preorder_requests_admin FOREIGN KEY (processed_by) REFERENCES admin_users(id) ON DELETE SET NULL,
+  CONSTRAINT chk_preorder_requests_status CHECK (status IN ('new', 'in_progress', 'processed', 'cancelled'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

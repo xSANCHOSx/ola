@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__) . '/lib/preorder_requests.php';
 $u = admin_current_user();
 // Количество отзывов, ожидающих модерации (бейдж у пункта «Отзывы»).
 $pendingReviews = 0;
@@ -6,6 +7,7 @@ $newPreorders = 0;
 try {
     $navPdo = dev_db_connection();
     if ($navPdo instanceof PDO) {
+        ensure_preorder_requests_table($navPdo);
         $pendingReviews = (int)$navPdo->query("SELECT COUNT(*) FROM product_reviews WHERE status = 'pending'")->fetchColumn();
         $newPreorders = (int)$navPdo->query("SELECT COUNT(*) FROM preorder_requests WHERE status = 'new'")->fetchColumn();
     }

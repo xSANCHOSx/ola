@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/lib/preorder_requests.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -38,9 +39,13 @@ if ($email !== '' && !validate_email($email)) $errors['email'] = 'Укажите
 if ($errors) {
     $respond(['success' => false, 'message' => 'Проверьте заполнение формы.', 'errors' => $errors], 422);
 }
+if (!check_rate_limit('preorder:' . (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown'), 5, 300)) {
+    $respond(['success' => false, 'message' => 'Слишком много заявок. Попробуйте через несколько минут.'], 429);
+}
 
 try {
     $pdo = dev_db_connection();
+    ensure_preorder_requests_table($pdo);
     $productStmt = $pdo->prepare(
         'SELECT id, external_id, name, cat_number
          FROM products
@@ -51,6 +56,24 @@ try {
     $product = $productStmt->fetch(PDO::FETCH_ASSOC);
     if (!$product) {
         $respond(['success' => false, 'message' => 'Товар больше недоступен для заявки.'], 404);
+    }
+
+    // Защита от двойного клика, повторной отправки формы и ретраев браузера.
+    // Телефон нормализован, поэтому разные форматы одного номера не обходят проверку.
+    $duplicate = $pdo->prepare(
+        'SELECT id FROM preorder_requests
+         WHERE product_id = :product_id
+           AND customer_phone = :customer_phone
+           AND created_at >= :created_after
+         LIMIT 1'
+    );
+    $duplicate->execute([
+        'product_id' => (int)$product['id'],
+        'customer_phone' => $normalizedPhone,
+        'created_after' => date('Y-m-d H:i:s', time() - 600),
+    ]);
+    if ($duplicate->fetchColumn() !== false) {
+        $respond(['success' => false, 'message' => 'Такая заявка уже была отправлена недавно. Мы свяжемся с вами.'], 409);
     }
 
     $insert = $pdo->prepare(

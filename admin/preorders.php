@@ -1,10 +1,17 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
+require_once dirname(__DIR__) . '/lib/preorder_requests.php';
 admin_require_permission('preorders', 'view');
 $pdo = dev_db_connection();
 $message = null;
 $error = null;
+try {
+    ensure_preorder_requests_table($pdo);
+} catch (Throwable $e) {
+    dev_log_runtime('Preorder schema migration failed: ' . $e->getMessage());
+    $error = 'Не удалось автоматически обновить таблицу заявок. Проверьте подключение к базе данных.';
+}
 $allowedStatuses = [
     'new' => 'Новая',
     'in_progress' => 'В работе',
@@ -67,7 +74,7 @@ try {
     $stmt->execute($params);
     $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
-    $error = $error ?: 'Таблица заявок ещё не создана. Примените database/migration_preorder_requests.sql.';
+    $error = $error ?: 'Не удалось загрузить заявки. Проверьте подключение к базе данных.';
 }
 ?>
 <!doctype html>

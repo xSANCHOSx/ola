@@ -35,6 +35,7 @@
 					<button class="b1c<?= $productStatus === 'preorder' ? ' product-buy-button--preorder' : '' ?>"
 						data-product-status="<?= htmlspecialchars($productStatus, ENT_QUOTES, 'UTF-8') ?>"
 						data-product-id="<?= htmlspecialchars((string)$product['id'], ENT_QUOTES, 'UTF-8') ?>"
+						data-preorder-db-id="<?= (int)($product['db_id'] ?? 0) ?>"
 						data-product-name="<?= htmlspecialchars((string)$product['name'], ENT_QUOTES, 'UTF-8') ?>"
 						<?php if (product_is_buyable($product)): ?>
 							onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$product['id']) ?>')"

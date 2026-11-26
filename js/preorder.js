@@ -13,12 +13,16 @@
         var success = modal.querySelector('[data-preorder-success]');
         var submit = modal.querySelector('[data-preorder-submit]');
         var openModal = function (button) {
-            productId.value = button.getAttribute('data-product-id') || '';
+            var databaseId = button.getAttribute('data-preorder-db-id');
+            var productReference = /^[1-9][0-9]*$/.test(databaseId || '')
+                ? 'db:' + databaseId
+                : (button.getAttribute('data-product-id') || '');
+            productId.value = productReference;
             productName.value = button.getAttribute('data-product-name') || 'Выбранный товар';
             error.hidden = true;
             success.hidden = true;
             form.reset();
-            productId.value = button.getAttribute('data-product-id') || '';
+            productId.value = productReference;
             productName.value = button.getAttribute('data-product-name') || 'Выбранный товар';
             if (window.cart && window.cart.ui && typeof window.cart.ui.ensureBasketModal === 'function') {
                 window.cart.ui.ensureBasketModal();

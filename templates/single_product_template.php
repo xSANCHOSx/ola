@@ -215,6 +215,7 @@ require __DIR__ . '/head.php'; ?>
                         <?php endif; ?>
                         <button class="b1c product-buy-button<?= $currentProductStatus === 'preorder' ? ' product-buy-button--preorder' : '' ?>"
                             data-product-id="<?= htmlspecialchars((string)$currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>"
+                            data-preorder-db-id="<?= $productDbId ?>"
                             data-product-status="<?= htmlspecialchars($currentProductStatus, ENT_QUOTES, 'UTF-8') ?>"
                             data-product-name="<?= htmlspecialchars((string)$currentProduct['name'], ENT_QUOTES, 'UTF-8') ?>"
                             <?php if (product_is_buyable($currentProduct)): ?>onclick="cart.addToCart(this, '<?= htmlspecialchars((string)$currentProduct['id'], ENT_QUOTES, 'UTF-8') ?>')"

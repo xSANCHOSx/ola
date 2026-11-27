@@ -1,5 +1,4 @@
 <?php
-require_once dirname(__DIR__) . '/lib/preorder_requests.php';
 $u = admin_current_user();
 // Количество отзывов, ожидающих модерации (бейдж у пункта «Отзывы»).
 $pendingReviews = 0;
@@ -7,13 +6,19 @@ $newPreorders = 0;
 try {
     $navPdo = dev_db_connection();
     if ($navPdo instanceof PDO) {
-        ensure_preorder_requests_table($navPdo);
-        $pendingReviews = (int)$navPdo->query("SELECT COUNT(*) FROM product_reviews WHERE status = 'pending'")->fetchColumn();
-        $newPreorders = (int)$navPdo->query("SELECT COUNT(*) FROM preorder_requests WHERE status = 'new'")->fetchColumn();
+        try {
+            $pendingReviews = (int)$navPdo->query("SELECT COUNT(*) FROM product_reviews WHERE status = 'pending'")->fetchColumn();
+        } catch (Throwable $e) {
+            $pendingReviews = 0; // таблицы отзывов может ещё не быть — меню должно работать
+        }
+        try {
+            $newPreorders = (int)$navPdo->query("SELECT COUNT(*) FROM preorder_requests WHERE status = 'new' AND is_archived = 0")->fetchColumn();
+        } catch (Throwable $e) {
+            $newPreorders = 0; // preorder-схема может быть ещё не готова
+        }
     }
 } catch (Throwable $e) {
-    $pendingReviews = 0; // таблицы отзывов может ещё не быть — меню должно работать
-    $newPreorders = 0; // миграция заявок может ещё не быть применена
+    // База может быть временно недоступна — меню должно работать.
 }
 ?>
 <nav class="admin-nav">

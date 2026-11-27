@@ -24,6 +24,10 @@ AddEncoding gzip .gz
 
 # Кэш в браузерах
 <IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
     <FilesMatch "\.(html|htm)$">
         Header set Cache-Control "max-age=43200"
     </FilesMatch>

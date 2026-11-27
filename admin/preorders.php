@@ -7,6 +7,19 @@ admin_require_permission('products', 'view');
 $pdo = dev_db_connection();
 $message = null;
 $error = null;
+$archiveSchemaReady = false;
+try {
+    $archiveSchemaStmt = $pdo->query(
+        'SELECT COUNT(*)
+         FROM information_schema.columns
+         WHERE table_schema = DATABASE()
+           AND table_name = "preorder_requests"
+           AND column_name IN ("is_archived", "archived_at", "archived_by")'
+    );
+    $archiveSchemaReady = (int)$archiveSchemaStmt->fetchColumn() === 3;
+} catch (Throwable $e) {
+    $archiveSchemaReady = false;
+}
 $allowedStatuses = [
     'new' => 'Новая',
     'in_progress' => 'В работе',
@@ -50,6 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 $message = 'Заявка обновлена.';
             } elseif ($action === 'archive' || $action === 'unarchive') {
+                if (!$archiveSchemaReady) {
+                    throw new RuntimeException('Сначала примените database/migration_preorder_archive.sql.');
+                }
                 $archived = $action === 'archive' ? 1 : 0;
                 $stmt = $pdo->prepare(
                     'UPDATE preorder_requests
@@ -93,35 +109,47 @@ $view = (string)($_GET['view'] ?? 'active');
 if (!in_array($view, ['active', 'archived', 'all'], true)) {
     $view = 'active';
 }
+if (!$archiveSchemaReady && $view !== 'active') {
+    $view = 'active';
+    $error = $error ?: 'Архив пока недоступен: примените database/migration_preorder_archive.sql. Текущие заявки продолжают отображаться.';
+}
 $requests = [];
 $counts = ['active' => 0, 'archived' => 0];
 try {
-    $countStmt = $pdo->query(
-        'SELECT is_archived, COUNT(*) AS total
-         FROM preorder_requests
-         GROUP BY is_archived'
-    );
-    foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $countRow) {
-        $counts[(int)$countRow['is_archived'] === 1 ? 'archived' : 'active'] = (int)$countRow['total'];
+    if ($archiveSchemaReady) {
+        $countStmt = $pdo->query(
+            'SELECT is_archived, COUNT(*) AS total
+             FROM preorder_requests
+             GROUP BY is_archived'
+        );
+        foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $countRow) {
+            $counts[(int)$countRow['is_archived'] === 1 ? 'archived' : 'active'] = (int)$countRow['total'];
+        }
+    } else {
+        $counts['active'] = (int)$pdo->query('SELECT COUNT(*) FROM preorder_requests')->fetchColumn();
     }
 
     $conditions = [];
     $params = [];
-    if ($view === 'active') {
+    if ($archiveSchemaReady && $view === 'active') {
         $conditions[] = 'r.is_archived = 0';
-    } elseif ($view === 'archived') {
+    } elseif ($archiveSchemaReady && $view === 'archived') {
         $conditions[] = 'r.is_archived = 1';
     }
     if ($filter !== 'all') {
         $conditions[] = 'r.status = :status';
         $params['status'] = $filter;
     }
-    $sql = 'SELECT r.*, p.link AS product_link, u.username AS processed_by_name,
-                   au.username AS archived_by_name
+    $archiveSelect = $archiveSchemaReady
+        ? ', au.username AS archived_by_name'
+        : ', 0 AS is_archived, NULL AS archived_at, NULL AS archived_by, NULL AS archived_by_name';
+    $archiveJoin = $archiveSchemaReady
+        ? ' LEFT JOIN admin_users au ON au.id = r.archived_by'
+        : '';
+    $sql = 'SELECT r.*, p.link AS product_link, u.username AS processed_by_name' . $archiveSelect . '
             FROM preorder_requests r
             LEFT JOIN products p ON p.id = r.product_id
-            LEFT JOIN admin_users u ON u.id = r.processed_by
-            LEFT JOIN admin_users au ON au.id = r.archived_by';
+            LEFT JOIN admin_users u ON u.id = r.processed_by' . $archiveJoin;
     if ($conditions) {
         $sql .= ' WHERE ' . implode(' AND ', $conditions);
     }
@@ -153,6 +181,7 @@ function preorder_admin_url(string $view, string $status = 'all'): string
         .preorder-tabs a.active { background:#337ab7; border-color:#337ab7; color:#fff; }
         .preorder-tabs a.archive { border-color:#8a6d3b; color:#8a6d3b; }
         .preorder-tabs a.archive.active { background:#8a6d3b; color:#fff; }
+        .preorder-tabs__disabled { color:#999; padding:8px 12px; }
         .preorder-filter { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:12px; }
         .preorder-filter a { color:#555; padding:5px 9px; text-decoration:none; }
         .preorder-filter a.active { background:#eee; border-radius:4px; font-weight:600; }
@@ -178,8 +207,12 @@ function preorder_admin_url(string $view, string $status = 'all'): string
         <p class="preorder-help">Заявки из этого раздела не являются обычными заказами и не отправляются в AmoCRM или Bitrix CRM.</p>
         <div class="preorder-tabs" role="tablist" aria-label="Раздел заявок">
             <a class="<?= $view === 'active' ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url('active', $filter)) ?>">Активные <span class="preorder-count"><?= $counts['active'] ?></span></a>
-            <a class="archive <?= $view === 'archived' ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url('archived', $filter)) ?>">Архив <span class="preorder-count"><?= $counts['archived'] ?></span></a>
-            <a class="<?= $view === 'all' ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url('all', $filter)) ?>">Все</a>
+            <?php if ($archiveSchemaReady): ?>
+                <a class="archive <?= $view === 'archived' ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url('archived', $filter)) ?>">Архив <span class="preorder-count"><?= $counts['archived'] ?></span></a>
+                <a class="<?= $view === 'all' ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url('all', $filter)) ?>">Все</a>
+            <?php else: ?>
+                <span class="preorder-tabs__disabled">Архив появится после миграции</span>
+            <?php endif; ?>
         </div>
         <nav class="preorder-filter" aria-label="Фильтр по статусу">
             <strong>Статус:</strong>
@@ -211,12 +244,14 @@ function preorder_admin_url(string $view, string $status = 'all'): string
                             <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
                         </form>
                         <div class="preorder-actions__row">
-                            <form method="post">
-                                <input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
-                                <input type="hidden" name="action" value="<?= !empty($request['is_archived']) ? 'unarchive' : 'archive' ?>">
-                                <input type="hidden" name="id" value="<?= (int)$request['id'] ?>">
-                                <button type="submit" class="btn btn-default btn-sm"><?= !empty($request['is_archived']) ? 'Вернуть' : 'В архив' ?></button>
-                            </form>
+                            <?php if ($archiveSchemaReady): ?>
+                                <form method="post">
+                                    <input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
+                                    <input type="hidden" name="action" value="<?= !empty($request['is_archived']) ? 'unarchive' : 'archive' ?>">
+                                    <input type="hidden" name="id" value="<?= (int)$request['id'] ?>">
+                                    <button type="submit" class="btn btn-default btn-sm"><?= !empty($request['is_archived']) ? 'Вернуть' : 'В архив' ?></button>
+                                </form>
+                            <?php endif; ?>
                             <?php if (admin_is_admin()): ?>
                                 <form method="post" onsubmit="return confirm('Удалить заявку навсегда? Это действие нельзя отменить.');">
                                     <input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">

@@ -34,6 +34,25 @@ function admin_require_auth(): void
         $_SESSION[$key]['username'] = (string)$dbUser['username'];
         $_SESSION[$key]['role'] = in_array($dbUser['role'], ['admin', 'manager'], true) ? $dbUser['role'] : 'admin';
         $_SESSION[$key]['permissions'] = (string)($dbUser['permissions_json'] ?? '');
+        $oneTimeMigrationFile = dirname(__DIR__) . '/database/migrate_on_admin.php';
+        if ($dbUser['role'] === 'admin'
+            && $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
+            && getenv('APP_ENV') !== 'development'
+            && is_file($oneTimeMigrationFile)
+        ) {
+            try {
+                require_once $oneTimeMigrationFile;
+                ola_run_admin_migrations($pdo);
+            } catch (Throwable $migrationError) {
+                dev_log_runtime('Admin-triggered database migration failed: ' . $migrationError->getMessage());
+                http_response_code(503);
+                header('Content-Type: text/html; charset=UTF-8');
+                echo '<!doctype html><html lang="ru"><meta charset="utf-8"><title>Обновление базы данных</title>'
+                    . '<p>Не удалось безопасно обновить базу данных. Изменения не были подтверждены. '
+                    . 'Повторите попытку позже или обратитесь к администратору.</p></html>';
+                exit;
+            }
+        }
     } catch (Throwable $e) {
         // Не блокируем админку при кратковременной недоступности БД.
         dev_log_runtime('Admin session refresh failed: ' . $e->getMessage());

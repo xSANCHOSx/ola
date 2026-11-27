@@ -12,7 +12,7 @@ try {
             $pendingReviews = 0;
         }
         try {
-            $newPreorders = (int)$navPdo->query("SELECT COUNT(*) FROM preorder_requests WHERE status = 'new'")->fetchColumn();
+            $newPreorders = (int)$navPdo->query("SELECT COUNT(*) FROM preorder_requests WHERE status = 'new' AND is_archived = 0")->fetchColumn();
         } catch (Throwable $e) {
             $newPreorders = 0;
         }

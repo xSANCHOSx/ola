@@ -27,7 +27,7 @@
 					<?php } elseif (($product['status'] ?? '') === 'preorder') { ?>
 						<p><span class="regular_price"><strong>Под заказ</strong></span></p>
 							<p><strong>Срок доставки: 7-14 дней</strong></p>
-					<?php elseif (($product['status'] ?? '') === 'disabled') { ?>
+					<?php } elseif (($product['status'] ?? '') === 'disabled') { ?>
 						<p><span class="regular_price"><strong>Нет в наличии</strong></span></p>
 					<?php } ?>
 				<p><a class="name_link" href="<?= $product['link'] ?>"><?= $product['short_desc'] ?></a></p>

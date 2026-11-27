@@ -14,18 +14,24 @@ $allowedStatuses = [
     'cancelled' => 'Отменена',
 ];
 
+$action = (string)($_POST['action'] ?? '');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     admin_require_permission('products', 'edit');
     if (!validate_csrf_token()) {
         $error = 'Сессия формы устарела. Обновите страницу.';
     } else {
         $id = (int)($_POST['id'] ?? 0);
-        $status = (string)($_POST['status'] ?? 'new');
-        $comment = trim((string)($_POST['manager_comment'] ?? ''));
-        if ($id <= 0 || !isset($allowedStatuses[$status])) {
-            $error = 'Некорректные параметры заявки.';
-        } else {
-            try {
+        try {
+            if ($id <= 0) {
+                throw new InvalidArgumentException('Некорректный ID заявки.');
+            }
+
+            if ($action === 'update') {
+                $status = (string)($_POST['status'] ?? 'new');
+                $comment = trim((string)($_POST['manager_comment'] ?? ''));
+                if (!isset($allowedStatuses[$status])) {
+                    throw new InvalidArgumentException('Некорректный статус заявки.');
+                }
                 $stmt = $pdo->prepare(
                     'UPDATE preorder_requests
                      SET status = :status_set,
@@ -43,33 +49,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'id' => $id,
                 ]);
                 $message = 'Заявка обновлена.';
-            } catch (Throwable $e) {
-                dev_log_runtime('Preorder admin update failed: ' . $e->getMessage());
-                $error = 'Не удалось обновить заявку. Проверьте, применена ли миграция preorder_requests.';
+            } elseif ($action === 'archive' || $action === 'unarchive') {
+                $archived = $action === 'archive' ? 1 : 0;
+                $stmt = $pdo->prepare(
+                    'UPDATE preorder_requests
+                     SET is_archived = :is_archived,
+                         archived_at = CASE WHEN :archived_flag = 1 THEN NOW() ELSE NULL END,
+                         archived_by = CASE WHEN :archived_user_flag = 1 THEN :admin_id ELSE NULL END
+                     WHERE id = :id'
+                );
+                $stmt->execute([
+                    'is_archived' => $archived,
+                    'archived_flag' => $archived,
+                    'archived_user_flag' => $archived,
+                    'admin_id' => (int)(admin_current_user()['id'] ?? 0),
+                    'id' => $id,
+                ]);
+                $message = $archived ? 'Заявка отправлена в архив.' : 'Заявка восстановлена из архива.';
+            } elseif ($action === 'delete') {
+                if (!admin_is_admin()) {
+                    throw new RuntimeException('Окончательное удаление доступно только администратору.');
+                }
+                $stmt = $pdo->prepare('DELETE FROM preorder_requests WHERE id = :id');
+                $stmt->execute(['id' => $id]);
+                $message = 'Заявка удалена.';
+            } else {
+                throw new InvalidArgumentException('Неизвестное действие.');
             }
+        } catch (InvalidArgumentException | RuntimeException $e) {
+            $error = $e->getMessage();
+        } catch (Throwable $e) {
+            dev_log_runtime('Preorder admin action failed: ' . $e->getMessage());
+            $error = 'Не удалось изменить заявку. Проверьте, применены ли миграции preorder_requests.';
         }
     }
 }
 
 $filter = (string)($_GET['status'] ?? 'all');
-if ($filter !== 'all' && !isset($allowedStatuses[$filter])) $filter = 'all';
+if ($filter !== 'all' && !isset($allowedStatuses[$filter])) {
+    $filter = 'all';
+}
+$view = (string)($_GET['view'] ?? 'active');
+if (!in_array($view, ['active', 'archived', 'all'], true)) {
+    $view = 'active';
+}
 $requests = [];
+$counts = ['active' => 0, 'archived' => 0];
 try {
-    $sql = 'SELECT r.*, p.link AS product_link, u.username AS processed_by_name
+    $countStmt = $pdo->query(
+        'SELECT is_archived, COUNT(*) AS total
+         FROM preorder_requests
+         GROUP BY is_archived'
+    );
+    foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $countRow) {
+        $counts[(int)$countRow['is_archived'] === 1 ? 'archived' : 'active'] = (int)$countRow['total'];
+    }
+
+    $conditions = [];
+    $params = [];
+    if ($view === 'active') {
+        $conditions[] = 'r.is_archived = 0';
+    } elseif ($view === 'archived') {
+        $conditions[] = 'r.is_archived = 1';
+    }
+    if ($filter !== 'all') {
+        $conditions[] = 'r.status = :status';
+        $params['status'] = $filter;
+    }
+    $sql = 'SELECT r.*, p.link AS product_link, u.username AS processed_by_name,
+                   au.username AS archived_by_name
             FROM preorder_requests r
             LEFT JOIN products p ON p.id = r.product_id
-            LEFT JOIN admin_users u ON u.id = r.processed_by';
-    $params = [];
-    if ($filter !== 'all') {
-        $sql .= ' WHERE r.status = :status';
-        $params['status'] = $filter;
+            LEFT JOIN admin_users u ON u.id = r.processed_by
+            LEFT JOIN admin_users au ON au.id = r.archived_by';
+    if ($conditions) {
+        $sql .= ' WHERE ' . implode(' AND ', $conditions);
     }
     $sql .= ' ORDER BY r.created_at DESC, r.id DESC LIMIT 300';
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
-    $error = $error ?: 'Таблица заявок ещё не создана. Примените database/migration_preorder_requests.sql.';
+    $error = $error ?: 'Таблица заявок ещё не создана или не обновлена. Примените database/migration_preorder_requests.sql и database/migration_preorder_archive.sql.';
+}
+
+function preorder_admin_url(string $view, string $status = 'all'): string
+{
+    return '?view=' . rawurlencode($view) . '&status=' . rawurlencode($status);
 }
 ?>
 <!doctype html>
@@ -82,11 +148,24 @@ try {
     <link rel="stylesheet" href="/css/admin.css">
     <style>
         .preorder-card { background:#fff; border:1px solid #ddd; border-radius:6px; margin:18px 0; padding:18px; }
+        .preorder-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+        .preorder-tabs a { border:1px solid #d5d5d5; border-radius:4px; padding:8px 12px; text-decoration:none; }
+        .preorder-tabs a.active { background:#337ab7; border-color:#337ab7; color:#fff; }
+        .preorder-tabs a.archive { border-color:#8a6d3b; color:#8a6d3b; }
+        .preorder-tabs a.archive.active { background:#8a6d3b; color:#fff; }
+        .preorder-filter { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:12px; }
+        .preorder-filter a { color:#555; padding:5px 9px; text-decoration:none; }
+        .preorder-filter a.active { background:#eee; border-radius:4px; font-weight:600; }
+        .preorder-count { display:inline-block; min-width:18px; padding:1px 5px; border-radius:9px; background:#eee; font-size:11px; text-align:center; }
         .preorder-table td { vertical-align:top; }
         .preorder-customer { min-width:190px; }
-        .preorder-actions { min-width:230px; }
+        .preorder-actions { min-width:260px; }
         .preorder-actions textarea { min-height:60px; margin:6px 0; }
-        @media (max-width:767px) { .preorder-table { font-size:12px; } .preorder-card { padding:10px; } }
+        .preorder-actions__row { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+        .preorder-actions__row form { display:inline; }
+        .preorder-archived { opacity:.78; }
+        .preorder-help { color:#666; margin:0; }
+        @media (max-width:767px) { .preorder-table { font-size:12px; } .preorder-card { padding:10px; } .preorder-actions { min-width:180px; } }
     </style>
 </head>
 <body>
@@ -96,27 +175,34 @@ try {
     <?php if ($message): ?><div class="alert alert-success"><?= admin_h($message) ?></div><?php endif; ?>
     <?php if ($error): ?><div class="alert alert-warning"><?= admin_h($error) ?></div><?php endif; ?>
     <div class="preorder-card">
-        <p>Заявки из этого раздела не являются обычными заказами и не отправляются в AmoCRM или Bitrix CRM.</p>
-        <div class="btn-group" role="group" aria-label="Фильтр заявок">
-            <a class="btn btn-<?= $filter === 'all' ? 'primary' : 'default' ?> btn-sm" href="?status=all">Все</a>
-            <?php foreach ($allowedStatuses as $statusValue => $statusLabel): ?>
-                <a class="btn btn-<?= $filter === $statusValue ? 'primary' : 'default' ?> btn-sm" href="?status=<?= admin_h($statusValue) ?>"><?= admin_h($statusLabel) ?></a>
-            <?php endforeach; ?>
+        <p class="preorder-help">Заявки из этого раздела не являются обычными заказами и не отправляются в AmoCRM или Bitrix CRM.</p>
+        <div class="preorder-tabs" role="tablist" aria-label="Раздел заявок">
+            <a class="<?= $view === 'active' ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url('active', $filter)) ?>">Активные <span class="preorder-count"><?= $counts['active'] ?></span></a>
+            <a class="archive <?= $view === 'archived' ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url('archived', $filter)) ?>">Архив <span class="preorder-count"><?= $counts['archived'] ?></span></a>
+            <a class="<?= $view === 'all' ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url('all', $filter)) ?>">Все</a>
         </div>
+        <nav class="preorder-filter" aria-label="Фильтр по статусу">
+            <strong>Статус:</strong>
+            <a class="<?= $filter === 'all' ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url($view, 'all')) ?>">Все</a>
+            <?php foreach ($allowedStatuses as $statusValue => $statusLabel): ?>
+                <a class="<?= $filter === $statusValue ? 'active' : '' ?>" href="<?= admin_h(preorder_admin_url($view, $statusValue)) ?>"><?= admin_h($statusLabel) ?></a>
+            <?php endforeach; ?>
+        </nav>
     </div>
     <div class="table-responsive preorder-card">
         <table class="table table-bordered table-striped preorder-table">
-            <thead><tr><th>Дата</th><th>Товар</th><th>Клиент</th><th>Статус и комментарий</th></tr></thead>
+            <thead><tr><th>Дата</th><th>Товар</th><th>Клиент</th><th>Статус и действия</th></tr></thead>
             <tbody>
-            <?php if (!$requests): ?><tr><td colspan="4">Заявок пока нет.</td></tr><?php endif; ?>
+            <?php if (!$requests): ?><tr><td colspan="4">В этом разделе заявок нет.</td></tr><?php endif; ?>
             <?php foreach ($requests as $request): ?>
-                <tr>
-                    <td><?= admin_h((string)$request['created_at']) ?><br><small>#<?= (int)$request['id'] ?></small></td>
+                <tr class="<?= !empty($request['is_archived']) ? 'preorder-archived' : '' ?>">
+                    <td><?= admin_h((string)$request['created_at']) ?><br><small>#<?= (int)$request['id'] ?></small><?php if (!empty($request['is_archived'])): ?><br><small>В архиве</small><?php endif; ?></td>
                     <td><strong><?= admin_h((string)$request['product_name_snapshot']) ?></strong><br><small>Артикул: <?= admin_h((string)($request['product_cat_number_snapshot'] ?: '—')) ?></small><?php if (!empty($request['product_link'])): ?><br><a href="<?= admin_h((string)$request['product_link']) ?>" target="_blank" rel="noopener">Открыть товар</a><?php endif; ?></td>
                     <td class="preorder-customer"><strong><?= admin_h((string)$request['customer_name']) ?></strong><br><?= admin_h((string)$request['customer_phone']) ?><br><?= admin_h((string)($request['customer_email'] ?: 'email не указан')) ?></td>
                     <td class="preorder-actions">
                         <form method="post">
                             <input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
+                            <input type="hidden" name="action" value="update">
                             <input type="hidden" name="id" value="<?= (int)$request['id'] ?>">
                             <select name="status" class="form-control input-sm">
                                 <?php foreach ($allowedStatuses as $statusValue => $statusLabel): ?><option value="<?= admin_h($statusValue) ?>"<?= $request['status'] === $statusValue ? ' selected' : '' ?>><?= admin_h($statusLabel) ?></option><?php endforeach; ?>
@@ -124,6 +210,22 @@ try {
                             <textarea name="manager_comment" class="form-control input-sm" placeholder="Комментарий менеджера"><?= admin_h((string)($request['manager_comment'] ?? '')) ?></textarea>
                             <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
                         </form>
+                        <div class="preorder-actions__row">
+                            <form method="post">
+                                <input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
+                                <input type="hidden" name="action" value="<?= !empty($request['is_archived']) ? 'unarchive' : 'archive' ?>">
+                                <input type="hidden" name="id" value="<?= (int)$request['id'] ?>">
+                                <button type="submit" class="btn btn-default btn-sm"><?= !empty($request['is_archived']) ? 'Вернуть' : 'В архив' ?></button>
+                            </form>
+                            <?php if (admin_is_admin()): ?>
+                                <form method="post" onsubmit="return confirm('Удалить заявку навсегда? Это действие нельзя отменить.');">
+                                    <input type="hidden" name="csrf_token" value="<?= admin_h(csrf_token()) ?>">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="<?= (int)$request['id'] ?>">
+                                    <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
                     </td>
                 </tr>
             <?php endforeach; ?>

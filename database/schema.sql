@@ -106,15 +106,20 @@ CREATE TABLE IF NOT EXISTS preorder_requests (
   customer_phone VARCHAR(64) NOT NULL,
   customer_email VARCHAR(255) DEFAULT NULL,
   status VARCHAR(32) NOT NULL DEFAULT 'new',
+  is_archived TINYINT(1) NOT NULL DEFAULT 0,
   manager_comment TEXT DEFAULT NULL,
   processed_at DATETIME DEFAULT NULL,
   processed_by INT UNSIGNED DEFAULT NULL,
+  archived_at DATETIME DEFAULT NULL,
+  archived_by INT UNSIGNED DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   KEY idx_preorder_requests_status_created (status, created_at),
   KEY idx_preorder_requests_product_created (product_id, created_at),
+  KEY idx_preorder_requests_archived_created (is_archived, created_at),
   CONSTRAINT fk_preorder_requests_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
-  CONSTRAINT fk_preorder_requests_admin FOREIGN KEY (processed_by) REFERENCES admin_users(id) ON DELETE SET NULL
+  CONSTRAINT fk_preorder_requests_admin FOREIGN KEY (processed_by) REFERENCES admin_users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_preorder_requests_archived_admin FOREIGN KEY (archived_by) REFERENCES admin_users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS orders (

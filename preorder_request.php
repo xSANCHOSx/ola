@@ -49,6 +49,14 @@ if ($errors) {
     preorder_response(['success' => false, 'message' => 'Проверьте заполнение формы.', 'errors' => $errors], 422);
 }
 
+$clientIp = (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+if (!check_rate_limit('preorder-ip:' . hash('sha256', $clientIp), 10, 600)) {
+    preorder_response(['success' => false, 'message' => 'Слишком много заявок. Попробуйте позже.'], 429);
+}
+if (!check_rate_limit('preorder-phone:' . hash('sha256', $normalizedPhone), 3, 3600)) {
+    preorder_response(['success' => false, 'message' => 'Для этого телефона уже отправлено много заявок. Попробуйте позже.'], 429);
+}
+
 try {
     $pdo = dev_db_connection();
     $productStmt = $pdo->prepare(
@@ -61,6 +69,24 @@ try {
     $product = $productStmt->fetch(PDO::FETCH_ASSOC);
     if (!$product) {
         preorder_response(['success' => false, 'message' => 'Товар больше недоступен для заявки.'], 404);
+    }
+
+    $duplicateStmt = $pdo->prepare(
+        'SELECT id
+         FROM preorder_requests
+         WHERE product_external_id = :product_external_id
+           AND customer_phone = :customer_phone
+           AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+         ORDER BY id DESC
+         LIMIT 1'
+    );
+    $duplicateStmt->execute([
+        'product_external_id' => (string)$product['external_id'],
+        'customer_phone' => $normalizedPhone,
+    ]);
+    $duplicateId = $duplicateStmt->fetchColumn();
+    if ($duplicateId !== false) {
+        preorder_response(['success' => false, 'message' => 'Такая заявка уже была отправлена. Мы свяжемся с вами.'], 409);
     }
 
     $insert = $pdo->prepare(

@@ -133,6 +133,20 @@ try {
         $activeCount->execute(['id' => $requestId]);
         test_assert((int)$activeCount->fetchColumn() === 1, 'New preorder request is not active.');
 
+        $duplicate = $pdo->prepare(
+            'SELECT id
+             FROM preorder_requests
+             WHERE product_external_id = :product_external_id
+               AND customer_phone = :customer_phone
+               AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+             LIMIT 1'
+        );
+        $duplicate->execute([
+            'product_external_id' => $externalId,
+            'customer_phone' => '79990000000',
+        ]);
+        test_assert((int)$duplicate->fetchColumn() === $requestId, 'Duplicate preorder request was not detected.');
+
         $update = $pdo->prepare(
             'UPDATE preorder_requests
              SET status = :status,

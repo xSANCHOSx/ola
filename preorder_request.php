@@ -34,10 +34,17 @@ $phone = trim((string)($_POST['phone'] ?? ''));
 $email = trim((string)($_POST['email'] ?? ''));
 
 $errors = [];
-if ($productExternalId === '' || mb_strlen($productExternalId) > 32) {
+$length = static function (string $value): int {
+    if (function_exists('mb_strlen')) {
+        return mb_strlen($value, 'UTF-8');
+    }
+    $count = preg_match_all('/./us', $value, $characters);
+    return $count === false ? strlen($value) : $count;
+};
+if ($productExternalId === '' || $length($productExternalId) > 32) {
     $errors['product_id'] = 'Не удалось определить товар.';
 }
-if ($name === '' || mb_strlen($name) < 2 || mb_strlen($name) > 255) {
+if ($name === '' || $length($name) < 2 || $length($name) > 255) {
     $errors['name'] = 'Укажите имя.';
 }
 $normalizedPhone = validate_phone($phone);

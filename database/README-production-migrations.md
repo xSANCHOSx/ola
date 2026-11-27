@@ -1,62 +1,23 @@
-# Production-миграции
+# Production migrations
 
-Для применения миграций используется `migrate_production.php`. Скрипт запускается из корня проекта на production-сервере и подключается к MySQL только через переменные окружения.
+`migrate_production.php` is the guarded CLI runner for the preorder-request schema. It uses the application's `dev_db_connection()` configuration and supports `--status`, `--dry-run` (default), and `--apply`. Direct HTTP execution is rejected. The admin-page trigger is added separately in PR #35.
 
-## Переменные окружения
+## CLI usage
 
-Обязательные переменные:
-
-```bash
-export APP_ENV=production
-export DB_HOST=127.0.0.1
-export DB_PORT=3306
-export DB_NAME=olaplex
-export DB_USER=olaplex_migrator
-export DB_PASS='пароль'
-```
-
-Пользователю базы нужны права на создание таблицы учёта миграций и изменение объектов, затрагиваемых миграциями. Не используйте пользователя приложения, если на сервере настроен отдельный пользователь для миграций.
-
-## Рекомендуемый порядок запуска
-
-Перед первым запуском сделайте резервную копию базы данных и убедитесь, что код и SQL-файлы соответствуют одной версии релиза.
-
-Сначала проверить состояние без изменений:
+Run from the repository root. Use the same production `DB_HOST`, `DB_NAME`, `DB_USER`, and `DB_PASS` configuration as the application. Before an intentional manual apply, take a database backup and confirm the target database.
 
 ```bash
 APP_ENV=production php database/migrate_production.php --status
 APP_ENV=production php database/migrate_production.php --dry-run
-```
-
-Затем применить ожидающие миграции:
-
-```bash
 APP_ENV=production php database/migrate_production.php --apply
 ```
 
-Скрипт применяет только следующие миграции и только в этом порядке:
+The CLI `--apply` mode is restricted to `APP_ENV=production`; do not run it during local verification. No production migration was run as part of the code checks for this change.
 
-1. `migration_product_visibility.sql`
-2. `migration_preorder_requests.sql`
-3. `migration_preorder_archive.sql`
+## Scope and safety
 
-## Защиты скрипта
+The runner applies, in order, the preorder request table and archive-schema migrations. Product `status`/`is_visible` is handled by the existing one-time `migrate_product_status.php` step in `.github/workflows/deploy.yml`; it uses the legacy `schema_migrations(version)` table. The preorder runner deliberately uses the separate `production_migrations` ledger, so the two formats do not collide.
 
-- без `--apply` база не изменяется;
-- `--apply` разрешён только при `APP_ENV=production`;
-- используется MySQL advisory lock, чтобы два запуска не выполнялись одновременно;
-- применяется таблица `schema_migrations` с SHA-256 контрольной суммой каждого файла;
-- изменение уже применённого SQL-файла останавливает выполнение;
-- после ошибки следующая попытка продолжает с первой миграции без записи об успешном применении текущей.
+The runner requires MySQL, checks and stores SHA-256 checksums for applied migration sources, obtains a MySQL advisory lock before changing schema, and records each migration only after its idempotent DDL succeeds. Archive columns, index, and foreign key are checked and applied individually, so a partial failure can be retried on a later run. Do not run the raw archive SQL file manually; use the runner.
 
-DDL в MySQL может выполнять неявный commit. Поэтому перед `--apply` резервная копия обязательна, а при ошибке нужно проверить состояние базы перед повторным запуском.
-
-## Проверка результата
-
-После применения:
-
-```bash
-APP_ENV=production php database/migrate_production.php --status
-```
-
-Ожидаемый результат: все три миграции имеют статус `[applied]`. Таблица `schema_migrations` является служебной и не участвует в работе магазина.
+The existing deploy workflow applies and removes the product status migration from the server's temporary deployment directory before synchronizing the site. It is separate from local verification and from the preorder migration runner.

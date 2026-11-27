@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS products (
   `desc` TEXT,
   full_desc MEDIUMTEXT,
   in_stock TINYINT(1) NOT NULL DEFAULT 1,
-  is_visible TINYINT(1) NOT NULL DEFAULT 1,
   status VARCHAR(64) DEFAULT NULL,
+  is_visible TINYINT(1) NOT NULL DEFAULT 1,
   seo_title VARCHAR(255) DEFAULT NULL,
   seo_description VARCHAR(255) DEFAULT NULL,
   volume VARCHAR(255) DEFAULT NULL,
@@ -117,9 +117,11 @@ CREATE TABLE IF NOT EXISTS preorder_requests (
   KEY idx_preorder_requests_status_created (status, created_at),
   KEY idx_preorder_requests_product_created (product_id, created_at),
   KEY idx_preorder_requests_archived_created (is_archived, created_at),
+  KEY idx_preorder_requests_processed_by (processed_by),
   CONSTRAINT fk_preorder_requests_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
   CONSTRAINT fk_preorder_requests_admin FOREIGN KEY (processed_by) REFERENCES admin_users(id) ON DELETE SET NULL,
-  CONSTRAINT fk_preorder_requests_archived_admin FOREIGN KEY (archived_by) REFERENCES admin_users(id) ON DELETE SET NULL
+  CONSTRAINT fk_preorder_requests_archived_admin FOREIGN KEY (archived_by) REFERENCES admin_users(id) ON DELETE SET NULL,
+  CONSTRAINT chk_preorder_requests_status CHECK (status IN ('new', 'in_progress', 'processed', 'cancelled'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS orders (

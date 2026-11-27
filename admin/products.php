@@ -100,6 +100,14 @@ function products_return_query(): string
 	return $params ? '?' . http_build_query($params) : '';
 }
 
+function product_effective_status(array $product): string
+{
+	$status = (string)($product['status'] ?? '');
+	if ($status === 'preorder') return 'preorder';
+	if ($status === 'disabled' || (int)($product['in_stock'] ?? 0) === 0) return 'disabled';
+	return 'active';
+}
+
 function product_slug_base(string $value): string
 {
 	return trim(normalize_product_link($value), '/');
@@ -148,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 	}
 	if (in_array($field, ['in_stock', 'is_visible'], true) && !in_array($value, ['0', '1'], true)) {
 		http_response_code(422);
-		echo json_encode(['success' => false, 'message' => 'Некорректное значение переключателя'], JSON_UNESCAPED_UNICODE);
+		echo json_encode(['success' => false, 'message' => 'Некорректное значение наличия'], JSON_UNESCAPED_UNICODE);
 		exit;
 	}
 	if (in_array($field, ['price', 'old_price'], true) && (!is_numeric($value) || (float)$value < 0)) {
@@ -224,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 			exit;
 		}
 		if (in_array($field, ['in_stock', 'is_visible'], true) && !in_array($value, ['0', '1', 'active', 'disabled'], true)) {
-			product_flash('Выберите корректное значение переключателя.', 'danger');
+			product_flash('Выберите корректное значение наличия.', 'danger');
 			header('Location: /admin/products.php' . (string)($_POST['return_query'] ?? ''));
 			exit;
 		}
@@ -234,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 			exit;
 		}
 		$placeholders = implode(',', array_fill(0, count($ids), '?'));
-		$normalizedValue = in_array($field, ['in_stock', 'is_visible'], true)
+		$normalizedValue = $field === 'in_stock'
 			? (int)in_array($value, ['1', 'active'], true)
 			: $value;
 		$params = array_merge([$normalizedValue], $ids);
@@ -275,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		$externalId = (string)$source['external_id'] . '-copy-' . $counter++;
 	}
 	$link = unique_product_link($pdo, (string)$source['link'] . '-copy');
-	$copy = $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, is_visible, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:is_visible,:status,:seo_title,:seo_description,:volume,:sort_order)');
+	$copy = $pdo->prepare('INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, is_visible, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:status,:is_visible,:seo_title,:seo_description,:volume,:sort_order)');
 	$copy->execute([
 		'external_id' => $externalId,
 		'cat_number' => $source['cat_number'],
@@ -287,10 +295,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		'short_desc' => $source['short_desc'],
 		'desc' => $source['desc'],
 		'full_desc' => $source['full_desc'],
-		'in_stock' => $source['in_stock'],
-		'is_visible' => $source['is_visible'] ?? 1,
-		'status' => 'disabled',
-		'seo_title' => $source['seo_title'],
+			'in_stock' => $source['in_stock'],
+			'status' => 'disabled',
+			'is_visible' => 0,
+			'seo_title' => $source['seo_title'],
 		'seo_description' => $source['seo_description'],
 		'volume' => $source['volume'],
 		'sort_order' => ((int)$source['sort_order']) + 1,
@@ -373,9 +381,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		'desc' => (string)($_POST['desc'] ?? ''),
 		'full_desc' => (string)($_POST['full_desc'] ?? ''),
 			'in_stock' => !empty($_POST['in_stock']) ? 1 : 0,
-			'is_visible' => !empty($_POST['is_visible']) ? 1 : 0,
 			'status' => trim((string)($_POST['status'] ?? '')),
-		'seo_title' => trim((string)($_POST['seo_title'] ?? '')),
+			'is_visible' => !empty($_POST['is_visible']) ? 1 : 0,
+			'seo_title' => trim((string)($_POST['seo_title'] ?? '')),
 		'seo_description' => trim((string)($_POST['seo_description'] ?? '')),
 			'volume' => trim((string)($_POST['volume'] ?? '')),
 			'sort_order' => (int)($_POST['sort_order'] ?? 0),
@@ -413,9 +421,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 			$oldImage = (string)($oldRecord['image'] ?? '');
 			$oldLink = (string)($oldRecord['link'] ?? '');
 			$data['id'] = $id;
-			$sql = 'UPDATE products SET external_id=:external_id, cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, image=:image, link=:link, short_desc=:short_desc, `desc`=:desc, full_desc=:full_desc, in_stock=:in_stock, is_visible=:is_visible, status=:status, seo_title=:seo_title, seo_description=:seo_description, volume=:volume, sort_order=:sort_order WHERE id=:id';
+			$sql = 'UPDATE products SET external_id=:external_id, cat_number=:cat_number, name=:name, old_price=:old_price, price=:price, image=:image, link=:link, short_desc=:short_desc, `desc`=:desc, full_desc=:full_desc, in_stock=:in_stock, status=:status, is_visible=:is_visible, seo_title=:seo_title, seo_description=:seo_description, volume=:volume, sort_order=:sort_order WHERE id=:id';
 		} else {
-			$sql = 'INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, is_visible, status, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:is_visible,:status,:seo_title,:seo_description,:volume,:sort_order)';
+			$sql = 'INSERT INTO products (external_id, cat_number, name, old_price, price, image, link, short_desc, `desc`, full_desc, in_stock, status, is_visible, seo_title, seo_description, volume, sort_order) VALUES (:external_id,:cat_number,:name,:old_price,:price,:image,:link,:short_desc,:desc,:full_desc,:in_stock,:status,:is_visible,:seo_title,:seo_description,:volume,:sort_order)';
 		}
 		$pdo->prepare($sql)->execute($data);
 		$productId = $id > 0 ? $id : (int)$pdo->lastInsertId();
@@ -462,6 +470,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pdo instanceof PDO && ($_POST['act
 		if ($pdo->inTransaction()) {
 			$pdo->rollBack();
 		}
+		dev_log_runtime('Product save failed: ' . $e->getMessage());
 		foreach ($createdFiles as $createdFile) {
 			delete_product_image_file($createdFile);
 		}
@@ -516,7 +525,7 @@ if ($pdo instanceof PDO) {
 		$params['search_link'] = $searchValue;
 	}
 	if ($statusFilter !== '') {
-		$where[] = 'status = :status_filter';
+		$where[] = "(CASE WHEN status = 'preorder' THEN 'preorder' WHEN status = 'disabled' OR COALESCE(in_stock, 0) = 0 THEN 'disabled' ELSE 'active' END) = :status_filter";
 		$params['status_filter'] = $statusFilter;
 	}
 	$whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
@@ -1118,6 +1127,23 @@ $gallery = [];
 		}
 
 		@media (max-width: 768px) {
+			.products-availability-filter {
+				width: 100%;
+				min-width: 0;
+				margin-left: 0;
+				flex-wrap: wrap;
+			}
+
+			.products-availability-filter label,
+			.products-availability-filter input,
+			.products-availability-filter select {
+				flex: 1 1 100%;
+				width: 100%;
+				min-width: 0;
+				max-width: 100%;
+				box-sizing: border-box;
+			}
+
 			.product-form-top {
 				grid-template-columns: 1fr;
 			}
@@ -1184,6 +1210,63 @@ $gallery = [];
 				font-size: 0.9rem;
 			}
 		}
+
+		.visibility-badge,
+		.availability-badge {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 38px;
+			height: 32px;
+			padding: 0;
+			border: 0;
+			border-radius: 6px;
+			color: #fff;
+			cursor: pointer;
+			transition: filter 0.15s ease, opacity 0.15s ease;
+		}
+
+		.visibility-badge:hover:not(:disabled),
+		.availability-badge:hover:not(:disabled) {
+			filter: brightness(0.92);
+		}
+
+		.visibility-badge:disabled,
+		.availability-badge:disabled {
+			cursor: wait;
+			opacity: 0.65;
+		}
+
+		.visibility-badge.is-visible {
+			background: #28a745;
+		}
+
+		.visibility-badge.is-hidden {
+			background: #dc3545;
+		}
+
+		.availability-badge.is-active {
+			background: #28a745;
+		}
+
+		.availability-badge.is-preorder {
+			background: #f0ad4e;
+		}
+
+		.availability-badge.is-disabled {
+			background: #dc3545;
+		}
+
+		.visibility-badge svg,
+		.availability-badge svg {
+			width: 18px;
+			height: 18px;
+			fill: none;
+			stroke: currentColor;
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
 	</style>
 </head>
 
@@ -1212,10 +1295,10 @@ $gallery = [];
 							<div class="status-section">
 								<div class="status-row">
 									<div class="form-group-wrapper">
-									<label for="status">Статус товара</label>
+											<label for="status">Наличие</label>
 										<select class="form-control" id="status" name="status">
 											<option value="">Выбрать</option>
-											<option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>Активный
+												<option value="active" <?= ($edit['status'] ?? '') === 'active' ? 'selected' : '' ?>>В наличии
 											</option>
 								<option value="preorder" <?= ($edit['status'] ?? '') === 'preorder' ? 'selected' : '' ?>>Под заказ
 								</option>
@@ -1223,19 +1306,20 @@ $gallery = [];
 											</option>
 										</select>
 									</div>
-										<div class="form-group-wrapper">
-											<label for="is_visible">Показывать на сайте</label>
-											<button type="button" class="status-badge <?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? 'active' : 'inactive' ?>"
+									<div class="form-group-wrapper">
+										<label for="visibilityToggle">Видимость на сайте</label>
+										<button type="button" class="status-badge <?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? 'active' : 'inactive' ?>"
 												id="visibilityToggle" onclick="toggleVisibility()">
-												<?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? 'Да' : 'Нет' ?>
+												<?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? '✓ Да' : '✗ Нет' ?>
 											</button>
 											<input type="hidden" id="is_visible" name="is_visible"
 												value="<?= !isset($edit['is_visible']) || !empty($edit['is_visible']) ? '1' : '0' ?>">
+											<input type="hidden" name="in_stock" value="<?= !isset($edit['in_stock']) || !empty($edit['in_stock']) ? '1' : '0' ?>">
 										</div>
+									</div>
 								</div>
-							</div>
-							<div class="form-group-wrapper">
-								<label for="sort_order">Порядок сортировки <small style="color:#888;font-weight:normal">(устанавливается
+								<div class="form-group-wrapper">
+									<label for="sort_order">Порядок сортировки <small style="color:#888;font-weight:normal">(устанавливается
 										перетягиванием в списке)</small></label>
 								<input type="number" class="form-control" id="sort_order" name="sort_order"
 									value="<?= admin_h((string)($edit['sort_order'] ?? '0')) ?>">
@@ -1409,7 +1493,7 @@ $gallery = [];
 					<input id="productSearch" name="q" class="form-control input-sm" value="<?= admin_h($search) ?>" placeholder="Название, ID, код, slug">
 					<select name="status_filter" class="form-control input-sm" aria-label="Фильтр наличия">
 						<option value="">Все товары</option>
-						<option value="active" <?= $statusFilter === 'active' ? 'selected' : '' ?>>Активный</option>
+					<option value="active" <?= $statusFilter === 'active' ? 'selected' : '' ?>>В наличии</option>
 						<option value="preorder" <?= $statusFilter === 'preorder' ? 'selected' : '' ?>>Под заказ</option>
 						<option value="disabled" <?= $statusFilter === 'disabled' ? 'selected' : '' ?>>Нет в наличии</option>
 					</select>
@@ -1436,21 +1520,18 @@ $gallery = [];
 					<strong>Массовое изменение:</strong>
 					<select name="bulk_field" id="bulkField" class="form-control input-sm" required>
 						<option value="">Выберите поле</option>
-						<option value="status">Статус товара</option>
+						<option value="status">Наличие</option>
 						<option value="price">Цена</option>
-						<option value="in_stock">Флаг «В наличии»</option>
-						<option value="is_visible">Показывать на сайте</option>
+						<option value="is_visible">Видимость на сайте</option>
 						<option value="regenerate_slug">URL товара</option>
 					</select>
 						<select name="bulk_value" id="bulkValue" class="form-control input-sm" required>
 						<option value="">Выберите значение</option>
-						<option value="active" data-bulk-fields="status">Активный</option>
+						<option value="active" data-bulk-fields="status">В наличии</option>
 						<option value="preorder" data-bulk-fields="status">Под заказ</option>
 						<option value="disabled" data-bulk-fields="status">Нет в наличии</option>
-							<option value="1" data-bulk-fields="in_stock">В наличии (1)</option>
-							<option value="0" data-bulk-fields="in_stock">Нет в наличии (0)</option>
-							<option value="1" data-bulk-fields="is_visible">Показывать: Да</option>
-							<option value="0" data-bulk-fields="is_visible">Показывать: Нет</option>
+						<option value="1" data-bulk-fields="is_visible">Показывать на сайте</option>
+						<option value="0" data-bulk-fields="is_visible">Скрыть с сайта</option>
 						<option value="regenerate" data-bulk-fields="regenerate_slug">Перегенерировать из названия</option>
 						</select>
 						<input type="number" name="bulk_value" id="bulkPrice" class="form-control input-sm" min="0" step="0.01" placeholder="Новая цена" disabled>
@@ -1472,14 +1553,13 @@ $gallery = [];
 							<th>Цена</th>
 							<th>Slug</th>
 							<th>Наличие</th>
-									<th>Статус</th>
-									<th>На сайте</th>
-							<th></th>
+							<th>Видимость</th>
+								<th></th>
 						</tr>
 					</thead>
 					<tbody id="sortable-products">
 						<?php foreach ($products as $i => $p):
-							$st = (string)($p['status'] ?? '');
+							$st = product_effective_status($p);
 							$rowClass = match ($st) {
 								'active'   => 'table-row-active',
 								'preorder' => 'table-row-preorder',
@@ -1487,16 +1567,13 @@ $gallery = [];
 								default    => '',
 							};
 							$statusLabel = match ($st) {
-								'active'   => 'Активный',
+								'active'   => 'В наличии',
 								'preorder' => 'Под заказ',
 								'disabled' => 'Нет в наличии',
 								default    => '—',
 							};
-							$availability = !empty($p['in_stock'])
-								? ['class' => 'active', 'icon' => '✓', 'label' => 'В наличии']
-								: ['class' => 'disabled', 'icon' => '×', 'label' => 'Нет в наличии'];
 						?>
-							<tr data-id="<?= (int)$p['id'] ?>" data-availability="<?= admin_h($availability['class']) ?>" class="<?= $rowClass ?>">
+							<tr data-id="<?= (int)$p['id'] ?>" data-availability="<?= admin_h($st) ?>" class="<?= $rowClass ?>">
 								<td class="drag-handle" title="Перетащите для изменения порядка">⠿</td>
 								<td><input type="checkbox" name="product_ids[]" value="<?= (int)$p['id'] ?>" class="product-select" aria-label="Выбрать товар"></td>
 								<td class="row-position" style=" display:none;"><?= $i + 1 ?></td>
@@ -1506,17 +1583,11 @@ $gallery = [];
 								<td><?= admin_h((string)$p['volume']) ?></td>
 								<td><input class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="price" type="number" step="0.01" min="0" value="<?= admin_h((string)$p['price']) ?>" aria-label="Цена"></td>
 								<td><?= admin_h((string)$p['link']) ?></td>
-								<td>
-									<span class="product-availability product-availability--<?= admin_h($availability['class']) ?>"
-										title="<?= admin_h($availability['label']) ?>"
-										role="img"
-										aria-label="<?= admin_h($availability['label']) ?>"><?= admin_h($availability['icon']) ?></span>
-								</td>
-									<td><select class="form-control input-sm product-inline-field" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" aria-label="Статус">
-										<?php foreach (['active' => 'Активный', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии'] as $statusValue => $statusText): ?><option value="<?= $statusValue ?>" <?= $st === $statusValue ? 'selected' : '' ?>><?= $statusText ?></option><?php endforeach; ?>
-									</select></td>
-									<td><button type="button" class="status-badge <?= !empty($p['is_visible']) ? 'active' : 'inactive' ?>" data-product-id="<?= (int)$p['id'] ?>" data-value="<?= !empty($p['is_visible']) ? '1' : '0' ?>" onclick="toggleInlineVisibility(this)"><?= !empty($p['is_visible']) ? 'Да' : 'Нет' ?></button></td>
-								<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
+							<td><?php $productStatusLabels = ['active' => 'В наличии', 'preorder' => 'Под заказ', 'disabled' => 'Нет в наличии']; $productStatus = isset($productStatusLabels[$st]) ? $st : 'disabled'; ?><button type="button" class="availability-badge product-inline-field <?= 'is-' . $productStatus ?>" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="status" data-value="<?= admin_h($productStatus) ?>" aria-label="Наличие: <?= admin_h($productStatusLabels[$productStatus]) ?>. Нажмите, чтобы изменить" title="<?= admin_h($productStatusLabels[$productStatus]) ?>">
+									<?php if ($productStatus === 'active'): ?><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg><?php elseif ($productStatus === 'preorder'): ?><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><?php else: ?><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg><?php endif; ?></button></td>
+									<td><?php $isProductVisible = !isset($p['is_visible']) || (int)$p['is_visible'] === 1; ?><button type="button" class="visibility-badge product-inline-field <?= $isProductVisible ? 'is-visible' : 'is-hidden' ?>" data-product-id="<?= (int)$p['id'] ?>" data-quick-field="is_visible" data-value="<?= $isProductVisible ? '1' : '0' ?>" aria-label="<?= $isProductVisible ? 'Скрыть товар' : 'Показать товар' ?>" aria-pressed="<?= $isProductVisible ? 'true' : 'false' ?>" title="<?= $isProductVisible ? 'Видим на сайте' : 'Скрыт с сайта' ?>">
+										<svg viewBox="0 0 24 24" aria-hidden="true"><?php if ($isProductVisible): ?><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle><?php else: ?><path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.7 15.7 0 0 1-3.1 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.2-.9"></path></svg><?php endif; ?></button></td>
+									<td><a href="/admin/products.php?edit=<?= (int)$p['id'] ?>">Редактировать</a></td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -1760,41 +1831,20 @@ $gallery = [];
 			};
 		})();
 
-		// Переключение публичной видимости товара
+		// Переключение видимости товара на сайте
 			function toggleVisibility() {
 			var toggle = document.getElementById('visibilityToggle');
 			var input = document.getElementById('is_visible');
 			if (toggle.classList.contains('active')) {
 				toggle.classList.replace('active', 'inactive');
-				toggle.textContent = 'Нет';
+				toggle.textContent = '✗ Нет';
 				input.value = '0';
 			} else {
 				toggle.classList.replace('inactive', 'active');
-				toggle.textContent = 'Да';
+				toggle.textContent = '✓ Да';
 				input.value = '1';
 			}
 			}
-
-			window.toggleInlineVisibility = function(button) {
-				var nextValue = button.dataset.value === '1' ? '0' : '1';
-				var body = new URLSearchParams({
-					action: 'quick_update',
-					product_id: button.dataset.productId,
-					field: 'is_visible',
-					value: nextValue,
-					csrf_token: document.querySelector('meta[name="csrf-token"]')?.content || ''
-				});
-				fetch('/admin/products.php', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body})
-					.then(function(response) { return response.json(); })
-					.then(function(data) {
-						if (!data.success) throw new Error(data.message || 'Ошибка');
-						button.dataset.value = nextValue;
-						button.textContent = nextValue === '1' ? 'Да' : 'Нет';
-						button.classList.toggle('active', nextValue === '1');
-						button.classList.toggle('inactive', nextValue !== '1');
-					})
-					.catch(function(error) { alert(error.message || 'Не удалось изменить видимость товара.'); });
-			};
 
 			(function() {
 				var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
@@ -1825,18 +1875,65 @@ $gallery = [];
 						bulkField.addEventListener('change', syncBulkValues);
 						syncBulkValues();
 					}
-					document.querySelectorAll('.product-inline-field').forEach(function(field) {
-					field.addEventListener('change', function() {
-						var oldValue = field.getAttribute('data-original') || field.value;
+					function updateVisibilityBadge(button, value) {
+						var isVisible = value === '1';
+						button.dataset.value = value;
+						button.classList.toggle('is-visible', isVisible);
+						button.classList.toggle('is-hidden', !isVisible);
+						button.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+						button.setAttribute('aria-label', isVisible ? 'Скрыть товар' : 'Показать товар');
+						button.title = isVisible ? 'Видим на сайте' : 'Скрыт с сайта';
+						button.innerHTML = isVisible
+							? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+							: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a15.7 15.7 0 0 1-3.1 3.8"></path><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.2-.9"></path></svg>';
+					}
+					function updateAvailabilityBadge(button, value) {
+						var labels = {active: 'В наличии', preorder: 'Под заказ', disabled: 'Нет в наличии'};
+						var icons = {
+							active: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>',
+							preorder: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>',
+							disabled: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg>'
+						};
+						button.dataset.value = value;
+						button.classList.remove('is-active', 'is-preorder', 'is-disabled');
+						button.classList.add('is-' + value);
+						button.setAttribute('aria-label', 'Наличие: ' + labels[value] + '. Нажмите, чтобы изменить');
+						button.title = labels[value];
+						button.innerHTML = icons[value];
+					}
+					function saveInlineField(field, nextValue) {
+						var isBadge = field.tagName === 'BUTTON';
+						var oldValue = isBadge ? field.dataset.value : (field.getAttribute('data-original') || field.value);
+						if (isBadge && field.dataset.quickField === 'is_visible') updateVisibilityBadge(field, nextValue);
+						if (isBadge && field.dataset.quickField === 'status') updateAvailabilityBadge(field, nextValue);
 						field.disabled = true;
-						var body = new URLSearchParams({action: 'quick_update', csrf_token: csrf, product_id: field.dataset.productId, field: field.dataset.quickField, value: field.value});
+						var body = new URLSearchParams({action: 'quick_update', csrf_token: csrf, product_id: field.dataset.productId, field: field.dataset.quickField, value: nextValue});
 						fetch('/admin/products.php', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}, body: body.toString()})
 							.then(function(response) { return response.json().then(function(data) { if (!response.ok || !data.success) throw new Error(data.message || 'Ошибка сохранения'); }); })
-							.then(function() { field.setAttribute('data-original', field.value); field.classList.add('is-valid'); setTimeout(function() { field.classList.remove('is-valid'); }, 1000); })
-							.catch(function(error) { field.value = oldValue; window.alert(error.message); })
+							.then(function() { field.setAttribute('data-original', nextValue); field.classList.add('is-valid'); setTimeout(function() { field.classList.remove('is-valid'); }, 1000); })
+							.catch(function(error) {
+								if (isBadge && field.dataset.quickField === 'is_visible') updateVisibilityBadge(field, oldValue);
+								else if (isBadge && field.dataset.quickField === 'status') updateAvailabilityBadge(field, oldValue);
+								else field.value = oldValue;
+								window.alert(error.message);
+							})
 							.finally(function() { field.disabled = false; });
+					}
+						document.querySelectorAll('.product-inline-field').forEach(function(field) {
+							if (field.tagName === 'BUTTON') {
+								field.addEventListener('click', function() {
+									if (field.dataset.quickField === 'status') {
+										var statusCycle = ['active', 'preorder', 'disabled'];
+										var currentIndex = statusCycle.indexOf(field.dataset.value);
+										saveInlineField(field, statusCycle[(currentIndex + 1) % statusCycle.length]);
+									} else {
+										saveInlineField(field, field.dataset.value === '1' ? '0' : '1');
+									}
+								});
+						} else {
+							field.addEventListener('change', function() { saveInlineField(field, field.value); });
+						}
 					});
-				});
 					var duplicateSelected = document.getElementById('duplicateSelectedProduct');
 					if (duplicateSelected) {
 						duplicateSelected.addEventListener('click', function() {

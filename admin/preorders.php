@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 require __DIR__ . '/_bootstrap.php';
-admin_require_permission('products', 'view');
+admin_require_permission('preorders', 'view');
 $pdo = dev_db_connection();
 $message = null;
 $error = null;
@@ -29,7 +29,7 @@ $allowedStatuses = [
 
 $action = (string)($_POST['action'] ?? '');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    admin_require_permission('products', 'edit');
+    admin_require_permission('preorders', 'edit');
     if (!validate_csrf_token()) {
         $error = 'Сессия формы устарела. Обновите страницу.';
     } else {
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new RuntimeException('Окончательное удаление доступно только администратору.');
                 }
                 if (in_array($action, ['bulk_archive', 'bulk_unarchive'], true) && !$archiveSchemaReady) {
-                    throw new RuntimeException('Сначала примените database/migration_preorder_archive.sql.');
+                    throw new RuntimeException('Архив заявок пока не готов. Обновите страницу позже или обратитесь к администратору.');
                 }
                 $placeholders = [];
                 $bulkParams = [];
@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = 'Заявка обновлена.';
             } elseif ($action === 'archive' || $action === 'unarchive') {
                 if (!$archiveSchemaReady) {
-                    throw new RuntimeException('Сначала примените database/migration_preorder_archive.sql.');
+                    throw new RuntimeException('Архив заявок пока не готов. Обновите страницу позже или обратитесь к администратору.');
                 }
                 $archived = $action === 'archive' ? 1 : 0;
                 $stmt = $pdo->prepare(
@@ -155,7 +155,7 @@ if (!in_array($view, ['active', 'archived', 'all'], true)) {
 }
 if (!$archiveSchemaReady && $view !== 'active') {
     $view = 'active';
-    $error = $error ?: 'Архив пока недоступен: примените database/migration_preorder_archive.sql. Текущие заявки продолжают отображаться.';
+    $error = $error ?: 'Архив пока недоступен. Повторите попытку позже; текущие заявки продолжают отображаться.';
 }
 $search = trim((string)($_GET['q'] ?? ''));
 if (mb_strlen($search) > 120) {
@@ -233,7 +233,7 @@ try {
     $stmt->execute($params);
     $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
-    $error = $error ?: 'Таблица заявок ещё не создана или не обновлена. Примените database/migration_preorder_requests.sql и database/migration_preorder_archive.sql.';
+    $error = $error ?: 'Не удалось загрузить заявки. Повторите попытку позже или обратитесь к администратору.';
 }
 
 function preorder_admin_url(string $view, string $status = 'all', string $search = '', int $page = 1, int $perPage = 50): string

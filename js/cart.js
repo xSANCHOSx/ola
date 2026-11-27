@@ -606,6 +606,13 @@ asOrderItems() {
 				console.warn('cart: product not found, id=', id)
 				return
 			}
+			if (String(p.status || '') === 'preorder') {
+				window.dispatchEvent(new CustomEvent('preorder:open', { detail: { productId: id, product: p } }))
+				return
+			}
+			if (String(p.status || '') === 'disabled' || !p.in_stock) {
+				return
+			}
 
 			const qtyInput = $('#' + (window.wiNumInputPrefID || 'qty-') + id)
 			const qty = parseInt(qtyInput.length ? qtyInput.val() : 1, 10) || 1

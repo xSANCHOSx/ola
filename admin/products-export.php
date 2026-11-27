@@ -24,7 +24,7 @@ if (in_array($status, ['active', 'preorder', 'disabled'], true)) {
     $where[] = 'status = :status';
     $params['status'] = $status;
 }
-$sql = 'SELECT external_id, cat_number, name, old_price, price, link, in_stock, is_visible, status, seo_title, seo_description, volume FROM products';
+$sql = 'SELECT external_id, cat_number, name, old_price, price, link, in_stock, status, is_visible, seo_title, seo_description, volume FROM products';
 if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
 $sql .= ' ORDER BY sort_order ASC, id ASC';
 $stmt = $pdo->prepare($sql);
@@ -33,7 +33,7 @@ header('Content-Type: text/csv; charset=UTF-8');
 header('Content-Disposition: attachment; filename="products-' . date('Y-m-d') . '.csv"');
 $out = fopen('php://output', 'wb');
 fwrite($out, "\xEF\xBB\xBF");
-fputcsv($out, ['external_id', 'cat_number', 'name', 'old_price', 'price', 'link', 'in_stock', 'is_visible', 'status', 'seo_title', 'seo_description', 'volume'], ';');
+fputcsv($out, ['external_id', 'cat_number', 'name', 'old_price', 'price', 'link', 'in_stock', 'status', 'is_visible', 'seo_title', 'seo_description', 'volume'], ';');
 function csv_safe_value(mixed $value): string
 {
     $value = (string)$value;

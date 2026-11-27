@@ -9,17 +9,16 @@ try {
         try {
             $pendingReviews = (int)$navPdo->query("SELECT COUNT(*) FROM product_reviews WHERE status = 'pending'")->fetchColumn();
         } catch (Throwable $e) {
-            $pendingReviews = 0;
+            $pendingReviews = 0; // таблицы отзывов может ещё не быть — меню должно работать
         }
         try {
             $newPreorders = (int)$navPdo->query("SELECT COUNT(*) FROM preorder_requests WHERE status = 'new' AND is_archived = 0")->fetchColumn();
         } catch (Throwable $e) {
-            $newPreorders = 0;
+            $newPreorders = 0; // preorder-схема может быть ещё не готова
         }
     }
 } catch (Throwable $e) {
-    $pendingReviews = 0; // таблицы отзывов может ещё не быть — меню должно работать
-    $newPreorders = 0;
+    // База может быть временно недоступна — меню должно работать.
 }
 ?>
 <nav class="admin-nav">
@@ -40,7 +39,8 @@ try {
         <?php endif; ?>
         <?php if (admin_can('products', 'view')): ?><li class="admin-nav__item"><a href="/admin/products.php" class="admin-nav__link"><svg class="admin-nav__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 9.4l-9-5.19M21 16.5v-12c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM3.72 9.97l8.3 4.79c.38.22.86.22 1.24 0l8.3-4.79M12 19v-9"/></svg><span>Товары</span></a></li>
         <?php endif; ?>
-        <?php if (admin_can('products', 'view')): ?><li class="admin-nav__item"><a href="/admin/preorders.php" class="admin-nav__link" style="position:relative;"><span aria-hidden="true">↗</span><span>Товары под заказ</span><?php if ($newPreorders > 0): ?><span class="admin-nav__badge" role="status" aria-label="Новых заявок: <?= $newPreorders ?>" title="Новых заявок: <?= $newPreorders ?>" style="position:absolute;top:-7px;right:-7px;box-sizing:border-box;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#d63638;color:#fff;font-size:11px;font-weight:600;line-height:18px;text-align:center;"><?= $newPreorders > 99 ? '99+' : $newPreorders ?></span><?php endif; ?></a></li><?php endif; ?>
+        <?php if (admin_can('preorders', 'view')): ?><li class="admin-nav__item"><a href="/admin/preorders.php" class="admin-nav__link" style="position:relative;"><span aria-hidden="true">⏱</span><span>Товары под заказ</span><?php if ($newPreorders > 0): ?><span class="admin-nav__badge" role="status" aria-label="Новых заявок: <?= $newPreorders ?>" title="Новых заявок: <?= $newPreorders ?>" style="position:absolute;top:-7px;right:-7px;box-sizing:border-box;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#d63638;color:#fff;font-size:11px;font-weight:600;line-height:18px;text-align:center;"><?= $newPreorders > 99 ? '99+' : $newPreorders ?></span><?php endif; ?></a></li>
+        <?php endif; ?>
         <?php if (admin_can('customers', 'view')): ?><li class="admin-nav__item"><a href="/admin/customers.php" class="admin-nav__link"><svg class="admin-nav__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M16 11a4 4 0 11-8 0 4 4 0 018 0zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span>Клиенты</span></a></li>
         <?php endif; ?>
         <?php if (admin_is_admin()): ?><li class="admin-nav__item"><a href="/admin/users.php" class="admin-nav__link"><svg class="admin-nav__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M19 8v6M22 11h-6"/></svg><span>Пользователи</span></a></li><?php endif; ?>

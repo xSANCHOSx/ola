@@ -3,38 +3,48 @@
 declare(strict_types=1);
 
 /**
- * Возвращает нормализованный публичный статус товара.
- * Публикация товара определяется отдельно через is_visible.
+ * Возвращает нормализованный статус товара.
+ *
+ * Старые строки могут иметь NULL/пустой status, поэтому до миграции таких
+ * товаров сохраняем прежнее поведение по флагу in_stock. Новые значения
+ * status при этом не смешиваются с видимостью товара.
  */
+function product_status(array $product): string
+{
+    $status = (string)($product['status'] ?? '');
+    if (in_array($status, ['active', 'preorder', 'disabled'], true)) {
+        return $status;
+    }
+    return !empty($product['in_stock']) ? 'active' : 'disabled';
+}
+
+function product_is_preorder(array $product): bool
+{
+    return product_status($product) === 'preorder';
+}
+
+/** Только активный товар в наличии можно добавить в обычную корзину. */
+function product_is_buyable(array $product): bool
+{
+    return product_status($product) === 'active' && !empty($product['in_stock']);
+}
+
 function product_status_label(array $product): string
 {
-    return match ((string)($product['status'] ?? '')) {
+    return match (product_status($product)) {
         'active' => 'В наличии',
         'preorder' => 'Под заказ',
-        'disabled' => 'Нет в наличии',
-        default => !empty($product['in_stock']) ? 'В наличии' : 'Нет в наличии',
+        default => 'Нет в наличии',
     };
 }
 
-/**
- * Проверяет, можно ли добавить продукт в обычную корзину.
- * Предзаказ и выключенный товар в обычную корзину не попадают.
- */
-function product_is_buyable(array $product): bool
-{
-    $status = (string)($product['status'] ?? '');
-    return $status === 'active' || ($status === '' && !empty($product['in_stock']));
-}
-
-/**
- * Возвращает публичный текст и для обычной, и для preorder-кнопки.
- */
+/** Текст и действие кнопки не зависят от поля is_visible. */
 function product_button_label(array $product): string
 {
-    return match ((string)($product['status'] ?? '')) {
+    return match (product_status($product)) {
+        'active' => 'Купить',
         'preorder' => 'Под заказ',
-        'disabled' => 'Выключено',
-        default => product_is_buyable($product) ? 'Купить' : 'Выключено',
+        default => 'Выключено',
     };
 }
 

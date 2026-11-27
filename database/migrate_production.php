@@ -2,308 +2,243 @@
 
 declare(strict_types=1);
 
-/**
- * Безопасное применение production-миграций Olaplex.
- *
- * По умолчанию скрипт работает в режиме dry-run.
- * Для фактического применения необходимо явно указать --apply.
- *
- * Примеры:
- *   APP_ENV=production php database/migrate_production.php --status
- *   APP_ENV=production php database/migrate_production.php --dry-run
- *   APP_ENV=production php database/migrate_production.php --apply
- *
- * Переменные окружения:
- *   DB_HOST — хост MySQL, обязательно
- *   DB_PORT — порт MySQL, по умолчанию 3306
- *   DB_NAME — имя базы, обязательно
- *   DB_USER — пользователь базы, обязательно
- *   DB_PASS — пароль базы, обязательно
- */
+require_once __DIR__ . '/../config/db.php';
 
-const MIGRATIONS = [
-    'migration_product_visibility.sql',
-    'migration_preorder_requests.sql',
-    'migration_preorder_archive.sql',
+const OLA_MIGRATION_LEDGER = 'production_migrations';
+const OLA_MIGRATION_LOCK = 'olaplex_production_migrations';
+const OLA_MIGRATIONS = [
+    '2026_11_27_preorder_requests' => 'migration_preorder_requests.sql',
+    '2026_11_27_preorder_archive' => 'migration_preorder_archive.sql',
 ];
 
-const MIGRATIONS_TABLE = 'schema_migrations';
-const MYSQL_LOCK_NAME = 'olaplex_production_migrations';
-
-function fail(string $message, int $code = 1): void
+/** Apply pending production migrations using the application's PDO. */
+function ola_apply_production_migrations(PDO $pdo): array
 {
-    fwrite(STDERR, "ERROR: {$message}\n");
-    exit($code);
-}
-
-function info(string $message): void
-{
-    fwrite(STDOUT, $message . PHP_EOL);
-}
-
-function usage(): void
-{
-    info(<<<'USAGE'
-Использование:
-  php database/migrate_production.php [--status|--dry-run|--apply]
-
-Режимы:
-  --status   Показать применённые и ожидающие миграции, без изменений.
-  --dry-run  Показать план применения, без изменений. Используется по умолчанию.
-  --apply    Применить ожидающие миграции.
-  --help     Показать эту справку.
-
-Для --apply требуется APP_ENV=production.
-USAGE);
-    exit(0);
-}
-
-function parseMode(array $argv): string
-{
-    $mode = 'dry-run';
-
-    foreach (array_slice($argv, 1) as $argument) {
-        switch ($argument) {
-            case '--status':
-                if ($mode !== 'dry-run') {
-                    fail('Нельзя указывать несколько режимов одновременно.');
-                }
-                $mode = 'status';
-                break;
-            case '--dry-run':
-                if ($mode !== 'dry-run') {
-                    fail('Нельзя указывать несколько режимов одновременно.');
-                }
-                $mode = 'dry-run';
-                break;
-            case '--apply':
-                if ($mode !== 'dry-run') {
-                    fail('Нельзя указывать несколько режимов одновременно.');
-                }
-                $mode = 'apply';
-                break;
-            case '--help':
-            case '-h':
-                usage();
-                break;
-            default:
-                fail("Неизвестный аргумент: {$argument}. Используйте --help.");
-        }
+    if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'mysql') {
+        throw new RuntimeException('Production migrations require MySQL.');
     }
 
-    return $mode;
-}
-
-function requiredEnv(string $name): string
-{
-    $value = getenv($name);
-    if ($value === false || trim($value) === '') {
-        fail("Не задана обязательная переменная окружения {$name}.");
-    }
-    return $value;
-}
-
-function connect(): PDO
-{
-    $host = requiredEnv('DB_HOST');
-    $name = requiredEnv('DB_NAME');
-    $user = requiredEnv('DB_USER');
-    $pass = requiredEnv('DB_PASS');
-    $port = getenv('DB_PORT') ?: '3306';
-
-    if (!ctype_digit($port) || (int)$port < 1 || (int)$port > 65535) {
-        fail('DB_PORT должен быть числом от 1 до 65535.');
+    ola_ensure_migration_ledger($pdo);
+    if (ola_pending_migrations($pdo) === []) {
+        return [];
     }
 
-    $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $name);
+    $lock = $pdo->prepare('SELECT GET_LOCK(?, 10)');
+    $lock->execute([OLA_MIGRATION_LOCK]);
+    if ((int)$lock->fetchColumn() !== 1) {
+        throw new RuntimeException('Could not obtain the production migration lock.');
+    }
 
+    $appliedNow = [];
     try {
-        return new PDO($dsn, $user, $pass, [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-        ]);
-    } catch (PDOException $exception) {
-        fail('Не удалось подключиться к MySQL: ' . $exception->getMessage());
-    }
-}
-
-function migrationsDirectory(): string
-{
-    return __DIR__;
-}
-
-function migrationChecksum(string $filename): string
-{
-    $path = migrationsDirectory() . DIRECTORY_SEPARATOR . $filename;
-    if (!is_readable($path)) {
-        fail("Файл миграции недоступен для чтения: {$path}");
+        // Re-check after acquiring the lock in case another request won the race.
+        foreach (ola_pending_migrations($pdo) as $version => $filename) {
+            ola_apply_migration($pdo, $version, $filename);
+            $record = $pdo->prepare(
+                'INSERT INTO `' . OLA_MIGRATION_LEDGER . '` (migration, checksum) VALUES (:migration, :checksum)'
+            );
+            $record->execute([
+                'migration' => $version,
+                'checksum' => ola_migration_checksum($filename),
+            ]);
+            $appliedNow[] = $version;
+        }
+    } finally {
+        $release = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+        $release->execute([OLA_MIGRATION_LOCK]);
     }
 
-    $checksum = hash_file('sha256', $path);
-    if ($checksum === false) {
-        fail("Не удалось вычислить контрольную сумму: {$path}");
-    }
-
-    return $checksum;
+    return $appliedNow;
 }
 
-function ensureMigrationsTable(PDO $pdo): void
+/** @return array<string, string> */
+function ola_pending_migrations(PDO $pdo): array
 {
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS `' . MIGRATIONS_TABLE . '` ('
-        . ' `migration` VARCHAR(190) NOT NULL PRIMARY KEY,'
-        . ' `checksum` CHAR(64) NOT NULL,'
-        . ' `applied_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'
-        . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
-    );
-}
-
-function migrationsTableExists(PDO $pdo): bool
-{
-    $statement = $pdo->prepare(
-        'SELECT COUNT(*) FROM information_schema.tables'
-        . ' WHERE table_schema = DATABASE() AND table_name = ?'
-    );
-    $statement->execute([MIGRATIONS_TABLE]);
-    return (int)$statement->fetchColumn() === 1;
-}
-
-/** @return array<string, array{checksum: string, applied_at: string}> */
-function appliedMigrations(PDO $pdo): array
-{
-    $statement = $pdo->prepare(
-        'SELECT migration, checksum, applied_at FROM `' . MIGRATIONS_TABLE . '`'
-        . ' WHERE migration IN ('
-        . implode(',', array_fill(0, count(MIGRATIONS), '?'))
-        . ') ORDER BY migration'
-    );
-    $statement->execute(MIGRATIONS);
-
-    $result = [];
-    foreach ($statement->fetchAll() as $row) {
-        $result[(string)$row['migration']] = [
-            'checksum'  => (string)$row['checksum'],
-            'applied_at' => (string)$row['applied_at'],
-        ];
-    }
-
-    return $result;
-}
-
-function acquireLock(PDO $pdo): void
-{
-    $statement = $pdo->prepare('SELECT GET_LOCK(?, 10) AS lock_acquired');
-    $statement->execute([MYSQL_LOCK_NAME]);
-    $acquired = (int)$statement->fetchColumn();
-    if ($acquired !== 1) {
-        fail('Не удалось получить блокировку миграций. Возможно, другой процесс уже выполняет миграции.');
-    }
-}
-
-function releaseLock(PDO $pdo): void
-{
-    $statement = $pdo->prepare('SELECT RELEASE_LOCK(?)');
-    $statement->execute([MYSQL_LOCK_NAME]);
-}
-
-/** @return list<array{filename: string, checksum: string}> */
-function migrationPlan(array $applied): array
-{
-    $plan = [];
-
-    foreach (MIGRATIONS as $filename) {
-        $checksum = migrationChecksum($filename);
-        if (isset($applied[$filename])) {
-            if (!hash_equals($applied[$filename]['checksum'], $checksum)) {
-                fail(
-                    "Контрольная сумма уже применённой миграции {$filename} изменилась. "
-                    . 'Остановлено для защиты production-базы.'
-                );
+    $applied = ola_applied_migrations($pdo);
+    $pending = [];
+    foreach (OLA_MIGRATIONS as $version => $filename) {
+        $checksum = ola_migration_checksum($filename);
+        if (isset($applied[$version])) {
+            if (!hash_equals($applied[$version]['checksum'], $checksum)) {
+                throw new RuntimeException('Checksum mismatch for applied migration ' . $version . '.');
             }
             continue;
         }
-
-        $plan[] = ['filename' => $filename, 'checksum' => $checksum];
+        $pending[$version] = $filename;
     }
-
-    return $plan;
+    return $pending;
 }
 
-function showPlan(array $applied, array $plan, string $mode): void
+/** @return array<string, array{checksum:string, applied_at:string}> */
+function ola_applied_migrations(PDO $pdo): array
 {
-    info('Режим: ' . $mode);
-    info('Порядок миграций:');
-
-    foreach (MIGRATIONS as $filename) {
-        if (isset($applied[$filename])) {
-            info("  [applied] {$filename} ({$applied[$filename]['applied_at']})");
-        } else {
-            info("  [pending] {$filename}");
-        }
+    if (!ola_migration_ledger_exists($pdo)) {
+        return [];
     }
 
-    if ($mode === 'dry-run') {
-        info('Dry-run завершён: изменений в базе не выполнено.');
-    } elseif ($mode === 'status' || $plan === []) {
-        info($plan === [] ? 'Все миграции уже применены.' : 'Проверка статуса завершена.');
+    $statement = $pdo->query(
+        'SELECT migration, checksum, applied_at FROM `' . OLA_MIGRATION_LEDGER . '` ORDER BY migration'
+    );
+    $result = [];
+    foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $result[(string)$row['migration']] = [
+            'checksum' => (string)$row['checksum'],
+            'applied_at' => (string)$row['applied_at'],
+        ];
     }
+    return $result;
 }
 
-function applyPlan(PDO $pdo, array $plan): void
+function ola_migration_ledger_exists(PDO $pdo): bool
 {
-    foreach ($plan as $migration) {
-        $filename = $migration['filename'];
-        $path = migrationsDirectory() . DIRECTORY_SEPARATOR . $filename;
-        $sql = file_get_contents($path);
+    $statement = $pdo->prepare(
+        'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?'
+    );
+    $statement->execute([OLA_MIGRATION_LEDGER]);
+    return (int)$statement->fetchColumn() === 1;
+}
+
+function ola_ensure_migration_ledger(PDO $pdo): void
+{
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS `' . OLA_MIGRATION_LEDGER . '` ('
+        . 'migration VARCHAR(190) NOT NULL PRIMARY KEY, '
+        . 'checksum CHAR(64) NOT NULL, '
+        . 'applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'
+        . ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+    );
+}
+
+function ola_migration_checksum(string $filename): string
+{
+    $path = __DIR__ . DIRECTORY_SEPARATOR . $filename;
+    if (!is_file($path) || !is_readable($path)) {
+        throw new RuntimeException('Migration source is unavailable: ' . $filename);
+    }
+    $checksum = hash_file('sha256', $path);
+    if ($checksum === false) {
+        throw new RuntimeException('Could not checksum migration source: ' . $filename);
+    }
+    return $checksum;
+}
+
+function ola_apply_migration(PDO $pdo, string $version, string $filename): void
+{
+    if ($version === '2026_11_27_preorder_requests' && $filename === 'migration_preorder_requests.sql') {
+        $sql = file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . $filename);
         if ($sql === false || trim($sql) === '') {
-            fail("Миграция пуста или недоступна: {$filename}");
+            throw new RuntimeException('Preorder migration file is empty or unreadable.');
         }
+        // CREATE TABLE IF NOT EXISTS is safe to retry; the helper reconciles legacy layouts.
+        $pdo->exec($sql);
+        require_once __DIR__ . '/../lib/preorder_requests.php';
+        ensure_preorder_requests_table($pdo);
+        return;
+    }
 
-        info("Применяю {$filename}...");
-        try {
-            // В текущем наборе каждый SQL-файл содержит одну DDL-операцию.
-            $pdo->exec($sql);
-            $statement = $pdo->prepare(
-                'INSERT INTO `' . MIGRATIONS_TABLE . '` (migration, checksum) VALUES (?, ?)'
-            );
-            $statement->execute([$filename, $migration['checksum']]);
-        } catch (Throwable $exception) {
-            fail("Миграция {$filename} завершилась ошибкой: {$exception->getMessage()}");
+    if ($version === '2026_11_27_preorder_archive' && $filename === 'migration_preorder_archive.sql') {
+        ola_ensure_preorder_archive_schema($pdo);
+        return;
+    }
+
+    throw new RuntimeException('Unknown production migration: ' . $version);
+}
+
+/** Apply archive DDL one item at a time so a partial failure can be retried safely. */
+function ola_ensure_preorder_archive_schema(PDO $pdo): void
+{
+    $columns = [
+        'is_archived' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'archived_at' => 'DATETIME DEFAULT NULL',
+        'archived_by' => 'INT UNSIGNED DEFAULT NULL',
+    ];
+    foreach ($columns as $name => $definition) {
+        $exists = $pdo->prepare(
+            'SELECT COUNT(*) FROM information_schema.columns '
+            . 'WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?'
+        );
+        $exists->execute(['preorder_requests', $name]);
+        if ((int)$exists->fetchColumn() === 0) {
+            $pdo->exec('ALTER TABLE `preorder_requests` ADD COLUMN `' . $name . '` ' . $definition);
         }
-        info("Готово: {$filename}");
+    }
+
+    $index = $pdo->prepare(
+        'SELECT COUNT(*) FROM information_schema.statistics '
+        . 'WHERE table_schema = DATABASE() AND table_name = ? AND index_name = ?'
+    );
+    $index->execute(['preorder_requests', 'idx_preorder_requests_archived_created']);
+    if ((int)$index->fetchColumn() === 0) {
+        $pdo->exec(
+            'ALTER TABLE `preorder_requests` ADD KEY `idx_preorder_requests_archived_created` '
+            . '(`is_archived`, `created_at`)'
+        );
+    }
+
+    $constraint = $pdo->prepare(
+        'SELECT COUNT(*) FROM information_schema.table_constraints '
+        . 'WHERE constraint_schema = DATABASE() AND table_name = ? '
+        . 'AND constraint_name = ? AND constraint_type = ?'
+    );
+    $constraint->execute(['preorder_requests', 'fk_preorder_requests_archived_admin', 'FOREIGN KEY']);
+    if ((int)$constraint->fetchColumn() === 0) {
+        $pdo->exec(
+            'ALTER TABLE `preorder_requests` ADD CONSTRAINT `fk_preorder_requests_archived_admin` '
+            . 'FOREIGN KEY (`archived_by`) REFERENCES `admin_users` (`id`) ON DELETE SET NULL'
+        );
     }
 }
 
-$mode = parseMode($argv);
-if ($mode === 'apply' && getenv('APP_ENV') !== 'production') {
-    fail('Для --apply необходимо явно установить APP_ENV=production.');
+function ola_cli_migration_mode(array $argv): string
+{
+    $mode = 'dry-run';
+    $seen = false;
+    foreach (array_slice($argv, 1) as $argument) {
+        if (!in_array($argument, ['--status', '--dry-run', '--apply'], true) || $seen) {
+            throw new InvalidArgumentException('Use exactly one of: --status, --dry-run, --apply.');
+        }
+        $mode = substr($argument, 2);
+        $seen = true;
+    }
+    return $mode;
 }
 
-$pdo = connect();
-$pdo->query("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE'");
-
-if ($mode === 'apply') {
-    acquireLock($pdo);
+function ola_run_migration_cli(array $argv): int
+{
+    try {
+        $mode = ola_cli_migration_mode($argv);
+        if ($mode === 'apply' && getenv('APP_ENV') !== 'production') {
+            throw new RuntimeException('Set APP_ENV=production before using --apply.');
+        }
+        $pdo = dev_db_connection();
+        if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'mysql') {
+            throw new RuntimeException('Production migrations require MySQL.');
+        }
+        $applied = ola_applied_migrations($pdo);
+        $pending = ola_pending_migrations($pdo);
+        foreach (OLA_MIGRATIONS as $version => $filename) {
+            echo isset($applied[$version]) ? '[applied] ' . $filename . PHP_EOL : '[pending] ' . $filename . PHP_EOL;
+        }
+        if ($mode === 'apply') {
+            $newlyApplied = ola_apply_production_migrations($pdo);
+            echo $newlyApplied ? 'Applied: ' . implode(', ', $newlyApplied) . PHP_EOL : 'All migrations already applied.' . PHP_EOL;
+        } elseif ($mode === 'dry-run') {
+            echo 'Dry-run only; no schema changes were made.' . PHP_EOL;
+        } elseif ($mode === 'status' && $pending === []) {
+            echo 'All migrations already applied.' . PHP_EOL;
+        }
+        return 0;
+    } catch (Throwable $exception) {
+        fwrite(STDERR, 'Migration error: ' . $exception->getMessage() . PHP_EOL);
+        return 1;
+    }
 }
 
-try {
-    $hasMigrationsTable = migrationsTableExists($pdo);
-    if ($mode === 'apply' && !$hasMigrationsTable) {
-        ensureMigrationsTable($pdo);
-        $hasMigrationsTable = true;
+// Refuse direct HTTP execution; the file may only be included by authenticated admin code.
+if (realpath((string)($_SERVER['SCRIPT_FILENAME'] ?? '')) === __FILE__) {
+    if (PHP_SAPI !== 'cli') {
+        http_response_code(404);
+        exit;
     }
-
-    $applied = $hasMigrationsTable ? appliedMigrations($pdo) : [];
-    $plan = migrationPlan($applied);
-    showPlan($applied, $plan, $mode);
-
-    if ($mode === 'apply' && $plan !== []) {
-        applyPlan($pdo, $plan);
-        info('Все ожидающие миграции успешно применены.');
-    }
-} finally {
-    if ($mode === 'apply') {
-        releaseLock($pdo);
-    }
+    exit(ola_run_migration_cli($argv ?? []));
 }

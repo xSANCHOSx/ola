@@ -68,6 +68,18 @@ final class PreorderRequestService
 
     private function findEligibleProduct(PDO $pdo, string $externalId): ?array
     {
+        if (preg_match('/^db:([1-9][0-9]*)$/', $externalId, $matches) === 1) {
+            $stmt = $pdo->prepare(
+                'SELECT id, external_id, name, cat_number
+                 FROM products
+                 WHERE id = :id AND is_visible = 1 AND status = "preorder"
+                 LIMIT 1'
+            );
+            $stmt->execute(['id' => $matches[1]]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $product ?: null;
+        }
+
         $stmt = $pdo->prepare(
             'SELECT id, external_id, name, cat_number
              FROM products

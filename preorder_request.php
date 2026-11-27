@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/app/DTO/PreorderRequestData.php';
+require_once __DIR__ . '/app/Service/PreorderRequestService.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -58,84 +60,18 @@ if (!check_rate_limit('preorder-phone:' . hash('sha256', $normalizedPhone), 3, 3
 }
 
 try {
-    $pdo = dev_db_connection();
-    $productStmt = $pdo->prepare(
-        'SELECT id, external_id, name, cat_number
-         FROM products
-         WHERE external_id = :external_id AND is_visible = 1 AND status = "preorder"
-         LIMIT 1'
+    $service = new PreorderRequestService();
+    $result = $service->create(
+        dev_db_connection(),
+        new PreorderRequestData($productExternalId, $name, $normalizedPhone, $email)
     );
-    $productStmt->execute(['external_id' => $productExternalId]);
-    $product = $productStmt->fetch(PDO::FETCH_ASSOC);
-    if (!$product) {
-        preorder_response(['success' => false, 'message' => 'Товар больше недоступен для заявки.'], 404);
-    }
-
-    $duplicateStmt = $pdo->prepare(
-        'SELECT id
-         FROM preorder_requests
-         WHERE product_external_id = :product_external_id
-           AND customer_phone = :customer_phone
-           AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-         ORDER BY id DESC
-         LIMIT 1'
-    );
-    $duplicateStmt->execute([
-        'product_external_id' => (string)$product['external_id'],
-        'customer_phone' => $normalizedPhone,
+    preorder_response([
+        'success' => true,
+        'message' => 'Заявка отправлена. Мы свяжемся с вами.',
+        'request_id' => $result['request_id'],
     ]);
-    $duplicateId = $duplicateStmt->fetchColumn();
-    if ($duplicateId !== false) {
-        preorder_response(['success' => false, 'message' => 'Такая заявка уже была отправлена. Мы свяжемся с вами.'], 409);
-    }
-
-    $insert = $pdo->prepare(
-        'INSERT INTO preorder_requests
-            (product_id, product_external_id, product_name_snapshot, product_cat_number_snapshot,
-             customer_name, customer_phone, customer_email)
-         VALUES
-            (:product_id, :product_external_id, :product_name_snapshot, :product_cat_number_snapshot,
-             :customer_name, :customer_phone, :customer_email)'
-    );
-    $insert->execute([
-        'product_id' => (int)$product['id'],
-        'product_external_id' => (string)$product['external_id'],
-        'product_name_snapshot' => (string)$product['name'],
-        'product_cat_number_snapshot' => $product['cat_number'] !== null ? (string)$product['cat_number'] : null,
-        'customer_name' => $name,
-        'customer_phone' => $normalizedPhone,
-        'customer_email' => $email !== '' ? $email : null,
-    ]);
-    $requestId = (int)$pdo->lastInsertId();
-
-    $recipients = trim((string)(dev_app_config()['order_notification_emails'] ?? ''));
-    $subject = 'Заявка «Под заказ» #' . $requestId . ' — ' . (string)$product['name'];
-    $html = '<h2>Новая заявка «Под заказ»</h2>'
-        . '<p><strong>Заявка:</strong> #' . $requestId . '</p>'
-        . '<p><strong>Товар:</strong> ' . htmlspecialchars((string)$product['name'], ENT_QUOTES, 'UTF-8') . '</p>'
-        . '<p><strong>Артикул:</strong> ' . htmlspecialchars((string)($product['cat_number'] ?? '—'), ENT_QUOTES, 'UTF-8') . '</p>'
-        . '<p><strong>Имя:</strong> ' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</p>'
-        . '<p><strong>Телефон:</strong> ' . htmlspecialchars($normalizedPhone, ENT_QUOTES, 'UTF-8') . '</p>'
-        . '<p><strong>Email:</strong> ' . htmlspecialchars($email !== '' ? $email : 'не указан', ENT_QUOTES, 'UTF-8') . '</p>';
-    $headers = implode("\r\n", [
-        'From: no-reply@' . site_domain(),
-        'Reply-To: no-reply@' . site_domain(),
-        'MIME-Version: 1.0',
-        'Content-Type: text/html; charset=UTF-8',
-    ]) . "\r\n";
-    $emailSent = false;
-    if ($recipients !== '') {
-        try {
-            $emailSent = mail($recipients, $subject, $html, $headers);
-        } catch (Throwable $e) {
-            dev_log_runtime('Preorder email failed: ' . $e->getMessage());
-        }
-    } else {
-        dev_log_runtime('Preorder email skipped: ORDER_NOTIFY_EMAILS is empty.');
-    }
-
-    dev_log_runtime('Preorder request created: #' . $requestId . '; email=' . ($emailSent ? '1' : '0'));
-    preorder_response(['success' => true, 'message' => 'Заявка отправлена. Мы свяжемся с вами.', 'request_id' => $requestId]);
+} catch (PreorderRequestException $e) {
+    preorder_response(['success' => false, 'message' => $e->getMessage()], $e->httpStatus());
 } catch (Throwable $e) {
     dev_log_runtime('Preorder request failed: ' . $e->getMessage());
     preorder_response(['success' => false, 'message' => 'Не удалось отправить заявку. Попробуйте ещё раз.'], 500);

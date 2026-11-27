@@ -1515,6 +1515,8 @@ section.slider {
 .preorder-modal label small { color: #837876; }
 .preorder-modal input { border: 1px solid #ddd2cf; box-sizing: border-box; display: block; font: inherit; margin-top: 6px; padding: 11px 12px; width: 100%; }
 .preorder-modal input[readonly] { background: #f7f4f3; color: #5d5553; cursor: default; }
+.preorder-modal input[aria-invalid="true"] { border-color: #a12e45; }
+.preorder-field-error { color: #a12e45; display: block; font-size: 12px; margin-top: 4px; }
 .preorder-modal .preorder-honeypot { height: 1px; left: -10000px; opacity: 0; position: absolute; width: 1px; }
 .preorder-form__error { color: #a12e45; font-size: 13px; margin: 8px 0 12px; }
 .preorder-form__success { color: #4f7a4b; font-weight: 600; margin: 12px 0 0; }
